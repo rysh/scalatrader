@@ -6,18 +6,17 @@ var pubnub = new PubNub({
     subscribeKey: 'sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f'
 });
 
-var now = function () {
-	return moment().format("YYYY/MM/DD/HH/mm");
+var now = function (timestamp) {
+	return moment(timestamp).format("YYYY/MM/DD/HH/mm");
 }
 
 var lacking = true;
-var lastTime;
-var pool;
-var init = function () {
+var lastTime = '';
+var pool = new Array();
+var init = function (timestamp) {
 	pool = new Array();
-	lastTime = now();
+	lastTime = now(timestamp);
 }
-init();
 
 pubnub.addListener({
     message: function (message) {
@@ -33,10 +32,9 @@ pubnub.addListener({
         	msg.total_ask_depth,
         	msg.ltp,msg.volume,
         	msg.volume_by_product).join(','));
-    	if (lastTime != now()) {
+    	if (lastTime != now(msg.timestamp)) {
     		store(lastTime, pool);
-        	console.log(lastTime);
-        	init();
+        	init(msg.timestamp);
     	}
     }
 });
