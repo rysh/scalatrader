@@ -11,7 +11,7 @@ var formatTimestamp = function (timestamp) {
 }
 
 var lacking = true;
-var lastTime = formatTimestamp('');
+var lastTime;
 var pool = new Array();
 var init = function (time) {
 	pool = new Array();
@@ -22,6 +22,9 @@ pubnub.addListener({
     message: function (message) {
     	var msg = message.message;
         var msgTime = formatTimestamp(msg.timestamp);
+        if (!lastTime) {
+            lastTime = msgTime;
+        }
         pool.push(new Array(
         	msg.timestamp,
         	msg.tick_id,
