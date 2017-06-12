@@ -6,21 +6,22 @@ var pubnub = new PubNub({
     subscribeKey: 'sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f'
 });
 
-var now = function (timestamp) {
+var formatTimestamp = function (timestamp) {
 	return moment(timestamp).format("YYYY/MM/DD/HH/mm");
 }
 
 var lacking = true;
-var lastTime = '';
+var lastTime = formatTimestamp('');
 var pool = new Array();
-var init = function (timestamp) {
+var init = function (time) {
 	pool = new Array();
-	lastTime = now(timestamp);
+	lastTime = time;
 }
 
 pubnub.addListener({
     message: function (message) {
     	var msg = message.message;
+        var msgTime = formatTimestamp(msg.timestamp);
         pool.push(new Array(
         	msg.timestamp,
         	msg.tick_id,
@@ -32,9 +33,10 @@ pubnub.addListener({
         	msg.total_ask_depth,
         	msg.ltp,msg.volume,
         	msg.volume_by_product).join(','));
-    	if (lastTime != now(msg.timestamp)) {
+    	if (lastTime != msgTime) {
     		store(lastTime, pool);
-        	init(msg.timestamp);
+            lacking = false;
+        	init(msgTime);
     	}
     }
 });
@@ -48,7 +50,6 @@ var store = function (name, data) {
 	s3.upload(params, function(err, data) {
 	  console.log(err, data);
 	});
-	lacking = false;
 }
 
 pubnub.subscribe({
