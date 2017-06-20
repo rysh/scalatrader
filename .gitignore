@@ -5,9 +5,9 @@ bin/
 /lib/
 /logs/
 /modules
-/project/project
-/project/target
-/target
+project/project
+project/target
+target
 tmp/
 test-result
 server.pid
