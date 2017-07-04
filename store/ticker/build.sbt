@@ -1,5 +1,8 @@
 import Dependencies._
 
+libraryDependencies += "com.pubnub" % "pubnub-gson" % "4.6.5"
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.4"
+
 lazy val root = (project in file("."))
 	.enablePlugins(JavaAppPackaging, AshScriptPlugin, sbtdocker.DockerPlugin)
 	.settings(
