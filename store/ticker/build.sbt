@@ -3,6 +3,16 @@ import Dependencies._
 libraryDependencies += "com.pubnub" % "pubnub-gson" % "4.6.5"
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.4"
 
+libraryDependencies += "org.scalamacros" % "paradise_2.12.2" % "2.1.0"
+val circeVersion = "0.8.0"
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-generic-extras",
+  "io.circe" %% "circe-parser"
+).map(_ % circeVersion)
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
 lazy val root = (project in file("."))
 	.enablePlugins(JavaAppPackaging, AshScriptPlugin, sbtdocker.DockerPlugin)
 	.settings(
@@ -31,5 +41,3 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies += scalaTest % Test
   )
-
-    
