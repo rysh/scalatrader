@@ -1,7 +1,6 @@
 package example
 
-object Main extends Greeting with App {
-  println(greeting)
+object Main extends App {
 
   import com.pubnub.api.PNConfiguration
   import com.pubnub.api.PubNub
@@ -35,6 +34,3 @@ object Main extends Greeting with App {
   pubnub.subscribe.channels(util.Arrays.asList("lightning_ticker_FX_BTC_JPY")).execute()
 }
 
-trait Greeting {
-  lazy val greeting: String = "hello"
-}
