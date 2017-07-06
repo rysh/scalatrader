@@ -1,8 +1,7 @@
-package adapter.model
-
+package adapter.bitflyer.model
 
 object BitFlyer {
-  import io.circe.generic.extras._, io.circe.syntax._
+  import io.circe.generic.extras._
   implicit val config: Configuration = Configuration.default.withSnakeCaseKeys
 
   @ConfiguredJsonCodec
