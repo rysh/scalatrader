@@ -12,7 +12,7 @@ import com.pubnub.api.models.consumer.pubsub.{PNMessageResult, PNPresenceEventRe
 class TickerCallback(processor: Store) extends SubscribeCallback {
   override def message(pubnub: PubNub, message: PNMessageResult): Unit = {
     val json = message.getMessage
-    processor.store(json)
+    processor.keep(json)
   }
 
 

@@ -2,6 +2,8 @@ import Dependencies._
 
 libraryDependencies += "com.pubnub" % "pubnub-gson" % "4.6.5"
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.4"
+libraryDependencies += "com.amazonaws" % "aws-java-sdk" % "1.11.158"
+libraryDependencies += "com.github.pathikrit" % "better-files_2.12" % "3.0.0"
 
 libraryDependencies += "org.scalamacros" % "paradise_2.12.2" % "2.1.0"
 val circeVersion = "0.8.0"

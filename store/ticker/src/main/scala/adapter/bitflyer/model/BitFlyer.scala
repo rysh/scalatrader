@@ -1,22 +1,20 @@
 package adapter.bitflyer.model
 
-object BitFlyer {
-  import io.circe.generic.extras._
-  implicit val config: Configuration = Configuration.default.withSnakeCaseKeys
 
-  @ConfiguredJsonCodec
+object BitFlyer {
+
   case class TickerInfo(
     productCode:String,
     timestamp:String,
     tickId:Int,
-    bestBid:BigDecimal,
-    bestAsk:BigDecimal,
-    bestBidSize:BigDecimal,
-    bestAskSize:BigDecimal,
-    totalBidDepth: BigDecimal,
-    totalAskDepth:BigDecimal,
-    ltp:BigDecimal,
-    volume:BigDecimal,
-    volume_by_product:BigDecimal)
+    bestBid:Double,
+    bestAsk:Double,
+    bestBidSize:Double,
+    bestAskSize:Double,
+    totalBidDepth: Double,
+    totalAskDepth:Double,
+    ltp:Double,
+    volume:Double,
+    volume_by_product:Double)
 
 }
