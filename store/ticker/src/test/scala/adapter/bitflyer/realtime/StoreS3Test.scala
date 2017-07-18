@@ -15,7 +15,7 @@ import io.circe.JsonObject
   */
 class StoreS3Test extends FunSuite with BeforeAndAfterAll {
 
-  val s3 = new StoreS3()
+  val s3 = new StoreS3("btcfx-ticker-scala-test")
   val now = Time.of(2017,7,12,4,30,14,11, ZoneId.of("UTC"))
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create

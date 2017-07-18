@@ -1,15 +1,16 @@
-package adapter.bitflyer.realtime
+package adapter.local
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneId, ZonedDateTime}
 
+import adapter.bitflyer.realtime.Store
 import better.files.File
 import com.google.gson.JsonElement
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
-class StoreS3(bucketName: String) extends Store with UploadS3 {
+class StoreLocal(bucketName: String) extends Store {
   val file = fileOfTime()
   val time = ZonedDateTime.now(ZoneId.of("UTC"))
 
@@ -21,12 +22,8 @@ class StoreS3(bucketName: String) extends Store with UploadS3 {
     if (???) {
       return Left()
     }
-
-    val keyName = pathForS3(time)
-    upload(bucketName, keyName, file)
-    file.delete()
-    Right(new StoreS3(bucketName))
-
+    println("no upload and no delete")
+    Right(new StoreLocal(bucketName))
   }
 
   def write(file:File, json: JsonElement): Unit ={

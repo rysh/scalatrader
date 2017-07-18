@@ -1,18 +1,21 @@
 package adapter.aws
 
-import com.amazonaws.client.builder.AwsClientBuilder
+import better.files.File
 import com.amazonaws.regions.Regions
+import com.amazonaws.services.s3.model.{Bucket, PutObjectRequest, PutObjectResult}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
-import com.amazonaws.services.s3.model.Bucket
 
 import scala.collection.JavaConverters
 
-/**
-  * Created by ryuhei.ishibashi on 2017/07/11.
-  */
+object MyS3 {
+  val region = Regions.US_WEST_1
+  def create(): MyS3 = {
+    new MyS3(region)
+  }
+}
+
 class MyS3(region: Regions) {
-  val conf = new AwsClientBuilder.EndpointConfiguration("https://s3-us-west-1.amazonaws.com",region.getName)
-  val s3: AmazonS3 = AmazonS3ClientBuilder.standard().withEndpointConfiguration(conf).build()
+  val s3: AmazonS3 = AmazonS3ClientBuilder.standard().withRegion(region).build()
 
   def listBuckets(): Iterable[Bucket] = {
     JavaConverters.collectionAsScalaIterable(s3.listBuckets())
@@ -30,20 +33,26 @@ class MyS3(region: Regions) {
         case Some(bucket) => Right(bucket)
         case None => Right(s3.createBucket(name))
       }
+    } catch {case e: Exception => Left(e)}
+  }
+
+  def deleteBucket(bucketName : String): Either[Exception, Unit] = {
+    try {
+      deleteObjectsIn(bucketName)
+      s3.deleteBucket(bucketName)
+      Right()
     } catch {
       case e: Exception => Left(e)
     }
   }
 
-  def deleteBucket(name : String): Unit = {
-    s3.deleteBucket(name)
-  }
+  private def deleteObjectsIn(bucketName: String) = s3.listObjects(bucketName).getObjectSummaries()
+      .forEach(s => s3.deleteObject(bucketName, s.getKey))
 
-}
 
-object MyS3 {
-  val region = Regions.US_WEST_1
-  def create(): MyS3 = {
-    new MyS3(region)
+  def upload(bucketName:String, keyName: String, file: File): Either[Exception, PutObjectResult] = {
+    try {
+      Right(s3.putObject(new PutObjectRequest(bucketName, keyName, file.toJava)))
+    } catch {case e: Exception => Left(e)}
   }
 }

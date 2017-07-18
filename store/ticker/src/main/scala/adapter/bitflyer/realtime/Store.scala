@@ -7,5 +7,5 @@ import com.google.gson.JsonElement
   */
 trait Store {
   def keep(json : JsonElement) : Unit
-  def store(): Unit
+  def store(): Either[Unit, Store]
 }

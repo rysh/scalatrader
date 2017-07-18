@@ -10,5 +10,5 @@ object PeerConsole extends Store {
     println(json)
   }
 
-  override def store(): Unit = ???
+  override def store(): Either[Unit, Store] = Left()
 }
