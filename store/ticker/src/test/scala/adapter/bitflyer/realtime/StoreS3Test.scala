@@ -1,14 +1,10 @@
 package adapter.bitflyer.realtime
 
-import java.time.{LocalDateTime, ZoneId}
-
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSuite}
-import java.time.ZoneId
-import java.time.{ZonedDateTime => Time}
+import java.time.{ZoneId, ZonedDateTime => Time}
 
 import better.files.File
-import com.google.gson.{FieldNamingPolicy, Gson, GsonBuilder, JsonElement}
-import io.circe.JsonObject
+import com.google.gson.{FieldNamingPolicy, GsonBuilder}
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/12.
@@ -36,6 +32,9 @@ class StoreS3Test extends FunSuite with BeforeAndAfterAll {
   test("testStore") {
     s3.write(dummyFile, gson.toJsonTree(sample.tickerInfo()))
     assert(dummyFile.lines.mkString("").contains(sample.jsonString))
+  }
+  test("pathの更新とデータの永続化") {
+    ???
   }
 
 }
