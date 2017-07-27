@@ -1,8 +1,5 @@
 package adapter.local
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 import adapter.Store
 import better.files.File
 import com.google.gson.JsonElement
@@ -13,9 +10,10 @@ import domain.TimeKeeper
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
 class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) extends Store(tk) {
+  val suffixPattern = "yyyy_MM_dd_HH_mm"
 
   /** インスタンス生成したときにファイルを作成する */
-  lazy val fileName = localName(timeKeeper.time)
+  lazy val fileName = localName(timeKeeper)
   println(fileName)
   private lazy val file = fileOfTime()
 
@@ -47,8 +45,7 @@ class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) exte
     File(fileName).createIfNotExists()
   }
 
-  private def localName(now: LocalDateTime):String =  fileNamePrefix + now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm"))
-
+  private def localName(tk: TimeKeeper): String = "%s-%s".format(fileNamePrefix, tk.format(suffixPattern))
 
 
 }

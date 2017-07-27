@@ -1,18 +1,19 @@
 package adapter.aws
 
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.{ZoneId, ZonedDateTime}
 
 import adapter.Store
 import better.files.File
 import com.google.gson.JsonElement
+import domain.TimeKeeper
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
 class S3Store(bucketName: String) extends Store with UploadS3 {
   val file = fileOfTime()
-  val time = ZonedDateTime.now(ZoneId.of("UTC"))
+  val time = TimeKeeper.now()
 
   override def store(json: JsonElement): Unit = {
     writeJson(file, json)
@@ -38,7 +39,7 @@ class S3Store(bucketName: String) extends Store with UploadS3 {
 
   def fileOfTime(): File = {
     import better.files._
-    File(localName(ZonedDateTime.now(ZoneId.of("UTC")))).createIfNotExists()
+    File(localName(TimeKeeper.now())).createIfNotExists()
   }
 
   def localName(now: ZonedDateTime):String = {
