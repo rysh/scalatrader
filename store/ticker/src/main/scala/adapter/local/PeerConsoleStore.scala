@@ -1,11 +1,12 @@
-package adapter.bitflyer.realtime
+package adapter.local
 
+import adapter.Store
 import com.google.gson.JsonElement
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
-object PeerConsole extends Store {
+object PeerConsoleStore extends Store {
   override def keep(json: JsonElement): Unit = {
     println(json)
   }

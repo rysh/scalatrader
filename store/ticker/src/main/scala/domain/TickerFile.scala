@@ -1,7 +1,7 @@
-package adapter.bitflyer.realtime
+package domain
 
-import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{ZoneId, ZonedDateTime}
 
 import better.files.File
 

@@ -2,6 +2,7 @@ package adapter.bitflyer.realtime
 
 import java.time.{ZoneId, ZonedDateTime => Time}
 
+import adapter.aws.S3Store
 import better.files.File
 import com.google.gson.{FieldNamingPolicy, GsonBuilder}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
@@ -9,9 +10,9 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 /**
   * Created by ryuhei.ishibashi on 2017/07/12.
   */
-class StoreS3Test extends FunSuite with BeforeAndAfterAll {
+class S3StoreTest extends FunSuite with BeforeAndAfterAll {
 
-  val s3 = new StoreS3("btcfx-ticker-scala-test")
+  val s3 = new S3Store("btcfx-ticker-scala-test")
   val now = Time.of(2017,7,12,4,30,14,11, ZoneId.of("UTC"))
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
@@ -34,7 +35,6 @@ class StoreS3Test extends FunSuite with BeforeAndAfterAll {
     assert(dummyFile.lines.mkString("").contains(sample.jsonString))
   }
   test("pathの更新とデータの永続化") {
-    ???
+    ??? //TODO
   }
-
 }

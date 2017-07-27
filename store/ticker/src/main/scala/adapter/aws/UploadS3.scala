@@ -1,4 +1,4 @@
-package adapter.bitflyer.realtime
+package adapter.aws
 
 import better.files.File
 import com.amazonaws.AmazonServiceException

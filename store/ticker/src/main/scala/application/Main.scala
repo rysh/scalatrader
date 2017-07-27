@@ -1,6 +1,7 @@
 package application
 
-import adapter.bitflyer.realtime.{PubNubReceiver, StoreS3, TickerCallback}
+import adapter.bitflyer.realtime.{PubNubReceiver, TickerCallback}
+import adapter.local.LocalStore
 
 object Main extends App {
 
@@ -10,8 +11,7 @@ object Main extends App {
 
   Validations.bucketExists(bucketName)
 
-  PubNubReceiver.start(code, key, new TickerCallback(new StoreS3(bucketName)))
-  PubNubReceiver.start(code, key, new TickerCallback(new StoreS3(bucketName)))
+  PubNubReceiver.start(code, key, new TickerCallback(new LocalStore(bucketName)))
 
 }
 

@@ -1,6 +1,6 @@
 package adapter.bitflyer.realtime
 
-import com.google.gson.JsonElement
+import adapter.Store
 import com.pubnub.api.PubNub
 import com.pubnub.api.callbacks.SubscribeCallback
 import com.pubnub.api.models.consumer.PNStatus
