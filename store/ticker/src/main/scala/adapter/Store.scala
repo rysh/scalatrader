@@ -12,19 +12,19 @@ abstract class Store(
   tk: TimeKeeper = new TimeKeeper(1)
 ) {
   var timeKeeper: TimeKeeper = tk
-  println(s"Store constructor : ${timeKeeper.time}" )
+
   /**
     * 受信したデータをメモリ上に保持
     * @param json
     */
-  def keep(json : JsonElement) : Unit
+  def store(json : JsonElement) : Unit
 
   /**
     * left: Unit 何もしない
     * right: Store 別名保存用の新しいStoreを生成
     * @return
     */
-  def store(): Either[Unit, Store]
+  def write(): Either[Unit, Store]
 }
 
 object Store {

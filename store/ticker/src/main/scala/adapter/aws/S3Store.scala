@@ -14,11 +14,11 @@ class S3Store(bucketName: String) extends Store with UploadS3 {
   val file = fileOfTime()
   val time = ZonedDateTime.now(ZoneId.of("UTC"))
 
-  override def keep(json: JsonElement): Unit = {
-    write(file, json)
+  override def store(json: JsonElement): Unit = {
+    writeJson(file, json)
   }
 
-  override def store(): Either[Unit, Store] = {
+  override def write(): Either[Unit, Store] = {
     if (!timeKeeper.nowElapsed) {
       return Left()
     }
@@ -31,7 +31,7 @@ class S3Store(bucketName: String) extends Store with UploadS3 {
 
   }
 
-  def write(file:File, json: JsonElement): Unit ={
+  def writeJson(file:File, json: JsonElement): Unit ={
     import better.files.Dsl.SymbolicOperations
     file << json.toString
   }

@@ -16,19 +16,18 @@ class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) exte
 
   /** インスタンス生成したときにファイルを作成する */
   lazy val fileName = localName(timeKeeper.time)
+  println(fileName)
   private lazy val file = fileOfTime()
 
-  override def keep(json: JsonElement): Unit = {
+  override def store(json: JsonElement): Unit = {
     writeJson(json)
   }
 
-  override def store(): Either[Unit, Store] = {
+  override def write(): Either[Unit, Store] = {
     if (!timeKeeper.nowElapsed) {
       return Left()
     }
-    timeKeeper = timeKeeper.next
-    println("no upload and no delete")
-    Right(new LocalStore(fileNamePrefix))
+    Right(new LocalStore(fileNamePrefix, timeKeeper.next))
   }
 
 

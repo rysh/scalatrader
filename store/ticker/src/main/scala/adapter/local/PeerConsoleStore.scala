@@ -7,9 +7,9 @@ import com.google.gson.JsonElement
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
 object PeerConsoleStore extends Store {
-  override def keep(json: JsonElement): Unit = {
+  override def store(json: JsonElement): Unit = {
     println(json)
   }
 
-  override def store(): Either[Unit, Store] = Left()
+  override def write(): Either[Unit, Store] = Left()
 }

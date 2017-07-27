@@ -19,7 +19,6 @@ class LocalStoreTest extends FunSuite with BeforeAndAfterAll {
   override def afterAll() = testing.delete()
 
   test("test create & delete") {
-    println("checkpoint 2")
     val st = new LocalStore("LocalStoreTestDummy2File")
     assert(st.exists === true)
     st.delete
@@ -40,8 +39,7 @@ class LocalStoreTest extends FunSuite with BeforeAndAfterAll {
   }
 
   test("testStore") {
-    println("checkpoint 3")
-    testing.store() match {
+    testing.write() match {
       case Right(newStore) => assert(newStore !== testing)
       case Left(_) => fail()
     }
