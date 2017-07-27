@@ -1,7 +1,7 @@
 package application
 
+import adapter.aws.S3Store
 import adapter.bitflyer.realtime.{PubNubReceiver, TickerCallback}
-import adapter.local.LocalStore
 
 object Main extends App {
 
@@ -11,7 +11,7 @@ object Main extends App {
 
   Validations.bucketExists(bucketName)
 
-  PubNubReceiver.start(code, key, new TickerCallback(new LocalStore(bucketName)))
+  PubNubReceiver.start(code, key, new TickerCallback(new S3Store(bucketName)))
 
 }
 

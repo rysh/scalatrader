@@ -9,9 +9,8 @@ import domain.TimeKeeper
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
 abstract class Store(
-  tk: TimeKeeper = new TimeKeeper(1)
+  val timeKeeper: TimeKeeper = TimeKeeper.default()
 ) {
-  var timeKeeper: TimeKeeper = tk
 
   /**
     * 受信したデータをメモリ上に保持

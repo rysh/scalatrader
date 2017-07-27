@@ -1,40 +1,32 @@
-package adapter.bitflyer.realtime
+package adapter.aws
 
-import java.time.{ZoneId, ZonedDateTime => Time}
+import java.time.{ZonedDateTime => Time}
 
-import adapter.aws.S3Store
-import better.files.File
+import adapter.bitflyer.realtime.TestData
 import com.google.gson.{FieldNamingPolicy, GsonBuilder}
+import domain.TimeKeeper
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import testutil.TimeTestHelper
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/12.
   */
 class S3StoreTest extends FunSuite with BeforeAndAfterAll {
 
-  val s3Store: S3Store = new S3Store("btcfx-ticker-scala-test")
-  val now = Time.of(2017,7,12,4,30,14,11, ZoneId.of("UTC"))
+  val now = TimeTestHelper.of(2017, 7, 12, 4, 30, 14, 11)
+  val s3Store: S3Store = new S3Store("btcfx-ticker-scala-test", new TimeKeeper(1, now))
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
 
-  val dummyFile = File("hoge").createIfNotExists()
-
-  override def afterAll() = dummyFile.delete()
-
-
-  test("testFileNameFromNow") {
-    assert(s3Store.localName(now) == "2017_07_12_04_30")
-  }
+  override def afterAll() = s3Store.delete()
 
   test("testPathForS3") {
-    assert(s3Store.pathForS3(now) == "2017/07/12/04/30")
+    assert(s3Store.pathForS3() == "2017/07/12/04/30")
   }
 
   test("testStore") {
-    s3Store.writeJson(dummyFile, gson.toJsonTree(sample.tickerInfo()))
-    assert(dummyFile.lines.mkString("").contains(sample.jsonString))
+    s3Store.writeJson(gson.toJsonTree(sample.tickerInfo()))
+    assert(s3Store.lines.mkString("").contains(sample.jsonString))
   }
-  test("pathの更新とデータの永続化") {
-    ??? //TODO
-  }
+
 }

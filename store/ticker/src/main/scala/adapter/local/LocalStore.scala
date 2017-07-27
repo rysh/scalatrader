@@ -1,7 +1,6 @@
 package adapter.local
 
 import adapter.Store
-import better.files.File
 import com.google.gson.JsonElement
 import domain.TimeKeeper
 
@@ -9,13 +8,17 @@ import domain.TimeKeeper
   *
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
-class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) extends Store(tk) {
+class LocalStore(
+  val fileNamePrefix: String,
+  override val timeKeeper:TimeKeeper = TimeKeeper.default()
+) extends Store(timeKeeper) {
+
   val suffixPattern = "yyyy_MM_dd_HH_mm"
 
   /** インスタンス生成したときにファイルを作成する */
-  lazy val fileName = localName(timeKeeper)
-  println(fileName)
-  private lazy val file = fileOfTime()
+  lazy val fileName = "%s-%s".format(fileNamePrefix, timeKeeper.format(suffixPattern))
+  lazy val file = better.files.File(fileName).createIfNotExists()
+
 
   override def store(json: JsonElement): Unit = {
     writeJson(json)
@@ -28,24 +31,11 @@ class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) exte
     Right(new LocalStore(fileNamePrefix, timeKeeper.next))
   }
 
+  def writeJson(json: JsonElement): Unit = file.appendLines(json.toString)
 
-  // TODO 中身がから
-  def writeJson(json: JsonElement): Unit ={
-    import better.files.Dsl.SymbolicOperations
-    file << json.toString
-  }
   def lines(): Traversable[String] = file.lines;
 
   def delete(): Either[Exception, Unit] = try { Right(file.delete()) } catch {case e:Exception => Left(e)}
   def exists(): Boolean = file.exists
-
-
-  private def fileOfTime(): File = {
-    import better.files._
-    File(fileName).createIfNotExists()
-  }
-
-  private def localName(tk: TimeKeeper): String = "%s-%s".format(fileNamePrefix, tk.format(suffixPattern))
-
 
 }
