@@ -47,7 +47,7 @@ class LocalStore(fileNamePrefix: String, tk:TimeKeeper = new TimeKeeper(1)) exte
     File(fileName).createIfNotExists()
   }
 
-  private def localName(now: LocalDateTime):String =  fileNamePrefix + now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_hh_mm"))
+  private def localName(now: LocalDateTime):String =  fileNamePrefix + now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm"))
 
 
 
