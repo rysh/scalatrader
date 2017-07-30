@@ -3,6 +3,7 @@ package adapter.aws
 import java.time.{ZonedDateTime => Time}
 
 import adapter.bitflyer.realtime.TestData
+import application.Validations
 import com.google.gson.{FieldNamingPolicy, GsonBuilder}
 import domain.TimeKeeper
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
@@ -18,13 +19,11 @@ class S3StoreTest extends FunSuite with BeforeAndAfterAll {
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
 
+  override def beforeAll() = Validations.workingDirectoryExisits
   override def afterAll() = s3Store.delete()
 
-  test("testPathForS3") {
-    assert(s3Store.pathForS3() == "2017/07/12/04/30")
-  }
-
   test("testStore") {
+
     s3Store.writeJson(gson.toJsonTree(sample.tickerInfo()))
     assert(s3Store.lines.mkString("").contains(sample.jsonString))
   }

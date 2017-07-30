@@ -2,7 +2,7 @@ package adapter.aws
 
 import adapter.Store
 import adapter.local.LocalStore
-import domain.TimeKeeper
+import domain.{NamingRule, TimeKeeper}
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/06.
@@ -10,7 +10,7 @@ import domain.TimeKeeper
 class S3Store(
    val bucketName: String,
    override val timeKeeper:TimeKeeper = TimeKeeper.default()
-) extends LocalStore("tmp_ticker", timeKeeper) {
+) extends LocalStore(timeKeeper = timeKeeper) {
 
   override def write(): Either[Unit, Store] = {
     if (!timeKeeper.nowElapsed) {
@@ -18,11 +18,10 @@ class S3Store(
     }
 
     // 1分に1回なので都度コネクション生成でよい
-    MyS3.create().upload(bucketName, pathForS3(), file)
+    MyS3.create().upload(bucketName, NamingRule.s3Path(timeKeeper), file)
     delete()
     Right(new S3Store(bucketName, timeKeeper.next))
   }
 
-  def pathForS3():String = timeKeeper.format("yyyy/MM/dd/hh/mm")
 
 }

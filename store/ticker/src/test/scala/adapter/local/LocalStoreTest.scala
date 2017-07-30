@@ -3,6 +3,7 @@ package adapter.local
 import java.time.{ZoneId, ZonedDateTime => Time}
 
 import adapter.bitflyer.realtime.TestData
+import application.Validations
 import com.google.gson.{FieldNamingPolicy, GsonBuilder}
 import domain.TimeKeeper
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
@@ -15,7 +16,7 @@ class LocalStoreTest extends FunSuite with BeforeAndAfterAll {
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
   val testing: LocalStore = new LocalStore("LocalStoreTestDummyFile", new TimeKeeper(1, TimeTestHelper.of(2017, 5, 5, 0, 0, 0, 0)))
 
-  override def beforeAll() = {}
+  override def beforeAll() = Validations.workingDirectoryExisits
   override def afterAll() = testing.delete()
 
   test("test create & delete") {
