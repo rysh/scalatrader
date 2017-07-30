@@ -10,6 +10,7 @@ object Main extends App {
   val key =  "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
 
   Validations.bucketExists(bucketName)
+  Validations.workingDirectoryExisits
 
   PubNubReceiver.start(code, key, new TickerCallback(new S3Store(bucketName)))
 
