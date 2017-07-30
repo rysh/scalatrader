@@ -20,10 +20,6 @@ class S3StoreTest extends FunSuite with BeforeAndAfterAll {
 
   override def afterAll() = s3Store.delete()
 
-  test("testPathForS3") {
-    assert(s3Store.pathForS3() == "2017/07/12/04/30")
-  }
-
   test("testStore") {
     s3Store.writeJson(gson.toJsonTree(sample.tickerInfo()))
     assert(s3Store.lines.mkString("").contains(sample.jsonString))

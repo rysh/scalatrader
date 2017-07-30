@@ -2,21 +2,20 @@ package adapter.local
 
 import adapter.Store
 import com.google.gson.JsonElement
-import domain.TimeKeeper
+import domain.{NamingRule, TimeKeeper}
 
 /**
   *
   * Created by ryuhei.ishibashi on 2017/07/06.
   */
 class LocalStore(
-  val fileNamePrefix: String,
+  val fileNamePrefix: String = "tmp",
   override val timeKeeper:TimeKeeper = TimeKeeper.default()
 ) extends Store(timeKeeper) {
 
-  val suffixPattern = "yyyy_MM_dd_HH_mm"
-
   /** インスタンス生成したときにファイルを作成する */
-  lazy val fileName = "%s-%s".format(fileNamePrefix, timeKeeper.format(suffixPattern))
+
+  lazy val fileName = NamingRule.path(timeKeeper)
   lazy val file = better.files.File(fileName).createIfNotExists()
 
 
