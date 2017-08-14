@@ -19,5 +19,6 @@ libraryDependencies ++= Seq(
 ).map(_ % circeVersion)
 
 libraryDependencies += "org.skinny-framework" %% "skinny-http-client" % "2.3.7"
+libraryDependencies += "org.scalaz" % "scalaz_2.12" % "7.3.0-M14"
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
