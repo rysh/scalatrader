@@ -1,31 +1,47 @@
 package com.rysh.experiment
 
-import com.rysh.experiment.adapter.bitflyer.{Execution, Market}
-import skinny.http.HTTP
+import java.text.DecimalFormat
+import java.time.{LocalDateTime, Duration}
+
+import com.rysh.experiment.adapter.BitFlyer._
+import com.rysh.experiment.util.DateTimeUtil
+import io.circe
+import skinny.http.{HTTP, Response}
 
 object Main extends App {
 
-  // https://api.bitflyer.jp/v1/markets
-  // https://api.bitflyer.jp/v1/executions?product_code=BCH_BTC
+  def notice(error: circe.Error) = println(error)
 
-  val request = HTTP.get("https://api.bitflyer.jp/v1/markets")
+  def summarize(res: (Market, List[Execution])) = {
+    val (market, list) = res
+    val times: Seq[LocalDateTime] = list.map(e => LocalDateTime.parse(e.exec_date))
 
-
-  import io.circe.generic.auto._
-  import io.circe.parser._
-
-  decode[List[Market]](request.textBody) match {
-    case Right(list) => list.foreach(execMarket)
-    case Left(_) => {}
+    val executionsBySide: Map[String, List[Execution]] = list.groupBy(_.side)
+    val code = market.product_code
+    val buy = sizeOf(executionsBySide, "BUY")
+    val sell = sizeOf(executionsBySide, "SELL")
+    val duration = toDuration(times)
+    val timeRange = DateTimeUtil.formatDuration(duration)
+    val prices = list.map(e => e.price)
+    val median = prices.sortWith(_ < _).drop(prices.length / 2).head
+    val deltaOfSize = delta(list, duration)
+    s"""========================
+       |${code}
+       |BUY/SELL: ${buy}/${sell},
+       |price: ${median},
+       |delta: ${deltaOfSize},
+       |range: ${timeRange}
+       |=========================""".stripMargin
   }
 
-  def execMarket(market: Market) = {
-    val request = HTTP.get("https://api.bitflyer.jp/v1/executions", "product_code" -> market.product_code)
-    decode[List[Execution]](request.textBody) match {
-      case Right(r2) => r2.foreach(println)
-      case _ => {}
-    }
-  }
+  HTTP.get(URI_MARKET).textBody.toMarket
+    .map(list => list.filter(e => e.product_code == CODE_FX_BTC_JPY))
+    .toExecutions
+    .foreach(_ match {
+    case Right(result) => println(summarize(result))
+    case Left(error) => notice(error)
+  })
+
 }
 
 
