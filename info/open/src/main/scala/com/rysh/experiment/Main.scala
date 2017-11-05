@@ -15,8 +15,8 @@ object Main extends App {
   def summarize(res: (Market, List[Execution])) = {
     val (market, list) = res
     val times: Seq[LocalDateTime] = list.map(e => LocalDateTime.parse(e.exec_date))
-
     val executionsBySide: Map[String, List[Execution]] = list.groupBy(_.side)
+
     val code = market.product_code
     val buy = sizeOf(executionsBySide, "BUY")
     val sell = sizeOf(executionsBySide, "SELL")
@@ -28,9 +28,9 @@ object Main extends App {
     s"""========================
        |${code}
        |BUY/SELL: ${buy}/${sell},
-       |price: ${median},
-       |delta: ${deltaOfSize},
-       |range: ${timeRange}
+       |price   : ${median},
+       |delta   : ${deltaOfSize},
+       |range   : ${timeRange}
        |=========================""".stripMargin
   }
 
