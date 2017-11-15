@@ -13,7 +13,6 @@ object Validations {
     val tmp = File("tmp")
     if (!tmp.exists) {
       tmp.createDirectory()
-
     }
   }
 }
