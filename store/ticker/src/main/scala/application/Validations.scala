@@ -2,12 +2,13 @@ package application
 
 import adapter.aws.MyS3
 import better.files.File
+import com.amazonaws.regions.Regions
 
 /**
   * Created by ryuhei.ishibashi on 2017/07/13.
   */
 object Validations {
-  def bucketExists(bucketName: String) = MyS3.create().createBucket(bucketName)
+  def bucketExists(bucketName: String, region: Regions): Either[Exception, Any] = MyS3.create(region).createBucket(bucketName)
   def workingDirectoryExisits = {
     val tmp = File("tmp")
     if (!tmp.exists) {

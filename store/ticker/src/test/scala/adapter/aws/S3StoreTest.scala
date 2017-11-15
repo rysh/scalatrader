@@ -4,7 +4,8 @@ import java.time.{ZonedDateTime => Time}
 
 import adapter.bitflyer.realtime.TestData
 import application.Validations
-import com.google.gson.{FieldNamingPolicy, GsonBuilder}
+import com.amazonaws.regions.Regions
+import com.google.gson.{GsonBuilder, FieldNamingPolicy}
 import domain.TimeKeeper
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import testutil.TimeTestHelper
@@ -15,7 +16,7 @@ import testutil.TimeTestHelper
 class S3StoreTest extends FunSuite with BeforeAndAfterAll {
 
   val now = TimeTestHelper.of(2017, 7, 12, 4, 30, 14, 11)
-  val s3Store: S3Store = new S3Store("btcfx-ticker-scala-test", new TimeKeeper(1, now))
+  val s3Store: S3Store = new S3Store("btcfx-ticker-scala-test", Regions.US_WEST_1, new TimeKeeper(1, now))
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
 

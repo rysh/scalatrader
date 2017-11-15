@@ -1,7 +1,8 @@
 package adapter
 
 import adapter.aws.S3Store
-import adapter.local.PeerConsoleStore
+import adapter.local.{PeerConsoleStore, LocalStore}
+import com.amazonaws.regions.Regions
 import com.google.gson.JsonElement
 import domain.TimeKeeper
 
@@ -27,7 +28,7 @@ abstract class Store(
 }
 
 object Store {
-  def s3(bucketName: String) : Store = new S3Store(bucketName)
-  def local(bucketName: String) : Store = new S3Store(bucketName)
+  def s3(bucketName: String, region: Regions) = new S3Store(bucketName, region)
+  def local(bucketName: String) : Store = new LocalStore(bucketName)
   def console: Store = PeerConsoleStore
 }
