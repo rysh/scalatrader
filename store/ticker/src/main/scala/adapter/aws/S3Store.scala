@@ -17,7 +17,7 @@ class S3Store(val bucketName: String, regions: Regions, override val timeKeeper:
 
     // 1分に1回なので都度コネクション生成でよい
     MyS3.create(regions).upload(bucketName, NamingRule.s3Path(timeKeeper), file)
-    println("created " + timeKeeper.format("yyyy/MM/dd hh:mm"))
+    println("created " + timeKeeper.format("yyyy/MM/dd HH:mm"))
     delete()
     Right(new S3Store(bucketName, regions, timeKeeper.next))
   }

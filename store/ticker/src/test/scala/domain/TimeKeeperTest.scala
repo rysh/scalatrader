@@ -31,6 +31,14 @@ class TimeKeeperTest extends FunSuite {
   }
 
 
+  test("formatの確認") {
+    var tk = new TimeKeeper(1)
+    tk = tk.lap(of(2017, 7, 5, 14, 0, 15, 0))
+    val time1 = of(2017, 7, 5, 14, 1, 13, 0)
+    assert(tk.format("yyyy/MM/dd/HH/mm") === "2017/07/05/14/00")
+    tk = tk.lap(time1)
+    assert(tk.format("yyyy/MM/dd/HH/mm") === "2017/07/05/14/01")
+  }
 }
 
 
