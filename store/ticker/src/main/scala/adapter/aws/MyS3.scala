@@ -8,8 +8,7 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import scala.collection.JavaConverters
 
 object MyS3 {
-  val region = Regions.US_WEST_1
-  def create(): MyS3 = {
+  def create(region: Regions): MyS3 = {
     new MyS3(region)
   }
 }

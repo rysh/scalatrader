@@ -2,6 +2,7 @@ package adapter.aws
 
 import application.Validations
 import better.files.File
+import com.amazonaws.regions.Regions
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 /**
@@ -13,7 +14,7 @@ class MyS3Test extends FunSuite with BeforeAndAfterAll {
   val bucketName = s"scala-trader-upload-s3-test-$flake"
   val keyName = s"MyS3Test-$flake"
   val file = File(s"tmp/MyS3Test-$flake").createIfNotExists()
-  val s3 = MyS3.create()
+  val s3 = MyS3.create(Regions.US_WEST_1)
 
   override def beforeAll() = s3.createBucket(bucketName)
 
