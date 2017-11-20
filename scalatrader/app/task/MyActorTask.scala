@@ -11,7 +11,7 @@ class MyActorTask @Inject() (actorSystem: ActorSystem, @Named("hello") someActor
 
   actorSystem.scheduler.schedule(
     initialDelay = 0.microseconds,
-    interval = 1.seconds,
+    interval = 1.hours,
     receiver = someActor,
     message = "tick"
   )

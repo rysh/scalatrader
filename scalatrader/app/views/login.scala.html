@@ -1,0 +1,20 @@
+@import helper._
+
+@()(implicit req: RequestHeader)
+
+@main("Log In") {
+  <h1>Login</h1>
+
+  <form action="/login" method="POST">
+    <div>
+      <dl>
+        <dd>email</dd>
+        <dt><input type="text" name="email"></dt>
+        <dd>password</dd>
+        <dt><input type="text" name="password"></dt>
+      </dl>
+    </div>
+    @CSRF.formField
+    <input type="submit">submit</input>
+  </form>
+}
