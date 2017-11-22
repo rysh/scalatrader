@@ -25,8 +25,12 @@ object Aes {
   /**
     * 暗号化
     */
-  def encode(src: String, key: Key): String = try {
-    Hex.encodeHexString(encode(src.getBytes(),key))
+  def encode(src: String, key: String): String = try {
+    if (src == null || src.length ==0) {
+      src
+    } else {
+      Hex.encodeHexString(encode(src.getBytes(), Aes.makeKey(key)))
+    }
   }
   def encode(src: Array[Byte], skey: Key): Array[Byte] = try {
     val cipher = Cipher.getInstance("AES")
@@ -41,8 +45,12 @@ object Aes {
     * 復号化
     */
 
-  def decode(src: String, key: Key): String = try {
-    new String(decode(Hex.decodeHex(src.toCharArray), key))
+  def decode(src: String, key: String): String = try {
+    if (src == null || src.length ==0) {
+      src
+    } else {
+      new String(decode(Hex.decodeHex(src.toCharArray), Aes.makeKey(key)))
+    }
   }
   def decode(src: Array[Byte], skey: Key): Array[Byte] = try {
     val cipher = Cipher.getInstance("AES")

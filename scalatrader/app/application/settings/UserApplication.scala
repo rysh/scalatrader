@@ -17,8 +17,8 @@ object UserApplication {
     implicit val session = AutoSession
     sql"""update user set
           name = ${settings.name},
-          api_key = ${Aes.encode(settings.key, Aes.makeKey(secret))},
-          api_secret = ${Aes.encode(settings.secret, Aes.makeKey(secret))}
+          api_key = ${Aes.encode(settings.key, secret)},
+          api_secret = ${Aes.encode(settings.secret, secret)}
           where email = ${email}""".execute.apply()
   }
 
@@ -27,8 +27,8 @@ object UserApplication {
     println(secret)
     sql"select name, api_key, api_secret from user where email = ${email}"
       .map(rs => Settings(rs.string("name"),
-        Aes.decode(rs.string("api_key"), Aes.makeKey(secret)),
-        Aes.decode(rs.string("api_secret"), Aes.makeKey(secret))))
+        Aes.decode(rs.string("api_key"), secret),
+        Aes.decode(rs.string("api_secret"), secret)))
       .single.apply()
   }
 

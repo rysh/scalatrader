@@ -6,7 +6,7 @@ import org.scalatest.FunSuite
 class AesTest extends FunSuite {
 
   test("testEncode") {
-    val skey = Aes.makeKey("QCYtAnfkaZiwrNwnxIlR6CTfG3gf90Latabg5241ABR5W1uDFNIkn")
+    val skey = "QCYtAnfkaZiwrNwnxIlR6CTfG3gf90Latabg5241ABR5W1uDFNIkn"
 
     val input = "+q8minmDbMyAzL7oeycL4kS5sRUMxTNKRnb7ugHJhjs="
     // 暗号化
