@@ -28,7 +28,7 @@ class SettingsController @Inject()(cc: ControllerComponents, configuration: play
     )(Settings.apply)(Settings.unapply)
   )
 
-  def updateSettings() = withAuth { email =>implicit request: Request[AnyContent] =>
+  def update() = withAuth { email =>implicit request: Request[AnyContent] =>
     val settings: Settings = form.bindFromRequest().get
     UserApplication.update(email, settings, configuration.underlying.getString("play.http.secret.key"))
     Ok(views.html.settings(settings))

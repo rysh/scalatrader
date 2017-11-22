@@ -14,7 +14,7 @@ GET     /signup                     controllers.AuthController.signUp
 POST    /signup                     controllers.AuthController.signUpAction
 
 GET     /settings                   controllers.SettingsController.settings
-POST    /settings                   controllers.SettingsController.updateSettings
+POST    /settings                   controllers.SettingsController.update
 
 GET     /dashboard                  controllers.DashBoardController.main
 

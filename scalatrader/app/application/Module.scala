@@ -1,9 +1,7 @@
 package application
 
 import com.google.inject.{Singleton, AbstractModule}
-import play.api.Logger
 import play.api.libs.concurrent.AkkaGuiceSupport
-import repository.UserRepository
 
 class Module extends AbstractModule with AkkaGuiceSupport {
 
@@ -18,5 +16,5 @@ class Module extends AbstractModule with AkkaGuiceSupport {
 
 @Singleton
 class ExampleService {
-  Logger.debug("Hello World")
+  //Logger.debug("Hello World")
 }

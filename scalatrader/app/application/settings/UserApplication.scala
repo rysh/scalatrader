@@ -24,7 +24,6 @@ object UserApplication {
 
   def getSettings(email: String, secret: String): Option[Settings] = {
     implicit val session = AutoSession
-    println(secret)
     sql"select name, api_key, api_secret from user where email = ${email}"
       .map(rs => Settings(rs.string("name"),
         Aes.decode(rs.string("api_key"), secret),

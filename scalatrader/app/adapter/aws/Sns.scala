@@ -4,7 +4,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.model.PublishRequest
 import com.amazonaws.services.sns.{AmazonSNSClientBuilder, AmazonSNS}
 
-object Sns {
+object SNS {
 
   def send(email:String, message: String) = {
 

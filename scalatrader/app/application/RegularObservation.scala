@@ -1,7 +1,7 @@
 package application
 
 import adapter.BitFlyer
-import adapter.aws.Sns
+import adapter.aws.SNS
 import adapter.bitflyer.models.{Position, Execution, Collateral}
 import com.google.inject.Inject
 import play.api.{Configuration, Logger}
@@ -33,7 +33,7 @@ class RegularObservation @Inject()(config: Configuration) {
           val message = createMessage(latest, col, pos)
           println(message)
           //TODO SES
-          Sns.send(user.email, message)
+          SNS.send(user.email, message)
 
         } catch {
           case e: Exception => {
