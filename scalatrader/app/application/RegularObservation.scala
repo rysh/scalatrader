@@ -53,8 +53,7 @@ class RegularObservation @Inject()(config: Configuration) {
     val html = htmlBody(latestPrice, delta, openPositionPnl, keepRate)
     val text = textBody(latestPrice, delta, openPositionPnl, keepRate)
     
-    //val to = "info@scalatrader.com"
-    val from = "rysh.cact@gmail.com"
+    val from = "info@scalatrader.com"
     MailContent(to, from, subject, html, text)
   }
 
