@@ -1,4 +1,4 @@
-package adapter.bitflyer
+package domain
 
 object models {
   case class Execution(
@@ -34,4 +34,9 @@ object models {
     leverage: Double,
     pnl: Double,
   )
+
+  case class Positions(values: Seq[Position]) {
+    def delta = values.map(p => if (p.side == "SELL") (-p.size) else p.size).sum
+  }
+
 }

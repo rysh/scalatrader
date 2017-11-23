@@ -1,9 +1,10 @@
 package application
 
 import adapter.BitFlyer
-import adapter.aws.SNS
-import adapter.bitflyer.models.{Position, Execution, Collateral}
+import adapter.aws.{MailContent, SNS, SES}
+import domain.models.{Position, Execution, Collateral, Positions}
 import com.google.inject.Inject
+import domain.time.DateUtil
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 
@@ -28,12 +29,10 @@ class RegularObservation @Inject()(config: Configuration) {
       .foreach(user => {
         try {
           val col: Collateral = BitFlyer.getCollateral(user.api_key, user.api_secret)
-          val pos: Seq[Position] = BitFlyer.getPositions(user.api_key, user.api_secret)
+          val pos: Positions = BitFlyer.getPositions(user.api_key, user.api_secret)
 
-          val message = createMessage(latest, col, pos)
-          println(message)
-          //TODO SES
-          SNS.send(user.email, message)
+          val content = createMailContent(user.email, latest, col, pos)
+          SES.send(content)
 
         } catch {
           case e: Exception => {
@@ -44,14 +43,62 @@ class RegularObservation @Inject()(config: Configuration) {
       })
   }
 
-  def createMessage(latest: Execution, col: Collateral, pos: Seq[Position]):String = {
-    val delta = pos.map(p => if (p.side == "SELL") (- p.size) else p.size ).sum
+  def createMailContent(to: String, latest: Execution, col: Collateral, pos: Positions): MailContent = {
+    val latestPrice = latest.price.toInt
+    val delta = (pos.delta * latest.price).toInt
+    val openPositionPnl = col.open_position_pnl.toInt
+    val keepRate = (col.keep_rate * 100).toInt
+
+    val subject = s"FX_BTC_JP ${DateUtil.jpDisplayTime} 定時観測"
+    val html = htmlBody(latestPrice, delta, openPositionPnl, keepRate)
+    val text = textBody(latestPrice, delta, openPositionPnl, keepRate)
+    
+    //val to = "info@scalatrader.com"
+    val from = "rysh.cact@gmail.com"
+    MailContent(to, from, subject, html, text)
+  }
+
+  def textBody(latestPrice:Int, delta: Int, openPositionPnl: Int, keepRate: Int) = {
     s"""
-       |最終取引価格   ${"%,9d".format(latest.price.toInt)}
-       |デルタ         ${"%,9d".format((delta * latest.price).toInt)}
-       |評価損益       ${"%,9d".format(col.open_position_pnl.toInt)}
-       |証拠金維持率   ${"%,9d".format((col.keep_rate * 100).toInt)} %
-             """.stripMargin
+      |最終取引価格   ${"%,9d".format(latestPrice)}
+      |デルタ         ${"%,9d".format(delta)}
+      |評価損益       ${"%,9d".format(openPositionPnl)}
+      |証拠金維持率   ${"%,9d".format(keepRate)} %
+     """.stripMargin
+  }
+
+  def htmlBody(latestPrice:Int, delta: Int, openPositionPnl: Int, keepRate: Int) = {
+    s"""<!DOCTYPE html>
+        <html>
+        <head>
+          <title></title>
+        </head>
+        <body>
+          <section>
+            <table>
+              <tbody style="text-align:right">
+                <tr>
+                  <th>最終取引価格</th>
+                  <td>${"%,9d".format(latestPrice)}</td>
+                </tr>
+                <tr>
+                  <th>デルタ</th>
+                  <td>${"%,9d".format(delta)}</td>
+                </tr>
+                <tr>
+                  <th>評価損益</th>
+                  <td>${"%,9d".format(openPositionPnl)}</td>
+                </tr>
+                <tr>
+                  <th>証拠金維持率</th>
+                  <td>${"%,9d".format(keepRate)} %</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </body>
+        </html>
+      """.stripMargin
   }
 
   def notEmpty(str: String): Boolean = {

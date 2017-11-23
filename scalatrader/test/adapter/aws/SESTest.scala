@@ -5,7 +5,14 @@ import org.scalatest.FunSuite
 class SESTest extends FunSuite {
 
   test("testSend") {
-    //SES.send("rysh.cact@gmail.com", "hoge")
+    val content = MailContent(
+      "rysh.cact@gmail.com",
+      "info@scalatrader.com",
+      "hoge",
+      "<h1>hi</h1>",
+      "hi",
+    )
+    //SES.send(content)
   }
 
 }

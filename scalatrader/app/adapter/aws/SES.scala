@@ -2,30 +2,23 @@ package adapter.aws
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
-import com.amazonaws.services.simpleemail.model.{Destination, Message, Body, Content}
+import com.amazonaws.services.simpleemail.model._
 
 object SES {
+  val client = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.US_WEST_2).build()
 
-  def send(email:String, message:String): Unit = {
-//val snsClient: AmazonSNS = AmazonSNSClientBuilder.standard().withRegion(Regions.US_WEST_1).build()
-    val client = AmazonSimpleEmailServiceClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
-    import com.amazonaws.services.simpleemail.model.SendEmailRequest
-    val HTMLBODY = "<h1>hi</h1>"
-    val TEXTBODY = "hi"
-    val SUBJECT = "hoge"
-    val FROM = "rysh.cact@gmmail.com"
-    val CONFIGSET = "CONFIG"
+  def send(content: MailContent): Unit = {
     val request = new SendEmailRequest()
-        .withDestination(new Destination().withToAddresses("rysh.cact@gmmail.com"))
-        .withMessage(new Message()
-          .withBody(new Body()
-            .withHtml(new Content().withCharset("UTF-8").withData(HTMLBODY))
-            .withText(new Content().withCharset("UTF-8").withData(TEXTBODY)))
-          .withSubject(new Content().withCharset("UTF-8").withData(SUBJECT)))
-      .withSource(FROM)
-      .withConfigurationSetName(CONFIGSET)
+      .withDestination(new Destination().withToAddresses(content.to))
+      .withMessage(new Message()
+        .withBody(new Body()
+          .withHtml(new Content().withCharset("UTF-8").withData(content.htmlBody))
+          .withText(new Content().withCharset("UTF-8").withData(content.textBody)))
+        .withSubject(new Content().withCharset("UTF-8").withData(content.subject)))
+      .withSource(content.from)
+      .withConfigurationSetName("CONFIG")
     client.sendEmail(request)
-    System.out.println("Email sent!")
   }
-
 }
+
+case class MailContent(to: String, from: String, subject: String, htmlBody: String, textBody: String)

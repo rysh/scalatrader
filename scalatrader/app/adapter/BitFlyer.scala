@@ -3,7 +3,7 @@ package adapter
 import java.time.ZonedDateTime
 
 import adapter.bitflyer.Path._
-import adapter.bitflyer.models.{Position, Execution, Collateral}
+import domain.models.{Position, Execution, Collateral, Positions}
 import domain.util.crypto.HmacSHA256
 import skinny.http.{HTTP, Request}
 
@@ -42,7 +42,7 @@ object BitFlyer {
     import io.circe.generic.auto._
     import io.circe.parser._
     decode[List[Position]](HTTP.get(request).textBody) match {
-      case Right(ex) => ex
+      case Right(ex) => Positions(ex)
       case Left(err) => throw err
     }
   }
