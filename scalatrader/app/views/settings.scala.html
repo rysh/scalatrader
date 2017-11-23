@@ -1,0 +1,22 @@
+@import helper._
+@import domain.user.Settings
+
+@(settings: Settings)(implicit req: RequestHeader)
+
+@main("Settings") {
+  <h1>Settings</h1>
+  <form action="/settings" method="POST">
+    <div>
+      <dl>
+        <dd>user name</dd>
+        <dt><input type="text" name="name" value="@settings.name"></dt>
+        <dd>API Key</dd>
+        <dt><input type="text" name="key" value="@settings.key"></dt>
+        <dd>API Secret</dd>
+        <dt><input type="text" name="secret" value="@settings.secret"></dt>
+      </dl>
+      @CSRF.formField
+      <input type="submit">update</input>
+    </div>
+  </form>
+}
