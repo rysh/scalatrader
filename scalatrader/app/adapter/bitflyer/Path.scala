@@ -5,4 +5,5 @@ object Path {
   val EXECUTIONS = "/v1/executions"
   val COLLATERAL = "/v1/me/getcollateral"
   val POSITIONS = "/v1/me/getpositions?product_code=FX_BTC_JPY"
+  val CHILD_ORDER = "/v1/me/sendchildorder"
 }

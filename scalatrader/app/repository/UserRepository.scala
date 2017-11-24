@@ -17,6 +17,17 @@ object UserRepository {
     sql"select * from user".map(map(secret)).list().apply()
   }
 
+  def everyoneWithApiKey(secret: String): Seq[User] = {
+    all(secret).filter(user => notEmpty(user.api_key) && notEmpty(user.api_secret))
+  }
+
+  def notEmpty(str: String): Boolean = {
+    if (str == null) {
+      false
+    } else {
+      str.length > 0
+    }
+  }
   private def map = {
     secret:String => (rs: WrappedResultSet) => {
       User(rs.long("id"),

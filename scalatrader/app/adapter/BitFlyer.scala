@@ -1,13 +1,17 @@
 package adapter
 
+import java.net.URLEncoder
 import java.time.ZonedDateTime
 
 import adapter.bitflyer.Path._
-import domain.models.{Position, Execution, Collateral, Positions}
+import com.google.gson.Gson
+import domain.models._
 import domain.util.crypto.HmacSHA256
+import io.circe.{Json, Printer}
 import skinny.http.{HTTP, Request}
 
 object BitFlyer {
+
 
   def getLatestExecution(): Execution = {
     val body = HTTP.get(BASE + EXECUTIONS, "product_code" -> "FX_BTC_JPY", "count" -> 1).textBody
@@ -23,7 +27,7 @@ object BitFlyer {
   def getCollateral(api_key: String, api_secret: String) = {
     val path = COLLATERAL
     val request = Request(BASE + path)
-    addSign(request, path, api_key, api_secret, None)
+    addSign(request, path, "GET", api_key, api_secret, None)
 
     import io.circe.generic.auto._
     import io.circe.parser._
@@ -37,7 +41,7 @@ object BitFlyer {
     val path = POSITIONS
     val request = Request(BASE + path)
 
-    addSign(request, path, api_key, api_secret, None)
+    addSign(request, path, "GET", api_key, api_secret, None)
 
     import io.circe.generic.auto._
     import io.circe.parser._
@@ -47,14 +51,30 @@ object BitFlyer {
     }
   }
 
+  def orderByMarket(side: String, size: Double, api_key: String, api_secret: String) = {
+    import io.circe.syntax._
+    import io.circe.generic.auto._
+    val p = Printer.noSpaces.copy(dropNullKeys = true)
+    val orderJson = Order("FX_BTC_JPY", "MARKET", side, None, size, 5, "GTC").asJson.pretty(p)
 
-  private def addSign(request: Request, path: String, api_key: String, api_secret: String, body: Option[String]) = {
+    val path = CHILD_ORDER
+    val request = Request(BASE + path)
+    request.body(orderJson.getBytes("UTF-8"), "application/json")
+
+    addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
+    val response = HTTP.post(request)
+    println(response.textBody)
+  }
+
+
+  private def addSign(request: Request, path: String, method: String, api_key: String, api_secret: String, body: Option[String]): Unit = {
     val header = request.headers
     val timestamp = ZonedDateTime.now().toEpochSecond.toString
-    val data = timestamp + "GET" + path + body.getOrElse("")
+    val data = timestamp + method + path + body.getOrElse("")
     val sign = HmacSHA256.encode(api_secret, data)
     header.put("ACCESS-KEY", api_key)
     header.put("ACCESS-TIMESTAMP", timestamp)
     header.put("ACCESS-SIGN", sign)
+    body.map(_ => header.put("Content-Type", "application/json"))
   }
 }

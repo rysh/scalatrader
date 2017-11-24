@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" %  "logback-classic"   % "1.2.3",
   "org.scalaz" % "scalaz_2.12" % "7.3.0-M14",
   "com.amazonaws" % "aws-java-sdk" % "1.11.158",
+  "com.pubnub" % "pubnub-gson" % "4.6.5",
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
 )
 

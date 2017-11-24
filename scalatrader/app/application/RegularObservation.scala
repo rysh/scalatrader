@@ -9,12 +9,11 @@ import play.api.{Configuration, Logger}
 import repository.UserRepository
 
 class RegularObservation @Inject()(config: Configuration) {
+  val secret = config.get[String]("play.http.secret.key")
 
   def summary(): Unit = {
     try {
-      val str = config.get[String]("play.http.secret.key")
-      println(str)
-      summary(str)
+      summary(secret)
     } catch {
       case e:Exception => {
         Logger.error("error in RegularObservation.summary", e)
@@ -24,8 +23,7 @@ class RegularObservation @Inject()(config: Configuration) {
 
   def summary(secret: String): Unit = {
     val latest: Execution = BitFlyer.getLatestExecution()
-    val users = UserRepository.all(secret)
-    users.filter(user => notEmpty(user.api_key) && notEmpty(user.api_secret))
+    UserRepository.everyoneWithApiKey(secret)
       .foreach(user => {
         try {
           val col: Collateral = BitFlyer.getCollateral(user.api_key, user.api_secret)
@@ -45,7 +43,7 @@ class RegularObservation @Inject()(config: Configuration) {
 
   def createMailContent(to: String, latest: Execution, col: Collateral, pos: Positions): MailContent = {
     val latestPrice = latest.price.toInt
-    val delta = (pos.delta * latest.price).toInt
+    val delta = pos.btcFx.getOrElse(0.0).toInt
     val openPositionPnl = col.open_position_pnl.toInt
     val keepRate = (col.keep_rate * 100).toInt
 
@@ -98,13 +96,5 @@ class RegularObservation @Inject()(config: Configuration) {
         </body>
         </html>
       """.stripMargin
-  }
-
-  def notEmpty(str: String): Boolean = {
-    if (str == null) {
-      false
-    } else {
-      str.length > 0
-    }
   }
 }

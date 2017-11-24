@@ -1,13 +1,14 @@
 package application
 
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{ZonedDateTime, ZoneId}
 
 import akka.actor.Actor
+import domain.time.DateUtil
 
 
 class HelloActor extends Actor {
   def receive = {
-    case "tick" => println(ZonedDateTime.now(ZoneId.of("UTC")))
+    case "tick" => println(DateUtil.now())
     case _ => println()
   }
 }
