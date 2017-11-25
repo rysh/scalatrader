@@ -12,6 +12,7 @@ import com.pubnub.api.PubNub
 import com.pubnub.api.callbacks.SubscribeCallback
 import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
+import domain.ProductCode
 import domain.models.Ticker
 import domain.strategy.turtle.TurtleCore.candles1min
 import domain.strategy.turtle.{Bar, TurtleCore, TurtleStrategy}
@@ -26,7 +27,7 @@ class RealTimeReceiver @Inject()(config: Configuration, turtleStrategy: TurtleSt
 
   val gson: Gson = new Gson()
 
-  val productCode = "lightning_ticker_FX_BTC_JPY"
+  val productCode = s"lightning_ticker_${ProductCode.btcFx}"
   val key =  "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
   val callback = new SubscribeCallback() {
     override def message(pubnub: PubNub, message: PNMessageResult) = {

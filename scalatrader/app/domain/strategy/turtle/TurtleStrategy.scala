@@ -5,6 +5,7 @@ import javax.inject.Named
 import adapter.BitFlyer
 import akka.actor.ActorRef
 import com.google.inject.Inject
+import domain.Side
 import repository.UserRepository
 
 @Singleton
@@ -30,21 +31,21 @@ class TurtleStrategy @Inject() (@Named("candle") candleActor: ActorRef) {
 
     if (position.isEmpty || position.get.size < (sizeUnit / 2)) {
       if (bar20.high < ltp) {
-        Some("BUY")
+        Some(Side.Buy)
       } else if (ltp < bar20.low) {
-        Some("SELL")
+        Some(Side.Sell)
       } else {
         None
       }
-    } else if (position.get.side == "SELL") {
+    } else if (position.get.side == Side.Sell) {
       if (bar10.high < ltp) {
-        Some("BUY")
+        Some(Side.Buy)
       } else {
         None
       }
     } else { // BUY
       if (ltp < bar10.high) {
-        Some("SELL")
+        Some(Side.Sell)
       } else {
         None
       }

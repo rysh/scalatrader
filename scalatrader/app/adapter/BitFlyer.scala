@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 
 import adapter.bitflyer.Path._
 import com.google.gson.Gson
+import domain.ProductCode
 import domain.models._
 import domain.util.crypto.HmacSHA256
 import io.circe.{Json, Printer}
@@ -14,7 +15,7 @@ object BitFlyer {
 
 
   def getLatestExecution(): Execution = {
-    val body = HTTP.get(BASE + EXECUTIONS, "product_code" -> "FX_BTC_JPY", "count" -> 1).textBody
+    val body = HTTP.get(BASE + EXECUTIONS, "product_code" -> ProductCode.btcFx", "count" -> 1).textBody
 
     import io.circe.generic.auto._
     import io.circe.parser._
@@ -55,7 +56,7 @@ object BitFlyer {
     import io.circe.syntax._
     import io.circe.generic.auto._
     val p = Printer.noSpaces.copy(dropNullKeys = true)
-    val orderJson = Order("FX_BTC_JPY", "MARKET", side, None, size, 5, "GTC").asJson.pretty(p)
+    val orderJson = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC").asJson.pretty(p)
 
     val path = CHILD_ORDER
     val request = Request(BASE + path)
