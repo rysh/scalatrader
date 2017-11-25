@@ -7,17 +7,17 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 class Module extends AbstractModule with AkkaGuiceSupport {
 
   override def configure() = {
-    bindActor[HelloActor]("hello")
+    println("Module.configure")
+    domain.isBackTesting = true
+
     bindActor[CandleActor]("candle")
 
-    bind(classOf[RegularObservation]).asEagerSingleton()
-    bind(classOf[ExampleService]).asEagerSingleton()
-    bind(classOf[RealTimeReceiver]).asEagerSingleton()
-    bind(classOf[ScheduledTasks]).asEagerSingleton()
+    if (domain.isBackTesting) {
+      bind(classOf[BackTestApplication]).asEagerSingleton()
+    } else {
+      bind(classOf[RegularObservation]).asEagerSingleton()
+      bind(classOf[RealTimeReceiver]).asEagerSingleton()
+      bind(classOf[ScheduledTasks]).asEagerSingleton()
+    }
   }
-}
-
-@Singleton
-class ExampleService {
-  //Logger.debug("Hello World")
 }

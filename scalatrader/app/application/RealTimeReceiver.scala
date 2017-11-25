@@ -2,9 +2,11 @@ package application
 
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import javax.inject.Named
 
 import adapter.aws.S3
 import adapter.bitflyer.PubNubReceiver
+import akka.actor.ActorRef
 import com.amazonaws.regions.Regions
 import com.google.gson.{JsonElement, Gson}
 import com.google.inject.{Inject, Singleton}
@@ -18,12 +20,17 @@ import domain.strategy.turtle.TurtleCore.candles1min
 import domain.strategy.turtle.{Bar, TurtleCore, TurtleStrategy}
 import domain.time.DateUtil
 import play.api.Configuration
+import repository.UserRepository
 
 import scala.concurrent.Future
 
 @Singleton
-class RealTimeReceiver @Inject()(config: Configuration, turtleStrategy: TurtleStrategy) {
+class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
+  print("init RealTimeReceiver")
   val secret = config.get[String]("play.http.secret.key")
+
+  lazy val users = UserRepository.everyoneWithApiKey(secret)
+  lazy val turtleStrategy = new TurtleStrategy(users, candleActor)
 
   val gson: Gson = new Gson()
 
@@ -31,22 +38,9 @@ class RealTimeReceiver @Inject()(config: Configuration, turtleStrategy: TurtleSt
   val key =  "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
   val callback = new SubscribeCallback() {
     override def message(pubnub: PubNub, message: PNMessageResult) = {
-
-      val json: JsonElement = message.getMessage
-      val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-
-      import TurtleCore._
-      bar_10min.map(_.put(ticker.ltp))
-      bar_20min.map(_.put(ticker.ltp))
-
-      val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
-      candles1min.get(key) match {
-        case Some(v) => v.put(ticker.ltp)
-        case _ => candles1min.put(key, new Bar(key).put(ticker.ltp))
-      }
-      Future {
-        turtleStrategy.exec(ticker.ltp, secret)
-      }
+      val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
+      turtleStrategy.exec(ticker.ltp)
+      TurtleCore.put(ticker)
     }
     override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {
       println("RealTimeReceiver#presence")
@@ -58,6 +52,7 @@ class RealTimeReceiver @Inject()(config: Configuration, turtleStrategy: TurtleSt
       println(status)
     }
   }
+
   PubNubReceiver.start(productCode,key, callback)
   println("PubNubReceiver started")
 

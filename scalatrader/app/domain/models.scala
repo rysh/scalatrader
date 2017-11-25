@@ -37,7 +37,8 @@ object models {
 
   case class Positions(values: Seq[Position]) {
     def btcFx = absoluteSize(ProductCode.btcFx)
-    def absoluteSize(product_code: String) = values.find(p => p.product_code == product_code).map(p => if (p.side == Side.Sell) (-p.size) else p.size)
+    def absoluteSize(product_code: String) = get(product_code).map(p => if (p.side == Side.Sell) (-p.size) else p.size)
+    def get(product_code: String) = values.find(p => p.product_code == product_code)
   }
 
   case class Ticker(

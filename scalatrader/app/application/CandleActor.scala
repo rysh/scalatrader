@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit
 import adapter.BitFlyer
 import akka.actor.Actor
 import com.google.inject.Inject
+import domain.ProductCode
 import domain.strategy.turtle.{Bar, TurtleCore}
 import domain.time.DateUtil
 import play.api.{Configuration, Logger}
@@ -36,30 +37,35 @@ class CandleActor @Inject()(config: Configuration) extends Actor {
     candles1min.keys.filter(key => key < key20).foreach(key => candles1min.remove(key))
 
     val values = candles1min.values.toSeq.sortBy(_.key)
-    println(values)
-    val in20 = Some(Bar.of(values))
-    val in10 = Some(Bar.of(values.filter(b => key10 <= b.key)))
+    if (values.size > 0) {
+      val in20 = Some(Bar.of(values))
+      val values10 = values.filter(b => key10 <= b.key)
+      if (values10.size > 0) {
+        bar_10min = Some(Bar.of(values10))
+      }
+      bar_20min = in20
+    }
 
-    bar_20min = in20
-    bar_10min = in10
-
-    println("bar_10min")
-    println(in10)
-    println("bar_20min")
-    println(bar_20min)
-    println("candles1min")
-    candles1min.values.toSeq.sortBy(_.key).foreach(println)
+    //bar_10min.map(f => println(s"bar_10min:${f}"))
+    //bar_20min.map(f => println(s"bar_20min:${f}"))
+//    println("candles1min")
+    values.lastOption.map(println)
+    //println(positionByUser)
   }
 
 
-  def updatePosition() = {
-    import scala.concurrent.ExecutionContext.Implicits.global
+  def updatePosition(): Unit = {
+    if (domain.isBackTesting) return
     Future {
       UserRepository.everyoneWithApiKey(secret)
         .foreach(user => {
           try {
             //val col: Collateral = BitFlyer.getCollateral(user.api_key, user.api_secret)
-            TurtleCore.position = BitFlyer.getPositions(user.api_key, user.api_secret).btcFx
+            val position = BitFlyer.getPosition(ProductCode.btcFx, user.api_key, user.api_secret)
+            position.map(p => TurtleCore.positionByUser.put(user.email, p))
+            if (position.isEmpty) {
+              TurtleCore.positionByUser.remove(user.email)
+            }
 
           } catch {
             case e: Exception => {
@@ -68,6 +74,6 @@ class CandleActor @Inject()(config: Configuration) extends Actor {
             }
           }
         })
-    }
+    } (scala.concurrent.ExecutionContext.Implicits.global)
   }
 }
