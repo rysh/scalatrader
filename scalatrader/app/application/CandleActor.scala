@@ -49,7 +49,7 @@ class CandleActor @Inject()(config: Configuration) extends Actor {
     //bar_10min.map(f => println(s"bar_10min:${f}"))
     //bar_20min.map(f => println(s"bar_20min:${f}"))
 //    println("candles1min")
-    values.lastOption.map(println)
+    //values.lastOption.map(println)
     //println(positionByUser)
   }
 

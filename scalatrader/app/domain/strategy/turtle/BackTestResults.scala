@@ -5,18 +5,18 @@ import scala.collection.mutable
 
 object BackTestResults {
 
-  val values = new mutable.ArrayBuffer[Order]
+  val values = new mutable.ArrayBuffer[OrderResult]
 
-  def add(order: Order): Unit = {
+  def add(order: OrderResult): Unit = {
     values += order
   }
 
-  case class Order(side:String, price:Double, size: Double)
+  case class OrderResult(timestamp:String, side:String, price:Double, size: Double)
 
 
   def report() = {
     var total: Double = 0.0
-    var entry: Option[Order] = None
+    var entry: Option[OrderResult] = None
     values.foreach(o => {
       println(o)
       if (entry.isEmpty) {

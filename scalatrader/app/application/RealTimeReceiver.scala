@@ -1,6 +1,5 @@
 package application
 
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Named
 
@@ -8,21 +7,19 @@ import adapter.aws.S3
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
 import com.amazonaws.regions.Regions
-import com.google.gson.{JsonElement, Gson}
+import com.google.gson.Gson
 import com.google.inject.{Inject, Singleton}
 import com.pubnub.api.PubNub
 import com.pubnub.api.callbacks.SubscribeCallback
 import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
 import domain.ProductCode
-import domain.models.Ticker
+import domain.models.{Ticker, Orders}
 import domain.strategy.turtle.TurtleCore.candles1min
 import domain.strategy.turtle.{Bar, TurtleCore, TurtleStrategy}
 import domain.time.DateUtil
 import play.api.Configuration
 import repository.UserRepository
-
-import scala.concurrent.Future
 
 @Singleton
 class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
@@ -30,7 +27,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
   val secret = config.get[String]("play.http.secret.key")
 
   lazy val users = UserRepository.everyoneWithApiKey(secret)
-  lazy val turtleStrategy = new TurtleStrategy(users, candleActor)
+  lazy val strategies = users.map(user => new TurtleStrategy(user))
 
   val gson: Gson = new Gson()
 
@@ -39,7 +36,15 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
   val callback = new SubscribeCallback() {
     override def message(pubnub: PubNub, message: PNMessageResult) = {
       val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
-      turtleStrategy.exec(ticker.ltp)
+
+      strategies.par.foreach(strategy => {
+        strategy.check(ticker.ltp).map(Orders.market).foreach(order => {
+          //TODO
+          //BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
+          //TODO ユーザーが一人だけなので現状は問題がないが、売買が成立したユーザーだけポジションを更新したい
+          candleActor ! "updatePosition"
+        })
+      })
       TurtleCore.put(ticker)
     }
     override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {

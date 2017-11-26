@@ -71,4 +71,8 @@ object models {
     /** 執行数量条件 を "GTC", "IOC", "FOK"のいずれかで指定 */
     time_in_force: String,
   )
+  object Orders {
+    def market(t: (String,Double)): Order = market(t._1, t._2)
+    def market(side: String, size: Double): Order = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC")
+  }
 }

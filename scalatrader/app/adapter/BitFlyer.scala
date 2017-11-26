@@ -56,23 +56,18 @@ object BitFlyer {
     }
   }
 
-  def orderByMarket(side: String, size: Double, api_key: String, api_secret: String, dryRun: Boolean): Order = {
+  def orderByMarket(order: Order, api_key: String, api_secret: String): Unit = {
     import io.circe.syntax._
     import io.circe.generic.auto._
     val p = Printer.noSpaces.copy(dropNullKeys = true)
-    val order = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC")
     val orderJson = order.asJson.pretty(p)
+    val path = CHILD_ORDER
+    val request = Request(BASE + path)
+    request.body(orderJson.getBytes("UTF-8"), "application/json")
 
-    if (!domain.isBackTesting) {
-      val path = CHILD_ORDER
-      val request = Request(BASE + path)
-      request.body(orderJson.getBytes("UTF-8"), "application/json")
-
-      addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
-      HTTP.post(request)
-    }
+    addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
+    HTTP.post(request)
     //SES.send(MailContent("rysh.cact@gmail.com","info@scalatrader.com", "デモ約定通知", order.toString, order.toString))
-    order
   }
 
 
