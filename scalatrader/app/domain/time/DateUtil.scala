@@ -19,7 +19,7 @@ object DateUtil {
   }
 
   def format(time: ZonedDateTime, pattern: String): _root_.scala.Predef.String =
-    time.format(DateTimeFormatter.ofPattern(pattern))
+    time.format(ofPattern(pattern))
 
   def jpDisplayTime = {
     now().withZoneSameInstant(zoneTokyo).format(ofPattern("MM/dd HH:mm"))

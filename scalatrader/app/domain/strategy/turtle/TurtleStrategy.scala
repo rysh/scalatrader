@@ -22,9 +22,11 @@ class TurtleStrategy(user: User) {
     if (position.isEmpty || position.get.size < (sizeUnit / 2)) {
       if (bar20.high < ltp) {
         println("bar20.high < ltp")
+        losLimit = None
         Some((Side.Buy, sizeUnit))
       } else if (ltp < bar20.low) {
         println(s"ltp($ltp) < bar20.low(${bar20.low})")
+        losLimit = None
         Some((Side.Sell, sizeUnit))
       } else {
         None
@@ -32,9 +34,11 @@ class TurtleStrategy(user: User) {
     } else if (position.get.side == Side.Sell) {
       if (losLimit.map(limit => limit < ltp).getOrElse(false)) {
         println(s"limit(${losLimit.get}) < ltp($ltp)")
+        losLimit = None
         Some((Side.Buy, sizeUnit))
       } else if (bar10.high < ltp) {
         println("bar10.high < ltp")
+        losLimit = None
         Some((Side.Buy, sizeUnit))
       } else if (ltp < bar20.low) {
         println(s"ltp($ltp) < bar20.low(${bar20.low}) not order because already have position")
@@ -46,9 +50,11 @@ class TurtleStrategy(user: User) {
     } else { // BUY
       if (losLimit.map(limit => ltp < limit).getOrElse(false)) {
         println(s"ltp($ltp) < limit(${losLimit.get})")
+        losLimit = None
         Some((Side.Sell, sizeUnit))
       } else if (ltp < bar10.low) {
         println(s"ltp($ltp) < bar10.low(${bar10.low})")
+        losLimit = None
         Some((Side.Sell, sizeUnit))
       } else if (bar20.high < ltp) {
         println(s"bar20.high(${bar20.high}) < ltp($ltp) not order because already have position")
