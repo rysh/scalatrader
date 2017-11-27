@@ -9,7 +9,8 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
-import domain.models.{Ticker, Orders, Position}
+import domain.{models, Side}
+import domain.models.{Position, Ticker, Orders}
 import domain.strategy.turtle.BackTestResults.OrderResult
 import domain.strategy.turtle.{BackTestResults, TurtleCore, TurtleStrategy}
 import domain.time.{DateUtil, MockedTime}
@@ -30,23 +31,26 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     run()
   } (scala.concurrent.ExecutionContext.Implicits.global)
 
-  def run() = {
+  def run(): Unit = {
 
     val secret = config.get[String]("play.http.secret.key")
 
-    val start = DateUtil.of("2017/11/17 00:00:00 +0000")
-//        val start = DateUtil.of("2017/11/20 17:13:00 +0000")
-//    val end = DateUtil.of("2017/11/17 01:00:00 +0000")
-//        val end = DateUtil.of("2017/11/20 17:16:00 +0000")
+//    val start = DateUtil.of("2017/11/17 00:00:00 +0000")
+//  val start = DateUtil.of("2017/11/20 17:13:00 +0000")
+//  val end = DateUtil.of("2017/11/17 01:00:00 +0000")
+//  val end = DateUtil.of("2017/11/20 17:16:00 +0000")
 
-    //  val end = DateUtil.of("2017/11/25 16:00:00 +0000")
-      val end = DateUtil.of("2017/11/26 14:00:00 +0000")
+//  val end = DateUtil.of("2017/11/25 16:00:00 +0000")
+    val start = DateUtil.of("2017/11/26 00:00:00 +0000")
+    val end = DateUtil.of("2017/11/26 14:00:00 +0000")
     MockedTime.now = start
     val s3 = S3.create(Regions.US_WEST_1)
     val gson: Gson = new Gson()
 
     lazy val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
     lazy val strategies = users.map(user => new TurtleStrategy(user))
+
+    if (users.size == 0) return
 
     while(MockedTime.now.isBefore(end)){
       println(MockedTime.now)
@@ -55,31 +59,13 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
 
           strategies.foreach(strategy => {
-            strategy.check(ticker.ltp).map(Orders.market).foreach(order => {
-              BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
+            strategy.check(ticker.ltp).map(Orders.market).foreach((order: models.Order) => {
+
               println(s"注文 ${order.side} price: ${ticker.ltp} size:${order.size}")
-              val positionToTuple: Position => (String, Double) = (pos: Position) => {
-                val posSize: Double = pos.size * (if (pos.side == domain.Side.Sell) -1 else 1)
-                val orderSize: Double = order.size * (if (order.side == domain.Side.Sell) -1 else 1)
-                val total: Double = posSize + orderSize
-                val side: String = if (total < 0) domain.Side.Sell else domain.Side.Buy
-                (side, total.abs)
-              }
-              val maybePosition = TurtleCore.positionByUser.get(strategy.email)
-              val (side: String, size: Double) = if (maybePosition.isEmpty) {
-                (order.side, order.size)
-              } else {
-                positionToTuple(maybePosition.get)
-              }
-              if (size == 0) {
-                TurtleCore.positionByUser.remove(strategy.email)
-              } else {
-                val position = Position(domain.ProductCode.btcFx,
-                  side,
-                  ticker.ltp,
-                  size, Double.NaN, Double.NaN, Double.NaN, DateUtil.now.toString, Double.NaN, Double.NaN)
-                TurtleCore.positionByUser.put(strategy.email, position)
-              }
+              BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
+
+              val (side, size) = mergePosition(TurtleCore.positionByUser.get(strategy.email), order)
+              storePosition(ticker, strategy, side, size)
             })
           })
           TurtleCore.put(ticker)
@@ -89,13 +75,33 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       })
       candleActor ! "1min"
 
-      //TODO 内部的にポジションを保持する
-      //TODO 内部的に結果を保持しdashboadに出力する
-
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
     }
-
+    println("report")
     BackTestResults.report()
+  }
+
+  private def storePosition(ticker: Ticker, strategy: TurtleStrategy, side: String, size: Double) = {
+    import TurtleCore._
+    if (size == 0) {
+      positionByUser.remove(strategy.email)
+    } else {
+      positionByUser.put(strategy.email, positionOf(ticker, side, size))
+    }
+  }
+
+  private def mergePosition(position: Option[Position], order: models.Order): (String, Double) = {
+    position
+      .map(_.relativeSize + order.relativeSize)
+      .map(total => (Side.of(total), total.abs))
+      .getOrElse((order.side, order.size))
+  }
+
+  private def positionOf(ticker: Ticker, side: String, size: Double) = {
+    Position(domain.ProductCode.btcFx,
+      side,
+      ticker.ltp,
+      size, Double.NaN, Double.NaN, Double.NaN, DateUtil.now.toString, Double.NaN, Double.NaN)
   }
 
   private def fetchOrReadLines(s3: S3, now: ZonedDateTime) = {

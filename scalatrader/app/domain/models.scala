@@ -33,7 +33,9 @@ object models {
     open_date: String,
     leverage: Double,
     pnl: Double,
-  )
+  ) {
+    def relativeSize = size * (if (side == domain.Side.Sell) -1 else 1)
+  }
 
   case class Positions(values: Seq[Position]) {
     def btcFx = absoluteSize(ProductCode.btcFx)
@@ -70,7 +72,9 @@ object models {
     minute_to_expire: Int,
     /** 執行数量条件 を "GTC", "IOC", "FOK"のいずれかで指定 */
     time_in_force: String,
-  )
+  ) {
+    def relativeSize = size * (if (side == domain.Side.Sell) -1 else 1)
+  }
   object Orders {
     def market(t: (String,Double)): Order = market(t._1, t._2)
     def market(side: String, size: Double): Order = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC")
