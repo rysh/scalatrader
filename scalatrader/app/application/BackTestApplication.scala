@@ -9,7 +9,8 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
-import domain.{models, Side}
+import domain.backtest.WaitingOrder
+import domain.{Side, models}
 import domain.models.{Position, Ticker, Orders}
 import domain.strategy.turtle.BackTestResults.OrderResult
 import domain.strategy.turtle.{BackTestResults, TurtleCore, TurtleStrategy}
@@ -19,6 +20,7 @@ import play.api.Configuration
 import repository.UserRepository
 import repository.model.scalatrader.User
 
+import scala.collection.mutable
 import scala.concurrent.Future
 
 @Singleton
@@ -59,14 +61,17 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
 
           strategies.foreach(strategy => {
-            strategy.check(ticker.ltp).map(Orders.market).foreach((order: models.Order) => {
-
-              println(s"注文 ${order.side} price: ${ticker.ltp} size:${order.size}")
+            if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, ticker, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
 
               val (side, size) = mergePosition(TurtleCore.positionByUser.get(strategy.email), order)
               storePosition(ticker, strategy, side, size)
-            })
+            })) {
+              strategy.check(ticker.ltp).map(Orders.market).foreach((order: models.Order) => {
+                WaitingOrder.request(strategy.email, ticker, order)
+                println(s"注文 ${order.side} time: ${ticker.timestamp}")
+              })
+            }
           })
           TurtleCore.put(ticker)
         } catch {
