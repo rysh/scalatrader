@@ -1,6 +1,7 @@
 package application
 
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.{Named, Inject}
 
@@ -30,21 +31,22 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   println("init BackTestApplication")
 
   Future {
-    run()
+    //  val start = DateUtil.of("2017/11/17 00:00:00 +0000")
+    //  val start = DateUtil.of("2017/11/20 17:13:00 +0000")
+    //  val end = DateUtil.of("2017/11/17 01:00:00 +0000")
+    //  val end = DateUtil.of("2017/11/20 17:16:00 +0000")
+
+    //  val end = DateUtil.of("2017/11/25 16:00:00 +0000")
+    val start = DateUtil.of("2017/11/26 00:00:00 +0000")
+    val end = DateUtil.of("2017/11/26 01:00:00 +0000")
+//    run(start, end)
   } (scala.concurrent.ExecutionContext.Implicits.global)
 
-  def run(): Unit = {
+  def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
+    BackTestResults.init()
 
     val secret = config.get[String]("play.http.secret.key")
 
-//    val start = DateUtil.of("2017/11/17 00:00:00 +0000")
-//  val start = DateUtil.of("2017/11/20 17:13:00 +0000")
-//  val end = DateUtil.of("2017/11/17 01:00:00 +0000")
-//  val end = DateUtil.of("2017/11/20 17:16:00 +0000")
-
-//  val end = DateUtil.of("2017/11/25 16:00:00 +0000")
-    val start = DateUtil.of("2017/11/26 00:00:00 +0000")
-    val end = DateUtil.of("2017/11/26 14:00:00 +0000")
     MockedTime.now = start
     val s3 = S3.create(Regions.US_WEST_1)
     val gson: Gson = new Gson()
@@ -55,8 +57,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     if (users.size == 0) return
 
     while(MockedTime.now.isBefore(end)){
-      println(MockedTime.now)
-      fetchOrReadLines(s3, MockedTime.now).foreach(json => {
+      fetchOrReadLines(s3, DateUtil.now).foreach(json => {
         try {
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
 

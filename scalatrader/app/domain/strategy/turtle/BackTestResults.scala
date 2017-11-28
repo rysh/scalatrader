@@ -10,6 +10,12 @@ import scala.collection.mutable
 
 
 object BackTestResults {
+  def init() = {
+    total = 0.0
+    entry = None
+    values.clear()
+  }
+
 
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult)]
 
