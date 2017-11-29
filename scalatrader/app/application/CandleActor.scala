@@ -6,7 +6,8 @@ import adapter.BitFlyer
 import akka.actor.Actor
 import com.google.inject.Inject
 import domain.ProductCode
-import domain.strategy.turtle.{Bar, TurtleCore}
+import domain.strategy.turtle.TurtleCore.candles1min
+import domain.strategy.turtle.{Bar, BackTestResults, TurtleCore}
 import domain.time.DateUtil
 import play.api.{Configuration, Logger}
 import repository.UserRepository

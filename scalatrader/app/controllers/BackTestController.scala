@@ -7,6 +7,7 @@ import javax.inject._
 import application.BackTestApplication
 import application.settings.UserApplication
 import com.google.gson.Gson
+import domain.strategy.turtle.{Bar, BackTestResults}
 import domain.time.DateUtil
 import domain.user.Settings
 import play.api.data.Form
@@ -14,6 +15,7 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 import play.api.mvc._
 
+import scala.collection.JavaConverters
 import scala.concurrent.Future
 
 @Singleton
@@ -30,9 +32,16 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     )(BackTestProps.apply)(BackTestProps.unapply)
   )
 
+  def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
+    val gson:Gson = new Gson()
+    val bars: Seq[Bar] = BackTestResults.candles1min.values.toSeq.sortBy(_.key)
+    val json = gson.toJsonTree(JavaConverters.seqAsJavaList(bars)).toString
+    println(json)
+    Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
+  }
+
   case class BackTestProps(start: String, end: String)
 
-  //TODO cookie
   def run() = withAuth { _ => implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)

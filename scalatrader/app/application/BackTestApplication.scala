@@ -44,6 +44,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     BackTestResults.init()
+    TurtleCore.init()
 
     val secret = config.get[String]("play.http.secret.key")
 

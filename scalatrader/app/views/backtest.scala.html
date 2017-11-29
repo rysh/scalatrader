@@ -7,9 +7,9 @@
 
   @helper.javascriptRouter("jsRoutes")(
     routes.javascript.BackTestController.main,
+    routes.javascript.BackTestController.chart,
     routes.javascript.BackTestController.run
   )
-
   <form id="backTestParameters">
     <div>
       <dl>
@@ -20,6 +20,7 @@
       </dl>
       @CSRF.formField
       <input type="button" onclick="run()" value="run"/>
+      <input type="button" onclick="showChart()" value="chart"/>
     </div>
   </form>
   <div id="chartContainer" style="height: 370px; width: 100%;"></div>

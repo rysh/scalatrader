@@ -17,7 +17,8 @@ object BackTestResults {
   }
 
 
-  val values = new mutable.ArrayBuffer[(OrderResult, OrderResult)]
+  val candles1min = new mutable.HashMap[Long, Bar]()
+  val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int)]
 
   var total: Double = 0.0
   var entry: Option[OrderResult] = None
@@ -26,10 +27,10 @@ object BackTestResults {
     if (entry.isEmpty) {
       entry = Some(order)
     } else {
-      values += ((entry.get, order))
 
       val value = calc(entry.get, order)
       total = total + value
+      values += ((entry.get, order, total.toInt))
       println(format(entry.get, order, value, total))
       entry = None
     }
@@ -40,7 +41,7 @@ object BackTestResults {
 
   def report() = {
     var total: Double = 0.0
-    values.foreach{ case (entry, close) => {
+    values.foreach{ case (entry, close, _) => {
       val value = calc(entry, close)
       total = total + value
       println(format(entry, close, value, total))
