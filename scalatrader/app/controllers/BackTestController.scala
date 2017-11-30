@@ -2,6 +2,7 @@ package controllers
 
 import java.time.format.DateTimeFormatter.ofPattern
 import java.time.{ZonedDateTime, LocalDateTime, ZoneId}
+import java.util
 import javax.inject._
 
 import application.BackTestApplication
@@ -10,6 +11,7 @@ import com.google.gson.Gson
 import domain.strategy.turtle.{Bar, BackTestResults}
 import domain.time.DateUtil
 import domain.user.Settings
+import io.circe.{Encoder, Decoder}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
@@ -32,14 +34,26 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     )(BackTestProps.apply)(BackTestProps.unapply)
   )
 
-  def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
-    val gson:Gson = new Gson()
-    val bars: Seq[Bar] = BackTestResults.candles1min.values.toSeq.sortBy(_.key)
-    val json = gson.toJsonTree(JavaConverters.seqAsJavaList(bars)).toString
-    println(json)
+  case class ChartResponse(bars: util.List[ChartBar], values: util.List[(String, Int, BackTestResults.OrderResult, Int)])
+  case class ChartBar(key: Long, high: Double, low: Double, open: Double, close: Double, label: String)
+
+    def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
+
+    val orders = BackTestResults.valuesForChart()
+    val orderMap: Map[Long, (String, String)] = orders.map(a => (DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
+    val bars: util.List[ChartBar] = JavaConverters.seqAsJavaList(BackTestResults.candles1min.values.map(b => {
+      ChartBar(b.key,b.high,b.low,b.open,b.close,orderMap.get(b.key).map(label).getOrElse(""))
+    }).toSeq.sortBy(_.key))
+    val values: util.List[(String, Int, BackTestResults.OrderResult, Int)] = JavaConverters.seqAsJavaList(orders.toSeq)
+
+    val gson: Gson = new Gson()
+    val json = gson.toJsonTree(ChartResponse(bars,values)).toString
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
-
+  private def label(a:(String,String)): String = {
+    val (inOut, side) = a
+    (if (inOut == "entry") "E" else "C")  + side.substring(0, 1)
+  }
   case class BackTestProps(start: String, end: String)
 
   def run() = withAuth { _ => implicit request: Request[AnyContent] =>

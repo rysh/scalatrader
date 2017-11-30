@@ -34,5 +34,6 @@ object DateUtil {
     temp - (temp % 30)
   }
 
+  def fromTimestamp(str: String) = ZonedDateTime.parse(str, ofPattern("yyyy-MM-dd HH:mm:ss Z"))
   def of(str: String) = ZonedDateTime.parse(str, ofPattern("yyyy/MM/dd HH:mm:ss Z"))
 }

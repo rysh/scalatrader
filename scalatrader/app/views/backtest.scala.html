@@ -3,8 +3,6 @@
 @()(implicit req: RequestHeader)
 
 @main("Welcome to Back Test") {
-  <h1>Welcome to Back Test!</h1>
-
   @helper.javascriptRouter("jsRoutes")(
     routes.javascript.BackTestController.main,
     routes.javascript.BackTestController.chart,
@@ -24,6 +22,8 @@
     </div>
   </form>
   <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+  <div id="chartContainer2" style="height: 370px; width: 100%;"></div>
+  <table id="orders"></table>
   <script src="@routes.Assets.versioned("javascripts/backtest.js")"></script>
   <script src="@routes.Assets.versioned("javascripts/canvasjs.min.js")"></script>
 }

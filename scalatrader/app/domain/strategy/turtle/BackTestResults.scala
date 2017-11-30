@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter.ofPattern
 import play.api.Logger
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 
 object BackTestResults {
@@ -18,7 +19,7 @@ object BackTestResults {
 
 
   val candles1min = new mutable.HashMap[Long, Bar]()
-  val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int)]
+  val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
 
   var total: Double = 0.0
   var entry: Option[OrderResult] = None
@@ -30,7 +31,7 @@ object BackTestResults {
 
       val value = calc(entry.get, order)
       total = total + value
-      values += ((entry.get, order, total.toInt))
+      values += ((entry.get, order, value.toInt, total.toInt))
       println(format(entry.get, order, value, total))
       entry = None
     }
@@ -41,7 +42,7 @@ object BackTestResults {
 
   def report() = {
     var total: Double = 0.0
-    values.foreach{ case (entry, close, _) => {
+    values.foreach{ case (entry, close, _, _) => {
       val value = calc(entry, close)
       total = total + value
       println(format(entry, close, value, total))
@@ -60,4 +61,8 @@ object BackTestResults {
     s"${parse(entry.timestamp)} ${entry.side} -> ${parse(close.timestamp)} ${close.side} / ${entry.price} -> ${close.price} / 損益 $value : 累積損益 $total"
   }
 
+  def valuesForChart(): ArrayBuffer[(String, Int, OrderResult, Int)] = {
+
+    values.flatMap{case (entry, close, value, cumulative) => List(("entry", cumulative - value, entry, 0),("close", cumulative, close, value))}
+  }
 }
