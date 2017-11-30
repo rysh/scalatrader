@@ -8,6 +8,7 @@ import javax.inject._
 import application.BackTestApplication
 import application.settings.UserApplication
 import com.google.gson.Gson
+import domain.models.Ticker
 import domain.strategy.turtle.{Bar, BackTestResults}
 import domain.time.DateUtil
 import domain.user.Settings
@@ -37,14 +38,14 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
   case class ChartResponse(bars: util.List[ChartBar], values: util.List[(String, Int, BackTestResults.OrderResult, Int)])
   case class ChartBar(key: Long, high: Double, low: Double, open: Double, close: Double, label: String)
 
-    def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
+  def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
 
     val orders = BackTestResults.valuesForChart()
     val orderMap: Map[Long, (String, String)] = orders.map(a => (DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
     val bars: util.List[ChartBar] = JavaConverters.seqAsJavaList(BackTestResults.candles1min.values.map(b => {
       ChartBar(b.key,b.high,b.low,b.open,b.close,orderMap.get(b.key).map(label).getOrElse(""))
     }).toSeq.sortBy(_.key))
-    val values: util.List[(String, Int, BackTestResults.OrderResult, Int)] = JavaConverters.seqAsJavaList(orders.toSeq)
+    val values = JavaConverters.seqAsJavaList(orders.toSeq)
 
     val gson: Gson = new Gson()
     val json = gson.toJsonTree(ChartResponse(bars,values)).toString
@@ -54,6 +55,20 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     val (inOut, side) = a
     (if (inOut == "entry") "E" else "C")  + side.substring(0, 1)
   }
+
+  def ticker() = withAuth { _ => implicit request: Request[AnyContent] =>
+    val props: BackTestProps = form.bindFromRequest().get
+    val start = DateUtil.of(props.start)
+    val end = DateUtil.of(props.end)
+    val tickers = JavaConverters.seqAsJavaList(BackTestResults.tickers.filter(t => {
+      val ticketTime = ZonedDateTime.parse(t.timestamp)
+      ticketTime.isAfter(start) && ticketTime.isBefore(end)
+    }).map(t => (t.timestamp, t.ltp)).toSeq)
+    val gson: Gson = new Gson()
+    val json = gson.toJsonTree(tickers).toString
+    Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
+  }
+
   case class BackTestProps(start: String, end: String)
 
   def run() = withAuth { _ => implicit request: Request[AnyContent] =>

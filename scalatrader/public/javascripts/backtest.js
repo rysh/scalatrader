@@ -1,7 +1,6 @@
 
 
 window.onload = function () {
-
 };
 
 function run() {
@@ -29,7 +28,6 @@ function showChart() {
     }).then(function (response) {
         if (response.status === 200) {
             response.json().then(function (json) {
-
                 candleChart(json.bars);
                 performanceChart(json.values);
                 showOrders(json.values);
@@ -40,12 +38,32 @@ function showChart() {
     });
 }
 
+
+function ticker() {
+    var r = jsRoutes.controllers.BackTestController.ticker();
+    fetch(r.url, {
+        method: r.type,
+        body: new FormData(document.getElementById('tickerParameters')),
+        credentials: 'include'
+    }).then(function (response) {
+        if (response.status === 200) {
+            response.json().then(function (json) {
+                tickerChart(json);
+            });
+        } else {
+            console.log(response.statusText); // => Error Message
+        }
+    });
+}
+
 function showOrders(values){
     var table = document.getElementById('orders');
+    var child;
+    while (child = table.lastChild) table.removeChild(child);
     values.forEach(function(a) {
         var tr = document.createElement('tr');
         var td = document.createElement('td');
-        td.textContent = new Date(a._3.timestamp).toDateString();
+        td.textContent = a._3.timestamp;
         tr.appendChild(td);
         var td2 = document.createElement('td');
         td2.textContent = a._3.side;
@@ -142,6 +160,36 @@ function performanceChart(values) {
             type: "area",
             yValueFormatString: "#,##0",
             dataPoints: data
+        }]
+    });
+    chart.render();
+}
+
+function tickerChart(tickers) {
+    var data = tickers.map(function (e) {
+        return {x:new Date(e._1), y:e._2, d: e._1}
+    });
+    var chart = new CanvasJS.Chart("chartContainer3", {
+        animationEnabled: true,
+        zoomEnabled: true,
+        title:{
+            text: "Ticker data"
+        },
+        axisX: {
+            title:"Tickers",
+            minimum: data[0].x,
+            maximum: data[data.length - 1].x,
+            valueFormatString: "HH:mm:ss"
+        },
+        axisY:{
+            title: "Price",
+            includeZero: false,
+            valueFormatString: "#,##0"
+        },
+        data: [{
+            type: "scatter",
+            toolTipContent: "<b>Timestamp: </b>{d}<br/><b>Price: </b>{y}",
+            dataPoints:data
         }]
     });
     chart.render();

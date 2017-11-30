@@ -4,6 +4,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ofPattern
 
+import domain.models.Ticker
 import play.api.Logger
 
 import scala.collection.mutable
@@ -11,15 +12,19 @@ import scala.collection.mutable.ArrayBuffer
 
 
 object BackTestResults {
+
   def init() = {
     total = 0.0
     entry = None
+    candles1min.clear()
     values.clear()
+    tickers.clear()
   }
 
 
   val candles1min = new mutable.HashMap[Long, Bar]()
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
+  val tickers = new mutable.ArrayBuffer[Ticker]
 
   var total: Double = 0.0
   var entry: Option[OrderResult] = None
@@ -64,5 +69,11 @@ object BackTestResults {
   def valuesForChart(): ArrayBuffer[(String, Int, OrderResult, Int)] = {
 
     values.flatMap{case (entry, close, value, cumulative) => List(("entry", cumulative - value, entry, 0),("close", cumulative, close, value))}
+  }
+
+  def addTicker(ticker: Ticker) = {
+    if (domain.isBackTesting) {
+      if (tickers.size == 0 || tickers.last.ltp != ticker.ltp) tickers += ticker
+    }
   }
 }

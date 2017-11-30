@@ -6,6 +6,7 @@
   @helper.javascriptRouter("jsRoutes")(
     routes.javascript.BackTestController.main,
     routes.javascript.BackTestController.chart,
+    routes.javascript.BackTestController.ticker,
     routes.javascript.BackTestController.run
   )
   <form id="backTestParameters">
@@ -24,6 +25,20 @@
   <div id="chartContainer" style="height: 370px; width: 100%;"></div>
   <div id="chartContainer2" style="height: 370px; width: 100%;"></div>
   <table id="orders"></table>
+
+  <form id="tickerParameters">
+    <div>
+      <dl>
+        <dd>start</dd>
+        <dt><input type="text" id="start" name="start"></dt>
+        <dd>end</dd>
+        <dt><input type="text" id="end" name="end"></dt>
+      </dl>
+      @CSRF.formField
+      <input type="button" onclick="ticker()" value="show tickers"/>
+    </div>
+  </form>
+  <div id="chartContainer3" style="height: 370px; width: 100%;"></div>
   <script src="@routes.Assets.versioned("javascripts/backtest.js")"></script>
   <script src="@routes.Assets.versioned("javascripts/canvasjs.min.js")"></script>
 }

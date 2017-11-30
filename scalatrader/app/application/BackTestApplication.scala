@@ -61,6 +61,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       fetchOrReadLines(s3, DateUtil.now).foreach(json => {
         try {
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
+          BackTestResults.addTicker(ticker)
 
           strategies.foreach(strategy => {
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, ticker, (order) => {
