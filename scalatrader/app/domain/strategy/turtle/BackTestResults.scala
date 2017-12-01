@@ -56,7 +56,7 @@ object BackTestResults {
   }
 
   private def calc(entry: OrderResult, close: OrderResult) = {
-    (close.price - entry.price) * (if (close.side == "SELL") 1 else -1)
+    (close.price - entry.price) * entry.size * (if (close.side == "SELL") 1 else -1)
   }
 
   def format(entry: OrderResult, close: OrderResult, value: Double, total:Double) = {

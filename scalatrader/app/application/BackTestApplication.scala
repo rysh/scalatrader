@@ -85,7 +85,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
     }
-    println("report")
     BackTestResults.report()
   }
 

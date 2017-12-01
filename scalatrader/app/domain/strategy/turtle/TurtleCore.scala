@@ -30,7 +30,6 @@ object TurtleCore {
       case _ => {
         val b = new Bar(key)
         candles1min.put(key, b.put(ticker.ltp))
-        println(b)
         BackTestResults.candles1min.put(key, b)
       }
     }
