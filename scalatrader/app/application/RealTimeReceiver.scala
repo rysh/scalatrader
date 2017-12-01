@@ -1,5 +1,6 @@
 package application
 
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Named
 
@@ -15,7 +16,6 @@ import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
 import domain.ProductCode
 import domain.models.{Ticker, Orders}
-import domain.strategy.turtle.TurtleCore.candles1min
 import domain.strategy.turtle.{Bar, TurtleCore, TurtleStrategy}
 import domain.time.DateUtil
 import play.api.Configuration
@@ -63,18 +63,11 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
 
   val s3 = S3.create(Regions.US_WEST_1)
   import DateUtil._
-  for (i <- (1 to 20).reverse) {
+  val initialData = (1 to 20).reverse.map(i => {
     val time = now().minus(i, ChronoUnit.MINUTES)
     val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-    s3.getLines("btcfx-ticker-scala",s3Path).foreach(json => {
-
-      val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-      val key = keyOfUnit1Minutes(time)
-      candles1min.get(key) match {
-        case Some(v) => v.put(ticker.ltp)
-        case _ => candles1min.put(key, new Bar(key))
-      }
-    })
-  }
-
+    val key = keyOfUnit1Minutes(time)
+    (key, s3.getLines("btcfx-ticker-scala", s3Path))
+  })
+  TurtleCore.loadInitialData(initialData)
 }
