@@ -14,6 +14,7 @@ import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.{Side, models}
 import domain.models.{Position, Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
+import domain.strategy.momentum.MomentumStrategy
 import domain.strategy.{Strategies, Strategy}
 import domain.strategy.turtle.{TurtleCore, TurtleStrategy}
 import domain.time.{DateUtil, MockedTime}
@@ -53,7 +54,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
     if (users.size == 0) return
-    users.map(user => new TurtleStrategy(user)).foreach(Strategies.register)
+    users.map(user => new MomentumStrategy(user)).foreach(Strategies.register)
 
     loadInitialData(s3)
 

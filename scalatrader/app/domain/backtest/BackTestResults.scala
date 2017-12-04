@@ -76,10 +76,10 @@ object BackTestResults {
 
     val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
     candles1min.get(key) match {
-      case Some(v) => v.put(ticker.ltp)
+      case Some(v) => v.put(ticker)
       case _ => {
         val b = new Bar(key)
-        candles1min.put(key, b.put(ticker.ltp))
+        candles1min.put(key, b.put(ticker))
       }
     }
   }

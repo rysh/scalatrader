@@ -18,7 +18,7 @@ class CoreData {
     }
   }
 
-  val candles1min = new mutable.HashMap[Long, Bar]()
+  val candles1min = new mutable.LinkedHashMap[Long, Bar]()
   val positionByUser = new mutable.HashMap[String, Position]()
 
   def init() = {
@@ -29,11 +29,8 @@ class CoreData {
   def putTicker(ticker: models.Ticker) = {
     val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
     candles1min.get(key) match {
-      case Some(v) => v.put(ticker.ltp)
-      case _ => {
-        val b = new Bar(key)
-        candles1min.put(key, b.put(ticker.ltp))
-      }
+      case Some(v) => v.put(ticker)
+      case _ => candles1min.put(key, new Bar(key).put(ticker))
     }
   }
 
