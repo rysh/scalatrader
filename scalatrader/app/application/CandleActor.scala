@@ -4,7 +4,7 @@ import adapter.BitFlyer
 import akka.actor.Actor
 import com.google.inject.Inject
 import domain.ProductCode
-import domain.strategy.turtle.{ TurtleCore}
+import domain.strategy.Strategies
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 
@@ -22,7 +22,7 @@ class CandleActor @Inject()(config: Configuration) extends Actor {
 
   def exec(): Unit = {
     updatePosition()
-    TurtleCore.refresh()
+    Strategies.processEvery1minutes()
   }
 
 
@@ -34,10 +34,7 @@ class CandleActor @Inject()(config: Configuration) extends Actor {
           try {
             //val col: Collateral = BitFlyer.getCollateral(user.api_key, user.api_secret)
             val position = BitFlyer.getPosition(ProductCode.btcFx, user.api_key, user.api_secret)
-            position.map(p => TurtleCore.positionByUser.put(user.email, p))
-            if (position.isEmpty) {
-              TurtleCore.positionByUser.remove(user.email)
-            }
+            Strategies.coreData.updatePosition(user, position)
 
           } catch {
             case e: Exception => {

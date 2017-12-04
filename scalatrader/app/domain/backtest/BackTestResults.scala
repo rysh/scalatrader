@@ -1,11 +1,11 @@
-package domain.strategy.turtle
+package domain.backtest
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatter.ofPattern
 
 import domain.models.Ticker
-import play.api.Logger
+import domain.strategy.core.Bar
+import domain.time.DateUtil
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -72,8 +72,15 @@ object BackTestResults {
   }
 
   def addTicker(ticker: Ticker) = {
-    if (domain.isBackTesting) {
-      if (tickers.size == 0 || tickers.last.ltp != ticker.ltp) tickers += ticker
+    if (tickers.size == 0 || tickers.last.ltp != ticker.ltp) tickers += ticker
+
+    val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
+    candles1min.get(key) match {
+      case Some(v) => v.put(ticker.ltp)
+      case _ => {
+        val b = new Bar(key)
+        candles1min.put(key, b.put(ticker.ltp))
+      }
     }
   }
 }

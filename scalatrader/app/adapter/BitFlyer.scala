@@ -2,11 +2,9 @@ package adapter
 
 import java.time.ZonedDateTime
 
-import adapter.aws.{MailContent, SNS, SES}
 import adapter.bitflyer.Path._
 import domain.ProductCode
 import domain.models._
-import domain.strategy.turtle.TurtleCore
 import domain.util.crypto.HmacSHA256
 import io.circe.Printer
 import skinny.http.{HTTP, Request}

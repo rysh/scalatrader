@@ -7,7 +7,6 @@ import adapter.aws.S3
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import domain.models.Ticker
-import domain.strategy.turtle.TurtleCore
 import domain.time.DateUtil.format
 import domain.time.{DateUtil, MockedTime}
 import org.scalatest.FunSuite

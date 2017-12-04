@@ -1,6 +1,6 @@
 package application
 
-import domain.strategy.turtle.Bar
+import domain.strategy.core.Bar
 import org.scalatest.FunSuite
 
 class RealTimeReceiverTest extends FunSuite {

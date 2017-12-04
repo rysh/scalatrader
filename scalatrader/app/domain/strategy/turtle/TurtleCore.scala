@@ -5,27 +5,27 @@ import java.time.temporal.ChronoUnit
 
 import com.google.gson.Gson
 import domain.models
-import domain.models.{Position, Ticker}
+import domain.models.{Ticker}
+import domain.strategy.core.Bar
 import domain.time.DateUtil
 
 import scala.collection.mutable
 
-object TurtleCore {
+class TurtleCore {
 
 
   val candles1min = new mutable.HashMap[Long, Bar]()
   var bar_10min: Option[Bar] = None
   var bar_20min: Option[Bar] = None
-  val positionByUser = new mutable.HashMap[String, Position]()
 
   def init(): Unit = {
     candles1min.clear()
     bar_10min = None
     bar_20min = None
-    positionByUser.clear()
   }
 
   def loadInitialData(list: Seq[(Long, Iterator[String])]) = {
+    init()
     val gson: Gson = new Gson
     list.foreach{case (key, lines) => {
       lines.foreach(json => {
@@ -45,7 +45,6 @@ object TurtleCore {
       case _ => {
         val b = new Bar(key)
         candles1min.put(key, b.put(ticker.ltp))
-        BackTestResults.candles1min.put(key, b)
       }
     }
     bar_10min.map(_.put(ticker.ltp))

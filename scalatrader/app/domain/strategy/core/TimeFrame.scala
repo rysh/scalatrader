@@ -1,4 +1,4 @@
-package domain.strategy.turtle
+package domain.strategy.core
 
 object TimeFrame {
   sealed trait TimeUnit

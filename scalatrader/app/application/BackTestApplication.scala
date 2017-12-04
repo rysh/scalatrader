@@ -10,18 +10,18 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
-import domain.backtest.WaitingOrder
+import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.{Side, models}
 import domain.models.{Position, Ticker, Orders}
-import domain.strategy.turtle.BackTestResults.OrderResult
-import domain.strategy.turtle.{BackTestResults, TurtleCore, TurtleStrategy}
+import domain.backtest.BackTestResults.OrderResult
+import domain.strategy.{Strategies, Strategy}
+import domain.strategy.turtle.{TurtleCore, TurtleStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
 import repository.UserRepository
 import repository.model.scalatrader.User
 
-import scala.collection.mutable
 import scala.concurrent.Future
 
 @Singleton
@@ -44,39 +44,40 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     BackTestResults.init()
-    TurtleCore.init()
 
     val secret = config.get[String]("play.http.secret.key")
 
     MockedTime.now = start
     val s3 = S3.create(Regions.US_WEST_1)
-    val gson: Gson = new Gson()
 
-    lazy val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
-    lazy val strategies = users.map(user => new TurtleStrategy(user))
 
+    val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
     if (users.size == 0) return
+    users.map(user => new TurtleStrategy(user)).foreach(Strategies.register)
 
+    loadInitialData(s3)
+
+    val gson: Gson = new Gson()
     while(MockedTime.now.isBefore(end)){
       fetchOrReadLines(s3, DateUtil.now).foreach(json => {
         try {
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-          BackTestResults.addTicker(ticker)
 
-          strategies.foreach(strategy => {
+          Strategies.values.foreach(strategy => {
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, ticker, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
 
-              val (side, size) = mergePosition(TurtleCore.positionByUser.get(strategy.email), order)
-              storePosition(ticker, strategy, side, size)
+              val (side, size) = mergePosition(Strategies.getPosition(strategy.email), order)
+              storePosition(ticker, strategy.email, side, size)
             })) {
-              strategy.check(ticker.ltp).map(Orders.market).foreach((order: models.Order) => {
+              strategy.judge(ticker).map(Orders.market).foreach((order: models.Order) => {
                 WaitingOrder.request(strategy.email, ticker, order)
                 println(s"注文 ${order.side} time: ${ticker.timestamp}")
               })
             }
           })
-          TurtleCore.put(ticker)
+          Strategies.putTicker(ticker)
+          BackTestResults.addTicker(ticker)
         } catch {
           case e:Exception => e.printStackTrace()
         }
@@ -88,12 +89,20 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     BackTestResults.report()
   }
 
-  private def storePosition(ticker: Ticker, strategy: TurtleStrategy, side: String, size: Double) = {
-    import TurtleCore._
+  private def loadInitialData(s3: S3) = {
+    val initialData = (1 to 20).reverse.map(i => {
+      import DateUtil._
+      val time = now().minus(i, ChronoUnit.MINUTES)
+      (keyOfUnit1Minutes(time), fetchOrReadLines(s3, time))
+    })
+    Strategies.values.foreach(st => st.loadInitialData(initialData))
+  }
+
+  private def storePosition(ticker: Ticker, email: String, side: String, size: Double) = {
     if (size == 0) {
-      positionByUser.remove(strategy.email)
+      Strategies.coreData.positionByUser.remove(email)
     } else {
-      positionByUser.put(strategy.email, positionOf(ticker, side, size))
+      Strategies.coreData.positionByUser.put(email, positionOf(ticker, side, size))
     }
   }
 
@@ -111,7 +120,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       size, Double.NaN, Double.NaN, Double.NaN, DateUtil.now.toString, Double.NaN, Double.NaN)
   }
 
-  private def fetchOrReadLines(s3: S3, now: ZonedDateTime) = {
+  private def fetchOrReadLines(s3: S3, now: ZonedDateTime): Iterator[String] = {
     val localPath = "tmp/btc_fx/"
 
     val filePath = localPath + format(now, "yyyyMMddHHmm")

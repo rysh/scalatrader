@@ -1,6 +1,5 @@
 package application
 
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Named
 
@@ -16,7 +15,8 @@ import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
 import domain.ProductCode
 import domain.models.{Ticker, Orders}
-import domain.strategy.turtle.{Bar, TurtleCore, TurtleStrategy}
+import domain.strategy.Strategies
+import domain.strategy.turtle.TurtleStrategy
 import domain.time.DateUtil
 import play.api.Configuration
 import repository.UserRepository
@@ -27,7 +27,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
   val secret = config.get[String]("play.http.secret.key")
 
   lazy val users = UserRepository.everyoneWithApiKey(secret)
-  lazy val strategies = users.map(user => new TurtleStrategy(user))
+  users.map(user => new TurtleStrategy(user)).foreach(Strategies.register)
 
   val gson: Gson = new Gson()
 
@@ -37,15 +37,14 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     override def message(pubnub: PubNub, message: PNMessageResult) = {
       val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
 
-      strategies.par.foreach(strategy => {
-        strategy.check(ticker.ltp).map(Orders.market).foreach(order => {
+      Strategies.values.foreach(strategy => {
+        strategy.judge(ticker).map(Orders.market).foreach(order => {
           //TODO
           //BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
           //TODO ユーザーが一人だけなので現状は問題がないが、売買が成立したユーザーだけポジションを更新したい
           candleActor ! "updatePosition"
         })
       })
-      TurtleCore.put(ticker)
     }
     override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {
       println("RealTimeReceiver#presence")
@@ -69,5 +68,6 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     val key = keyOfUnit1Minutes(time)
     (key, s3.getLines("btcfx-ticker-scala", s3Path))
   })
-  TurtleCore.loadInitialData(initialData)
+  Strategies.values.foreach(st => st.loadInitialData(initialData))
+
 }

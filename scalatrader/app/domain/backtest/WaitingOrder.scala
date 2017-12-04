@@ -18,7 +18,7 @@ object WaitingOrder {
   }
 
   val waiting: Boolean = true
-  val notWating: Boolean = false
+  val notWaiting: Boolean = false
 
   def isWaitingOrJustExecute(email:String, ticker: Ticker, func: models.Order => Unit): Boolean = {
     waitingExecuted.get(email) match {
@@ -28,10 +28,10 @@ object WaitingOrder {
         } else {
           waitingExecuted.remove(email)
           func.apply(w.order)
-          notWating
+          notWaiting
         }
       }
-      case None => notWating
+      case None => notWaiting
     }
   }
 }
