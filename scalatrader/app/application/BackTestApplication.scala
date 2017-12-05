@@ -54,7 +54,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
     if (users.size == 0) return
-    users.map(user => new MomentumStrategy(user)).foreach(Strategies.register)
+    users.map(user => new TurtleStrategy(user)).foreach(Strategies.register)
 
     loadInitialData(s3)
 
@@ -63,8 +63,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       val lines = fetchOrReadLines(s3, DateUtil.now)
       lines.foreach(json => {
+        val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
         try {
-          val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
           val time = ZonedDateTime.parse(ticker.timestamp)
           Strategies.values.foreach(strategy => {
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
@@ -79,10 +79,11 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
               })
             }
           })
+        } catch {
+          case e:Exception => throw e
+        } finally {
           Strategies.putTicker(ticker)
           BackTestResults.addTicker(ticker)
-        } catch {
-          case e:Exception => e.printStackTrace()
         }
       })
       candleActor ! "1min"

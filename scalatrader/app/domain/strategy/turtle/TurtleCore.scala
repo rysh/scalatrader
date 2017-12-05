@@ -18,6 +18,10 @@ class TurtleCore {
   var bar_10min: Option[Box] = None
   var bar_20min: Option[Box] = None
 
+  val candles10sec = new mutable.HashMap[Long, Bar]()
+  var box10sec: Option[Box] = None
+  var box20sec: Option[Box] = None
+
   def init(): Unit = {
     candles1min.clear()
     bar_10min = None
@@ -30,16 +34,18 @@ class TurtleCore {
     list.foreach{case (key, lines) => {
       lines.foreach(json => {
         val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-        candles1min.get(key) match {
-          case Some(v) => v.put(ticker)
-          case _ => candles1min.put(key, new Bar(key))
-        }
+        putTicker(ticker)
       })
     }}
   }
 
   def put(ticker: models.Ticker) = {
-    val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
+    putTicker(ticker)
+  }
+
+  private def putTicker(ticker: Ticker) = {
+    val now = ZonedDateTime.parse(ticker.timestamp)
+    val key = DateUtil.keyOfUnit1Minutes(now)
     candles1min.get(key) match {
       case Some(v) => v.put(ticker)
       case _ => {
@@ -49,6 +55,23 @@ class TurtleCore {
     }
     bar_10min.map(_.put(ticker))
     bar_20min.map(_.put(ticker))
+
+    val key10Sec = DateUtil.keyOfUnitSeconds(now, 10)
+    candles10sec.get(key10Sec) match {
+      case Some(v) => v.put(ticker)
+      case _ => {
+        candles10sec.put(key10Sec, new Bar(key10Sec).put(ticker))
+        val oldKey = DateUtil.keyOfUnitSeconds(now.minus(21 * 10, ChronoUnit.SECONDS), 10)
+        candles10sec.keys.filter(key => key < oldKey).foreach(key => candles10sec.remove(key))
+        val values: Seq[Bar] = candles10sec.values.toSeq.sortBy(_.key)
+        val in20 = Some(Box.of(values, 20))
+        val in10 = Some(Box.of(values.takeRight(11), 10))
+        box10sec = in10
+        box20sec = in20
+      }
+    }
+    box10sec.map(_.put(ticker))
+    box20sec.map(_.put(ticker))
   }
 
   def refresh() = {
