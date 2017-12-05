@@ -38,7 +38,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
       val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
 
       Strategies.values.foreach(strategy => {
-        strategy.judge(ticker).map(Orders.market).foreach(order => {
+        strategy.judgeByTicker(ticker).map(Orders.market).foreach(order => {
           //TODO
           //BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
           //TODO ユーザーが一人だけなので現状は問題がないが、売買が成立したユーザーだけポジションを更新したい

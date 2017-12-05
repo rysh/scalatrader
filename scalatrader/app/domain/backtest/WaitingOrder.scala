@@ -12,18 +12,31 @@ object WaitingOrder {
 
   val waitingExecuted = new mutable.HashMap[String, WaitingOrder]()
 
-  def request(email:String, ticker: Ticker, order: models.Order) = {
-    val estimatedTime = ZonedDateTime.parse(ticker.timestamp).plusSeconds(orderRequestDelay)
+  def request(email:String, time: ZonedDateTime, order: models.Order) = {
+    val estimatedTime = time.plusSeconds(orderRequestDelay)
     waitingExecuted.put(email, WaitingOrder(estimatedTime, order))
   }
 
   val waiting: Boolean = true
   val notWaiting: Boolean = false
 
-  def isWaitingOrJustExecute(email:String, ticker: Ticker, func: models.Order => Unit): Boolean = {
+  def isWaiting(email:String, time: ZonedDateTime): Boolean = {
     waitingExecuted.get(email) match {
       case Some(w) => {
-        if (ZonedDateTime.parse(ticker.timestamp).isBefore(w.estimatedTime)) {
+        if (time.isBefore(w.estimatedTime)) {
+          waiting
+        } else {
+          notWaiting
+        }
+      }
+      case None => notWaiting
+    }
+  }
+
+  def isWaitingOrJustExecute(email:String, time: ZonedDateTime, func: models.Order => Unit): Boolean = {
+    waitingExecuted.get(email) match {
+      case Some(w) => {
+        if (time.isBefore(w.estimatedTime)) {
           waiting
         } else {
           waitingExecuted.remove(email)

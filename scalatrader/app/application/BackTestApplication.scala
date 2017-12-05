@@ -59,21 +59,22 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     loadInitialData(s3)
 
     val gson: Gson = new Gson()
-    while(MockedTime.now.isBefore(end)){
+    while(MockedTime.now.isBefore(end)) {
+
       fetchOrReadLines(s3, DateUtil.now).foreach(json => {
         try {
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-
+          val time = ZonedDateTime.parse(ticker.timestamp)
           Strategies.values.foreach(strategy => {
-            if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, ticker, (order) => {
+            if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
 
               val (side, size) = mergePosition(Strategies.getPosition(strategy.email), order)
               storePosition(ticker, strategy.email, side, size)
             })) {
-              strategy.judge(ticker).map(Orders.market).foreach((order: models.Order) => {
-                WaitingOrder.request(strategy.email, ticker, order)
-                println(s"注文 ${order.side} time: ${ticker.timestamp}")
+              strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
+                WaitingOrder.request(strategy.email, time, order)
+                println(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
               })
             }
           })
@@ -84,8 +85,17 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         }
       })
       candleActor ! "1min"
-
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
+      val now = DateUtil.now()
+      val key = DateUtil.keyOfUnit1Minutes(now)
+      Strategies.values.foreach(strategy => {
+        if (!WaitingOrder.isWaiting(strategy.email, now)) {
+          strategy.judgeEveryMinutes(key).map(Orders.market).foreach((order: models.Order) => {
+            WaitingOrder.request(strategy.email, now, order)
+            println(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
+          })
+        }
+      })
     }
     BackTestResults.report()
   }

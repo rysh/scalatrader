@@ -20,7 +20,7 @@ class TurtleStrategy(user: User) extends Strategy {
   val sizeUnit = 0.2
 
   var losLimit:Option[Double] = None
-  override def judge(ticker: Ticker): Option[(String, Double)] = {
+  override def judgeByTicker(ticker: Ticker): Option[(String, Double)] = {
     val ltp = ticker.ltp
     val position = Strategies.getPosition(user.email)
 
