@@ -12,10 +12,8 @@ import domain.time.DateUtil
 
 import scala.collection.mutable
 
-class MomentumStrategy(user: User) extends Strategy {
+class ContinuousHighPriceStrategy(user: User) extends Strategy {
   override def email: String = user.email
-
-  val core = new MomentumCore
 
   val sizeUnit = 0.2
   override def judgeByTicker(ticker: models.Ticker): Option[(String, Double)] = {
@@ -26,11 +24,7 @@ class MomentumStrategy(user: User) extends Strategy {
     val key2 = key(2)
     val key3 = key(3)
     val key4 = key(4)
-    val key11 = key(11)
-    val key12 = key(12)
-    val key13 = key(13)
-    val key14 = key(14)
-    judge(Strategies.coreData.candles10sec, key1, key2, key3, key4, key11, key12, key13, key14)
+    judge(Strategies.coreData.candles10sec, key1, key2, key3, key4)
   }
 
   override def judgeEveryMinutes(key: Long): Option[(String, Double)] = {
@@ -38,36 +32,28 @@ class MomentumStrategy(user: User) extends Strategy {
     //judge(Strategies.coreData.candles1min, key - 1, key - 2, key - 3, key - 4)
   }
 
-  private def judge(candles: mutable.LinkedHashMap[Long, Bar], key1: Long, key2: Long, key3: Long, key4: Long, key11: Long, key12: Long, key13: Long, key14: Long) = {
+  private def judge(candles: mutable.LinkedHashMap[Long, Bar], key1: Long, key2: Long, key3: Long, key4: Long) = {
     val position = Strategies.getPosition(user.email)
     val res: Option[(String, Double)] = for {
-      b1 <- candles.get(key1)
-      b2 <- candles.get(key2)
-      b3 <- candles.get(key3)
-      b4 <- candles.get(key4)
-      b11 <- candles.get(key11)
-      b12 <- candles.get(key12)
-      b13 <- candles.get(key13)
-      b14 <- candles.get(key14)
-      m1 = b11.close - b1.close
-      m2 = b12.close - b2.close
-      m3 = b13.close - b3.close
-      m4 = b14.close - b4.close
+      m1 <- candles.get(key1)
+      m2 <- candles.get(key2)
+      m3 <- candles.get(key3)
+      m4 <- candles.get(key4)
     } yield {
       if (position.isEmpty) {
-        if (m1 > 0 && m2 > 0 && m3 < 0 && m4 < 0) {
+        if (m1.high < m2.high && m2.high < m3.high && m3.high < m4.high) {
           (Buy, sizeUnit)
-        } else if (m1 < 0 && m2 < 0 && m3 > 0 && m4 > 0) {
+        } else if (m1.low > m2.low && m2.low > m3.low && m3.low > m4.low) {
           (Sell, sizeUnit)
         } else {
           (Buy, 0)
         }
       } else {
-        val isBuy = position.exists(_.side == Buy)
-        if (isBuy && m1 < 0 && m2 < 0) {
-          (Sell, sizeUnit)
-        } else if (!isBuy && m1 > 0 && m2 > 0) {
+        val isBuy = position.map(_.side == Buy).getOrElse(false)
+        if (!isBuy && (m1.high < m2.high && m2.high < m3.high)) {
           (Buy, sizeUnit)
+        } else if (isBuy && (m1.low > m2.low && m2.low > m3.low)) {
+          (Sell, sizeUnit)
         } else {
           (Buy, 0)
         }
@@ -77,11 +63,10 @@ class MomentumStrategy(user: User) extends Strategy {
   }
 
   override def loadInitialData(initialData: Seq[(Long, Iterator[String])]): Unit = {
+
   }
 
   override def putTicker(ticker: models.Ticker): Unit = {
-  }
 
-  override def processEvery1minutes() = {
   }
 }

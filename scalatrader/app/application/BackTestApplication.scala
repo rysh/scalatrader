@@ -61,7 +61,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val gson: Gson = new Gson()
     while(MockedTime.now.isBefore(end)) {
 
-      fetchOrReadLines(s3, DateUtil.now).foreach(json => {
+      val lines = fetchOrReadLines(s3, DateUtil.now)
+      lines.foreach(json => {
         try {
           val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
           val time = ZonedDateTime.parse(ticker.timestamp)
@@ -139,9 +140,9 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     if (file.isEmpty) {
       file.createIfNotExists()
       try {
-        val lines = s3.getLines("btcfx-ticker-scala", format(now, "yyyy/MM/dd/HH/mm"))
+        val lines = s3.getLines("btcfx-ticker-scala", format(now, "yyyy/MM/dd/HH/mm")).toSeq
         lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
-        lines
+        lines.toIterator
       } catch {
         case e:Exception => Iterator.empty
       }

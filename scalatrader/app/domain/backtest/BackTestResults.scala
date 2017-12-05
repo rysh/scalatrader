@@ -14,7 +14,7 @@ import scala.collection.mutable.ArrayBuffer
 object BackTestResults {
 
   def init() = {
-    total = 0.0
+    total = 0
     entry = None
     candles1min.clear()
     values.clear()
@@ -26,7 +26,7 @@ object BackTestResults {
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
   val tickers = new mutable.ArrayBuffer[Ticker]
 
-  var total: Double = 0.0
+  var total: Int = 0
   var entry: Option[OrderResult] = None
   def add(order: OrderResult): Unit = {
 
@@ -34,9 +34,9 @@ object BackTestResults {
       entry = Some(order)
     } else {
 
-      val value = calc(entry.get, order)
+      val value = calc(entry.get, order).toInt
       total = total + value
-      values += ((entry.get, order, value.toInt, total.toInt))
+      values += ((entry.get, order, value, total))
       println(format(entry.get, order, value, total))
       entry = None
     }
@@ -46,9 +46,9 @@ object BackTestResults {
 
 
   def report() = {
-    var total: Double = 0.0
+    var total: Int = 0
     values.foreach{ case (entry, close, _, _) => {
-      val value = calc(entry, close)
+      val value = calc(entry, close).toInt
       total = total + value
       println(format(entry, close, value, total))
     }}
@@ -59,7 +59,7 @@ object BackTestResults {
     (close.price - entry.price) * entry.size * (if (close.side == "SELL") 1 else -1)
   }
 
-  def format(entry: OrderResult, close: OrderResult, value: Double, total:Double) = {
+  def format(entry: OrderResult, close: OrderResult, value: Int, total:Int) = {
     def parse(timestamp: String) = {
       ZonedDateTime.parse(timestamp).format(DateTimeFormatter.ofPattern("MM/dd HH:mm:ss"))
     }

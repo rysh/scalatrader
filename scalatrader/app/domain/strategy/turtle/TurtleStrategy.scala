@@ -23,7 +23,7 @@ class TurtleStrategy(user: User) extends Strategy {
   override def judgeByTicker(ticker: Ticker): Option[(String, Double)] = {
     val ltp = ticker.ltp
     val position = Strategies.getPosition(user.email)
-
+    
     val result = if (!available || core.bar_10min.isEmpty || core.bar_20min.isEmpty) {
       None
     } else {

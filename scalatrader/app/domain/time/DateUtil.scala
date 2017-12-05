@@ -29,9 +29,9 @@ object DateUtil {
     time.format(ofPattern("yyyyMMddHHmm")).toLong
   }
 
-  def keyOfUnit30Seconds(time: ZonedDateTime): Long = {
+  def keyOfUnitSeconds(time: ZonedDateTime, duration: Int): Long = {
     val temp = time.format(ofPattern("yyyyMMddHHmmss")).toLong
-    temp - (temp % 30)
+    temp - (temp % 100 % duration)
   }
 
   def fromTimestamp(str: String) = ZonedDateTime.parse(str, ofPattern("yyyy-MM-dd HH:mm:ss Z"))
