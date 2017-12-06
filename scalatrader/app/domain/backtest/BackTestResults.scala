@@ -21,6 +21,7 @@ object BackTestResults {
     tickers.clear()
   }
 
+  var depositMargin: Long = 300000
 
   val candles1min = new mutable.HashMap[Long, Bar]()
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
@@ -35,6 +36,7 @@ object BackTestResults {
     } else {
 
       val value = calc(entry.get, order).toInt
+      depositMargin = depositMargin + value
       total = total + value
       values += ((entry.get, order, value, total))
       println(format(entry.get, order, value, total))

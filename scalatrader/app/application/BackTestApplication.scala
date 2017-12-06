@@ -12,8 +12,9 @@ import com.google.gson.Gson
 import com.google.inject.Singleton
 import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.{Side, models}
-import domain.models.{Position, Ticker, Orders}
+import domain.models.{Position, Ticker, Orders, Positions}
 import domain.backtest.BackTestResults.OrderResult
+import domain.margin.Margin
 import domain.strategy.momentum.MomentumStrategy
 import domain.strategy.{Strategies, Strategy}
 import domain.strategy.turtle.{TurtleCore, TurtleStrategy}
@@ -60,6 +61,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val gson: Gson = new Gson()
     while(MockedTime.now.isBefore(end)) {
+      var ltp = 0.0
 
       val lines = fetchOrReadLines(s3, DateUtil.now)
       lines.foreach(json => {
@@ -84,9 +86,11 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         } finally {
           Strategies.putTicker(ticker)
           BackTestResults.addTicker(ticker)
+          ltp = ticker.ltp
         }
       })
-      candleActor ! "1min"
+      Strategies.processEvery1minutes()
+      Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
       val key = DateUtil.keyOfUnit1Minutes(now)

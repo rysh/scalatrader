@@ -51,9 +51,10 @@ class Margin(
     }
   }
 
+  def sizeOf1x = (evaluationMargin / ltp * 100).toLong / 100.0
+
 }
 
 object Margin {
-
-
+  var sizeUnit = 0.2
 }
