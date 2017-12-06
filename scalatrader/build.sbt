@@ -3,7 +3,7 @@ import sbt.CrossVersion
 name := """scalatrader"""
 organization := "scalatrader"
 
-version := "0.0.2-SNAPSHOT"
+version := "0.0.3-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 

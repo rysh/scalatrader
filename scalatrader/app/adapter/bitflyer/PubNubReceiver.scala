@@ -12,10 +12,11 @@ object PubNubReceiver {
     import java.util
     import com.pubnub.api.PubNub
 
-    val pubnub = new PubNub(configure(key))
+    val pubnub: PubNub = new PubNub(configure(key))
 
     pubnub.addListener(callback)
     pubnub.subscribe.channels(util.Arrays.asList(productCode)).execute()
+
   }
 
   private def configure(key: String) :PNConfiguration = {
