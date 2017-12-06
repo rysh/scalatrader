@@ -12,7 +12,7 @@ object WaitingOrder {
 
   val waitingExecuted = new mutable.HashMap[String, WaitingOrder]()
 
-  def request(email:String, time: ZonedDateTime, order: models.Order) = {
+  def request(email:String, time: ZonedDateTime, order: models.Order): Option[WaitingOrder] = {
     val estimatedTime = time.plusSeconds(orderRequestDelay)
     waitingExecuted.put(email, WaitingOrder(estimatedTime, order))
   }

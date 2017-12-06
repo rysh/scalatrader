@@ -10,6 +10,7 @@ import application.settings.UserApplication
 import com.google.gson.Gson
 import domain.backtest.BackTestResults
 import domain.models.Ticker
+import domain.strategy.Strategies
 import domain.time.DateUtil
 import domain.user.Settings
 import io.circe.{Encoder, Decoder}

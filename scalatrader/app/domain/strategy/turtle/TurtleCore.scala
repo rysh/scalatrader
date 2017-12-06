@@ -26,17 +26,9 @@ class TurtleCore {
     candles1min.clear()
     bar_10min = None
     bar_20min = None
-  }
-
-  def loadInitialData(list: Seq[(Long, Iterator[String])]) = {
-    init()
-    val gson: Gson = new Gson
-    list.foreach{case (key, lines) => {
-      lines.foreach(json => {
-        val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-        putTicker(ticker)
-      })
-    }}
+    candles10sec.clear()
+    box10sec = None
+    box20sec = None
   }
 
   def put(ticker: models.Ticker) = {

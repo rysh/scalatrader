@@ -76,7 +76,9 @@ object models {
     def relativeSize = size * (if (side == domain.Side.Sell) -1 else 1)
   }
   object Orders {
-    def market(t: (String,Double)): Order = market(t._1, t._2)
+    def market(t: Ordering): Order = market(t.side, t.size)
     def market(side: String, size: Double): Order = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC")
   }
+
+  case class Ordering(side:String, size:Double)
 }

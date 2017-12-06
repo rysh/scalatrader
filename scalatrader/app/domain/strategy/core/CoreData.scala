@@ -3,30 +3,22 @@ package domain.strategy.core
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
-import domain.backtest.BackTestResults
 import domain.models
 
 import scala.collection.mutable
-import domain.models.Position
 import domain.time.DateUtil
-import repository.model.scalatrader.User
 
 class CoreData {
-  def updatePosition(user: User, position: Option[Position]) = {
-    position.map(p => positionByUser.put(user.email, p))
-    if (position.isEmpty) {
-      positionByUser.remove(user.email)
-    }
-  }
 
   val candles10sec = new mutable.LinkedHashMap[Long, Bar]()
   val candles20sec = new mutable.LinkedHashMap[Long, Bar]()
   val candles30sec = new mutable.LinkedHashMap[Long, Bar]()
   val candles1min = new mutable.LinkedHashMap[Long, Bar]()
-  val positionByUser = new mutable.HashMap[String, Position]()
 
   def init() = {
-    positionByUser.clear()
+    candles10sec.clear()
+    candles20sec.clear()
+    candles30sec.clear()
     candles1min.clear()
   }
 

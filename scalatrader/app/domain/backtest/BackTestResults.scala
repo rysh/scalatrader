@@ -19,6 +19,7 @@ object BackTestResults {
     candles1min.clear()
     values.clear()
     tickers.clear()
+    depositMargin = 300000
   }
 
   var depositMargin: Long = 300000
@@ -65,7 +66,7 @@ object BackTestResults {
     def parse(timestamp: String) = {
       ZonedDateTime.parse(timestamp).format(DateTimeFormatter.ofPattern("MM/dd HH:mm:ss"))
     }
-    s"${parse(entry.timestamp)} ${entry.side} -> ${parse(close.timestamp)} ${close.side} / ${entry.price} -> ${close.price} / 損益 $value : 累積損益 $total"
+    s"${parse(entry.timestamp)} ${entry.side} -> ${parse(close.timestamp)} ${close.side} / ${entry.price} -> ${close.price} (${entry.size})/ 損益 $value : 累積損益 $total"
   }
 
   def valuesForChart(): ArrayBuffer[(String, Int, OrderResult, Int)] = {

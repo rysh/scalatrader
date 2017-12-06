@@ -29,6 +29,8 @@ class Box(key: Long, duration: Long) {
     bars.foreach(put)
     this
   }
+
+  override def toString = s"Box(high=$high, low=$low, open=$open, close=$close)"
 }
 
 object Box {

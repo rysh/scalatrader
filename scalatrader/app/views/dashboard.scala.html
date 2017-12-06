@@ -1,7 +1,15 @@
 @import helper._
 
-@()(implicit req: RequestHeader)
+@(status: String)(implicit req: RequestHeader)
 
 @main("Welcome to dashboard") {
   <h1>Welcome to Dashboard!</h1>
+  @helper.javascriptRouter("jsRoutes")(
+    routes.javascript.DashBoardController.run,
+    routes.javascript.DashBoardController.stop,
+  )
+  <p>Trading is <span>@status</span></p>
+  <button onclick="run()">run</button>
+  <button onclick="stop()">stop</button>
+  <script src="@routes.Assets.versioned("javascripts/dashboard.js")"></script>
 }

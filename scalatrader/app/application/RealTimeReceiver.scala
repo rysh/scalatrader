@@ -3,6 +3,7 @@ package application
 import java.time.temporal.ChronoUnit
 import javax.inject.Named
 
+import adapter.BitFlyer
 import adapter.aws.S3
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
@@ -13,13 +14,15 @@ import com.pubnub.api.PubNub
 import com.pubnub.api.callbacks.SubscribeCallback
 import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
-import domain.ProductCode
+import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.Strategies
 import domain.strategy.turtle.TurtleStrategy
 import domain.time.DateUtil
 import play.api.Configuration
 import repository.UserRepository
+
+import scala.concurrent.Future
 
 @Singleton
 class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
@@ -36,15 +39,17 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
   val callback = new SubscribeCallback() {
     override def message(pubnub: PubNub, message: PNMessageResult) = {
       val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
-
-      Strategies.values.foreach(strategy => {
-        strategy.judgeByTicker(ticker).map(Orders.market).foreach(order => {
-          //TODO
-          //BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
-          //TODO ユーザーが一人だけなので現状は問題がないが、売買が成立したユーザーだけポジションを更新したい
-          candleActor ! "updatePosition"
-        })
+      Strategies.values.filter(_.isAvailable)foreach(strategy => {
+        strategy.synchronized {
+          strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
+            println(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+            Future {
+              BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+            } (scala.concurrent.ExecutionContext.Implicits.global)
+          })
+        }
       })
+      Strategies.values.foreach(_.putTicker(ticker))
     }
     override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {
       println("RealTimeReceiver#presence")
@@ -59,15 +64,23 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
 
   PubNubReceiver.start(productCode,key, callback)
   println("PubNubReceiver started")
-
-  val s3 = S3.create(Regions.US_WEST_1)
-  import DateUtil._
-  val initialData = (1 to 20).reverse.map(i => {
-    val time = now().minus(i, ChronoUnit.MINUTES)
-    val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-    val key = keyOfUnit1Minutes(time)
-    (key, s3.getLines("btcfx-ticker-scala", s3Path))
-  })
-  Strategies.values.foreach(st => st.loadInitialData(initialData))
-
+  def loadInitialData() = {
+    Future{
+      val s3 = S3.create(Regions.US_WEST_1)
+      val gson: Gson = new Gson
+      import DateUtil._
+      val initialData = (1 to 20).reverse.flatMap(i => {
+        val time = now().minus(i, ChronoUnit.MINUTES)
+        val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
+        val key = keyOfUnit1Minutes(time)
+        s3.getLines("btcfx-ticker-scala", s3Path)
+      }).map(json => gson.fromJson(json, classOf[Ticker]))
+      initialData.foreach(ticker => {
+        Strategies.coreData.putTicker(ticker)
+        Strategies.values.foreach(_.putTicker(ticker))
+      })
+      Strategies.values.foreach(st => st.isAvailable = true)
+    } (scala.concurrent.ExecutionContext.Implicits.global)
+  }
+  loadInitialData()
 }

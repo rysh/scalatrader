@@ -19,6 +19,9 @@ object Strategies {
     values.foreach(_.processEvery1minutes)
     coreData.processEvery1minutes
   }
+  def init() = {
+    values.foreach(_.init())
+    coreData.init()
+  }
 
-  def getPosition(email:String) = coreData.positionByUser.get(email)
 }

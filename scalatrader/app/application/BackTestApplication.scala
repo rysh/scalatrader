@@ -46,17 +46,20 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     BackTestResults.init()
-
-    val secret = config.get[String]("play.http.secret.key")
+    Strategies.init()
+    Margin.resetSize()
 
     MockedTime.now = start
+
+    val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
+    if (users.isEmpty) return
+    users.map(user => new TurtleStrategy(user)).foreach(st => {
+      if (!Strategies.values.exists(_.email == st.email)) {
+        Strategies.register(st)
+      }
+    })
+
     val s3 = S3.create(Regions.US_WEST_1)
-
-
-    val users: Seq[User] = UserRepository.everyoneWithApiKey(secret)
-    if (users.size == 0) return
-    users.map(user => new TurtleStrategy(user)).foreach(Strategies.register)
-
     loadInitialData(s3)
 
     val gson: Gson = new Gson()
@@ -71,9 +74,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           Strategies.values.foreach(strategy => {
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
-
-              val (side, size) = mergePosition(Strategies.getPosition(strategy.email), order)
-              storePosition(ticker, strategy.email, side, size)
             })) {
               strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
                 WaitingOrder.request(strategy.email, time, order)
@@ -90,6 +90,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         }
       })
       Strategies.processEvery1minutes()
+      println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
       Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
@@ -106,35 +107,19 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     BackTestResults.report()
   }
 
-  private def loadInitialData(s3: S3) = {
-    val initialData = (1 to 20).reverse.map(i => {
+  private def loadInitialData(s3: S3): Unit = {
+    val gson: Gson = new Gson
+    val initialData: Seq[Ticker] = (1 to 20).reverse.flatMap(i => {
       import DateUtil._
       val time = now().minus(i, ChronoUnit.MINUTES)
-      (keyOfUnit1Minutes(time), fetchOrReadLines(s3, time))
+      fetchOrReadLines(s3, time)
+    }).map(json => gson.fromJson(json, classOf[Ticker]))
+
+    initialData.foreach(ticker => {
+      Strategies.coreData.putTicker(ticker)
+      Strategies.values.foreach(_.putTicker(ticker))
     })
-    Strategies.values.foreach(st => st.loadInitialData(initialData))
-  }
-
-  private def storePosition(ticker: Ticker, email: String, side: String, size: Double) = {
-    if (size == 0) {
-      Strategies.coreData.positionByUser.remove(email)
-    } else {
-      Strategies.coreData.positionByUser.put(email, positionOf(ticker, side, size))
-    }
-  }
-
-  private def mergePosition(position: Option[Position], order: models.Order): (String, Double) = {
-    position
-      .map(_.relativeSize + order.relativeSize)
-      .map(total => (Side.of(total), total.abs))
-      .getOrElse((order.side, order.size))
-  }
-
-  private def positionOf(ticker: Ticker, side: String, size: Double) = {
-    Position(domain.ProductCode.btcFx,
-      side,
-      ticker.ltp,
-      size, Double.NaN, Double.NaN, Double.NaN, DateUtil.now.toString, Double.NaN, Double.NaN)
+    Strategies.values.foreach(st => st.isAvailable = true)
   }
 
   private def fetchOrReadLines(s3: S3, now: ZonedDateTime): Iterator[String] = {
