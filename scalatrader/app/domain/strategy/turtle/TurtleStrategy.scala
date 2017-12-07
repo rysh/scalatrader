@@ -8,7 +8,7 @@ import repository.model.scalatrader.User
 
 
 class TurtleStrategy(user: User) extends Strategy {
-  override def putTicker(ticker: models.Ticker) = {
+  override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }
 
@@ -18,14 +18,14 @@ class TurtleStrategy(user: User) extends Strategy {
   override def secret = user.api_secret
 
   var leverage = 2.0
-  var orderSize = Margin.defaultSizeUnit * leverage
+  var orderSize: Double = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
   def entry(o: Ordering): Option[Ordering] = {
     position = Some(o)
     updateSizeUnit
     position
   }
-  def close = {
+  def close(): Unit = {
     position = None
     losLimit = None
   }
@@ -33,13 +33,15 @@ class TurtleStrategy(user: User) extends Strategy {
   val stopRange:Option[Double] = Some(3000)
   var losLimit:Option[Double] = None
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
-    val ltp = ticker.ltp
 
-    val result = if (!isAvailable || core.candles10sec.size < 22) {
+    val data = core.unit30sec
+
+    val ltp = ticker.ltp
+    val result = if (!isAvailable || data.candles.size < 22) {
       None
     } else {
-      val box10 = core.box10sec.get
-      val box20 = core.box20sec.get
+      val box10 = data.box10.get
+      val box20 = data.box20.get
       if (position.isEmpty) {
         if (box20.high < ltp) {
           losLimit = None

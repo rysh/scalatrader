@@ -38,13 +38,15 @@ class PriceReverseStrategy(user: User) extends Strategy {
   val stopRange:Option[Double] = Some(500)
   var stopLine:Option[Double] = None
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
-    val ltp = ticker.ltp
 
-    val result = if (!isAvailable || core.candles10sec.size < 22) {
+    val data = core.unit10sec
+
+    val ltp = ticker.ltp
+    val result = if (!isAvailable || data.candles.size < 22) {
       None
     } else {
-      val box10 = core.box10sec.get
-      val box20 = core.box20sec.get
+      val box10 = data.box10.get
+      val box20 = data.box20.get
       if (position.isEmpty) {
         if (box20.high < ltp) {
           entry(Ordering(Side.Sell, orderSize))
