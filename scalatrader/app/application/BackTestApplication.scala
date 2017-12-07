@@ -90,8 +90,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         }
       })
       Strategies.processEvery1minutes()
-      println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
-      Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
+      //println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
+      //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
       val key = DateUtil.keyOfUnit1Minutes(now)

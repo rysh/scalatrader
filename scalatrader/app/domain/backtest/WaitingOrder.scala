@@ -8,12 +8,12 @@ import domain.models.Ticker
 import scala.collection.mutable
 
 object WaitingOrder {
-  val orderRequestDelay = 3 // seconds
+  val orderRequestDelay = (0.03 * 1000 * 1000 * 1000).toLong // nano
 
   val waitingExecuted = new mutable.HashMap[String, WaitingOrder]()
 
   def request(email:String, time: ZonedDateTime, order: models.Order): Option[WaitingOrder] = {
-    val estimatedTime = time.plusSeconds(orderRequestDelay)
+    val estimatedTime = time.plusNanos(orderRequestDelay)
     waitingExecuted.put(email, WaitingOrder(estimatedTime, order))
   }
 

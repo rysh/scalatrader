@@ -92,6 +92,8 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
   }
   Future {
     Thread.sleep(10 * 1000)
-    start
+    if (!domain.isBackTesting) {
+      start
+    }
   } (scala.concurrent.ExecutionContext.Implicits.global)
 }
