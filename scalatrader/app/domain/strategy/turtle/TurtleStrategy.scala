@@ -18,7 +18,7 @@ class TurtleStrategy(user: User) extends Strategy {
   override def secret = user.api_secret
 
   var leverage = 2.0
-  var orderSize = 0.2 * leverage
+  var orderSize = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
   def entry(o: Ordering): Option[Ordering] = {
     position = Some(o)

@@ -1,7 +1,6 @@
 package application
 
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.{Named, Inject}
 
@@ -11,20 +10,17 @@ import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
 import domain.backtest.{BackTestResults, WaitingOrder}
-import domain.{Side, models}
-import domain.models.{Position, Ticker, Positions, Orders}
+import domain.{models}
+import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
-import domain.strategy.momentum.MomentumStrategy
-import domain.strategy.{Strategies, Strategy}
-import domain.strategy.turtle.{TurtleCore, TurtleStrategy, PriceReverseStrategy}
+import domain.strategy.turtle.{PriceReverseStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
 import repository.UserRepository
 import repository.model.scalatrader.User
 
-import scala.concurrent.Future
 
 @Singleton
 class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSystem,
@@ -32,20 +28,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
                                    ) {
   println("init BackTestApplication")
 
-  Future {
-    //  val start = DateUtil.of("2017/11/17 00:00:00 +0000")
-    //  val start = DateUtil.of("2017/11/20 17:13:00 +0000")
-    //  val end = DateUtil.of("2017/11/17 01:00:00 +0000")
-    //  val end = DateUtil.of("2017/11/20 17:16:00 +0000")
-
-    //  val end = DateUtil.of("2017/11/25 16:00:00 +0000")
-    val start = DateUtil.of("2017/11/26 00:00:00 +0000")
-    val end = DateUtil.of("2017/11/26 01:00:00 +0000")
-//    run(start, end)
-  } (scala.concurrent.ExecutionContext.Implicits.global)
-
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
-    if (!domain.isBackTesting) return ()
+    if (!domain.isBackTesting) return
     println("BackTestApplication run")
     BackTestResults.init()
     Strategies.init()
