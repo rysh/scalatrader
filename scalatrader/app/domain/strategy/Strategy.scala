@@ -9,7 +9,8 @@ trait Strategy {
   def key:String
   def secret:String
 
-  var isAvailable = true
+  val availability = new Availability
+  def isAvailable = availability.isAvailable
 
   def putTicker(ticker: models.Ticker)
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None
@@ -20,4 +21,10 @@ trait Strategy {
   }
   def init():Unit
 
+}
+
+class Availability {
+  var manualOn = false
+  var initialDataLoaded = false
+  def isAvailable = manualOn && initialDataLoaded
 }

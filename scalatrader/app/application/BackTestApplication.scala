@@ -15,7 +15,7 @@ import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
 import domain.strategy.Strategies
-import domain.strategy.turtle.PriceReverseStrategy
+import domain.strategy.turtle.{PriceReverseStrategy, TurtleStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
@@ -40,10 +40,11 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
-    users.map(user => new PriceReverseStrategy(user)).foreach(st => {
-      if (!Strategies.values.exists(_.email == st.email)) {
-        Strategies.register(st)
-      }
+    users.filter(user => !Strategies.values.exists(_.email == user.email))
+      .map(user => new TurtleStrategy(user))
+      .foreach(st => {
+      Strategies.register(st)
+      st.availability.manualOn = true
     })
 
     val s3 = S3.create(Regions.US_WEST_1)
@@ -96,7 +97,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
   private def loadInitialData(s3: S3): Unit = {
     val gson: Gson = new Gson
-    val initialData: Seq[Ticker] = (1 to 20).reverse.flatMap(i => {
+    val initialData: Seq[Ticker] = (1 to 60).reverse.flatMap(i => {
       import DateUtil._
       val time = now().minus(i, ChronoUnit.MINUTES)
       fetchOrReadLines(s3, time)
@@ -106,7 +107,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.coreData.putTicker(ticker)
       Strategies.values.foreach(_.putTicker(ticker))
     })
-    Strategies.values.foreach(st => st.isAvailable = true)
+    Strategies.processEvery1minutes()
+    Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
   }
 
   private def fetchOrReadLines(s3: S3, now: ZonedDateTime): Iterator[String] = {

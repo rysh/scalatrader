@@ -75,7 +75,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         val s3 = S3.create(Regions.US_WEST_1)
         val gson: Gson = new Gson
         import DateUtil._
-        val initialData = (1 to 20).reverse.flatMap(i => {
+        val initialData = (1 to 60).reverse.par.flatMap(i => {
           val time = now().minus(i, ChronoUnit.MINUTES)
           val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
           val key = keyOfUnit1Minutes(time)
@@ -85,7 +85,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
           Strategies.coreData.putTicker(ticker)
           Strategies.values.foreach(_.putTicker(ticker))
         })
-        Strategies.values.foreach(st => st.isAvailable = true)
+        Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
       } (scala.concurrent.ExecutionContext.Implicits.global)
     }
     loadInitialData()
