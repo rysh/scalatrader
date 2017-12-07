@@ -10,11 +10,12 @@ import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
 import domain.backtest.{BackTestResults, WaitingOrder}
-import domain.{models}
+import domain.models
 import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
-import domain.strategy.turtle.{PriceReverseStrategy}
+import domain.strategy.Strategies
+import domain.strategy.turtle.PriceReverseStrategy
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
