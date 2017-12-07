@@ -9,7 +9,7 @@ trait Strategy {
   def key:String
   def secret:String
 
-  var isAvailable = false
+  var isAvailable = true
 
   def putTicker(ticker: models.Ticker)
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None

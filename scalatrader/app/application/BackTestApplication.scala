@@ -45,6 +45,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   } (scala.concurrent.ExecutionContext.Implicits.global)
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
+    if (!domain.isBackTesting) return ()
     println("BackTestApplication run")
     BackTestResults.init()
     Strategies.init()

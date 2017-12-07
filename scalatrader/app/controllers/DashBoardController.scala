@@ -15,13 +15,13 @@ class DashBoardController @Inject()(cc: ControllerComponents) extends AbstractCo
   }
 
   def run() = withAuth { email => implicit request: Request[AnyContent] =>
-    Strategies.init()
-    Strategies.values.filter(_.email == email).foreach(s => s.isAvailable = true)
+//    Strategies.init()
+//    Strategies.values.filter(_.email == email).foreach(s => s.isAvailable = true)
     Ok("OK")
   }
 
   def stop() = withAuth { email => implicit request: Request[AnyContent] =>
-    Strategies.values.filter(_.email == email).foreach(s => s.isAvailable = false)
+//    Strategies.values.filter(_.email == email).foreach(s => s.isAvailable = false)
     Ok("OK")
   }
 }
