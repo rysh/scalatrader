@@ -12,12 +12,12 @@ import com.google.gson.Gson
 import com.google.inject.Singleton
 import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.{Side, models}
-import domain.models.{Position, Ticker, Orders, Positions}
+import domain.models.{Position, Ticker, Positions, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
 import domain.strategy.momentum.MomentumStrategy
 import domain.strategy.{Strategies, Strategy}
-import domain.strategy.turtle.{TurtleCore, TurtleStrategy}
+import domain.strategy.turtle.{TurtleCore, TurtleStrategy, PriceReverseStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
@@ -45,6 +45,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   } (scala.concurrent.ExecutionContext.Implicits.global)
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
+    println("BackTestApplication run")
     BackTestResults.init()
     Strategies.init()
     Margin.resetSize()
@@ -53,7 +54,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
-    users.map(user => new TurtleStrategy(user)).foreach(st => {
+    users.map(user => new PriceReverseStrategy(user)).foreach(st => {
       if (!Strategies.values.exists(_.email == st.email)) {
         Strategies.register(st)
       }
