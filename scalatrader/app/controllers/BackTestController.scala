@@ -78,7 +78,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
-    val moments = JavaConverters.seqAsJavaList(Strategies.coreData.momentum.values
+    val moments = JavaConverters.seqAsJavaList(Strategies.coreData.momentum20.values
       .map(t => (DateUtil.parseKeyOfUnitSeconds(t._1), t._2))
       .filter(t => t._1.isAfter(start) && t._1.isBefore(end))
       .map(t => ChartMomentum(t._1.toOffsetDateTime.toString, t._2)).toSeq)

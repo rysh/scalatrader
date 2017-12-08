@@ -5,7 +5,12 @@ import scala.collection.mutable
 class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, momentumDuration: Int) {
   val values = new mutable.LinkedHashMap[Long, Double]()
 
-  def update(key: Long): Unit = candles.get(key).foreach(put)
+  def update(key: Long): Unit = {
+    candles.get(key).foreach(put)
+  }
+  def clean(key: Long): Unit = {
+    values.keys.filter(_ < key).foreach(values.remove)
+  }
 
   def put(bar: Bar): Unit = calc(candles, candleDuration, momentumDuration, bar.key).foreach(t => values.put(t._1, t._2))
 
@@ -27,6 +32,8 @@ class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, m
     }
     ret
   }
+
+  def latest: Option[(Long,Double)] = values.lastOption
 
   def clear(): Unit = {
     values.clear()

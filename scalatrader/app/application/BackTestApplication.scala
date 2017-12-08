@@ -15,7 +15,7 @@ import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
 import domain.strategy.Strategies
-import domain.strategy.turtle.{PriceReverseStrategy, TurtleStrategy}
+import domain.strategy.turtle.{PriceReverseStrategy, TurtleStrategy, TurtleMomentumStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
@@ -41,7 +41,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => new TurtleStrategy(user))
+//      .map(user => new TurtleStrategy(user))
+      .map(user => new TurtleMomentumStrategy(user))
       .foreach(st => {
       Strategies.register(st)
       st.availability.manualOn = true
@@ -107,7 +108,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.coreData.putTicker(ticker)
       Strategies.values.foreach(_.putTicker(ticker))
     })
-    Strategies.coreData.momentum.loadAll()
+    Strategies.coreData.momentum10.loadAll()
     Strategies.processEvery1minutes()
     Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
   }

@@ -85,7 +85,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
           Strategies.coreData.putTicker(ticker)
           Strategies.values.foreach(_.putTicker(ticker))
         })
-        Strategies.coreData.momentum.loadAll()
+        Strategies.coreData.momentum10.loadAll()
         Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
       } (scala.concurrent.ExecutionContext.Implicits.global)
     }

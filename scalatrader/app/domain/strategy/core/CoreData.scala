@@ -21,14 +21,18 @@ class CoreData {
 //  var box2h: Option[Box] = None
 //  var box4h: Option[Box] = None
 
-  val momentum = new Momentum(candles10sec, 10, 10)
+  val momentum10 = new Momentum(candles10sec, 10, 10)
+  val momentum20 = new Momentum(candles20sec, 20, 10)
+  val momentum1min = new Momentum(candles1min, 60, 10)
 
   def init() = {
     candles10sec.clear()
     candles20sec.clear()
     candles30sec.clear()
     candles1min.clear()
-    momentum.clear()
+    momentum10.clear()
+    momentum20.clear()
+    momentum1min.clear()
   }
 
   def putTicker(ticker: models.Ticker) = {
@@ -36,7 +40,11 @@ class CoreData {
     val key = DateUtil.keyOfUnit1Minutes(now)
     candles1min.get(key) match {
       case Some(v) => v.put(ticker)
-      case _ => candles1min.put(key, new Bar(key).put(ticker))
+      case _ => {
+        candles1min.put(key, new Bar(key).put(ticker))
+        momentum1min.update(DateUtil.keyOfUnit1Minutes(now.minusMinutes(1)))
+        momentum1min.clean(DateUtil.keyOfUnit1Minutes(now.minusHours(4)))
+      }
     }
 
     val key10Sec = DateUtil.keyOfUnitSeconds(now, 10)
@@ -44,14 +52,19 @@ class CoreData {
       case Some(v) => v.put(ticker)
       case _ => {
         candles10sec.put(key10Sec, new Bar(key10Sec).put(ticker))
-        momentum.update(DateUtil.keyOfUnitSeconds(now.minusSeconds(10), 10))
+        momentum10.update(DateUtil.keyOfUnitSeconds(now.minusSeconds(10), 10))
+        momentum10.clean(DateUtil.keyOfUnit1Minutes(now.minusHours(4)))
       }
     }
 
     val key20Sec = DateUtil.keyOfUnitSeconds(now, 20)
     candles20sec.get(key20Sec) match {
       case Some(v) => v.put(ticker)
-      case _ => candles20sec.put(key20Sec, new Bar(key20Sec).put(ticker))
+      case _ => {
+        candles20sec.put(key20Sec, new Bar(key20Sec).put(ticker))
+        momentum20.update(DateUtil.keyOfUnitSeconds(now.minusSeconds(20), 20))
+        momentum20.clean(DateUtil.keyOfUnit1Minutes(now.minusHours(4)))
+      }
     }
 
     val key30Sec = DateUtil.keyOfUnitSeconds(now, 30)

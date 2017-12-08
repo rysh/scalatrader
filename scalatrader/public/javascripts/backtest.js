@@ -217,7 +217,7 @@ function momentumChart(momentums) {
     var data = momentums.map(function (e) {
         return {x:new Date(e.timestamp), y:e.value}
     });
-    var chart = new CanvasJS.Chart("chartContainer3", {
+    var chart = new CanvasJS.Chart("chartContainer4", {
         animationEnabled: true,
         zoomEnabled: true,
         title:{
