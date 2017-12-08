@@ -8,7 +8,7 @@ import domain.models.Ticker
 import scala.collection.mutable
 
 object WaitingOrder {
-  val orderRequestDelay = (0.03 * 1000 * 1000 * 1000).toLong // nano
+  val orderRequestDelay = (45 * 1000 * 1000 * 1000).toLong // nano
 
   val waitingExecuted = new mutable.HashMap[String, WaitingOrder]()
 

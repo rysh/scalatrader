@@ -107,6 +107,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.coreData.putTicker(ticker)
       Strategies.values.foreach(_.putTicker(ticker))
     })
+    Strategies.coreData.momentum.loadAll()
     Strategies.processEvery1minutes()
     Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
   }

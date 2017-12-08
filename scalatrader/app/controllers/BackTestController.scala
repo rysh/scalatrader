@@ -36,6 +36,9 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     )(BackTestProps.apply)(BackTestProps.unapply)
   )
 
+  var start = DateUtil.now
+  var end = DateUtil.now
+
   case class ChartResponse(bars: util.List[ChartBar], values: util.List[(String, Int, BackTestResults.OrderResult, Int)])
   case class ChartBar(key: Long, high: Double, low: Double, open: Double, close: Double, label: String)
 
@@ -57,7 +60,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     (if (inOut == "entry") "E" else "C")  + side.substring(0, 1)
   }
 
-  def ticker() = withAuth { _ => implicit request: Request[AnyContent] =>
+  def ticker(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
@@ -70,12 +73,26 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
 
-  case class BackTestProps(start: String, end: String)
-
-  def run() = withAuth { _ => implicit request: Request[AnyContent] =>
+  case class ChartMomentum(timestamp: String, value: Double)
+  def momentum(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
+    val moments = JavaConverters.seqAsJavaList(Strategies.coreData.momentum.values
+      .map(t => (DateUtil.parseKeyOfUnitSeconds(t._1), t._2))
+      .filter(t => t._1.isAfter(start) && t._1.isBefore(end))
+      .map(t => ChartMomentum(t._1.toOffsetDateTime.toString, t._2)).toSeq)
+    val gson: Gson = new Gson()
+    val json = gson.toJsonTree(moments).toString
+    Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
+  }
+
+  case class BackTestProps(start: String, end: String)
+
+  def run(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
+    val props: BackTestProps = form.bindFromRequest().get
+    start = DateUtil.of(props.start)
+    end = DateUtil.of(props.end)
     Future {
       app.run(start, end)
     } (scala.concurrent.ExecutionContext.Implicits.global)

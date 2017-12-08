@@ -56,8 +56,13 @@ class Margin(
 }
 
 object Margin {
-  def resetSize() = sizeUnit = defaultSizeUnit
+  def resetSize() = {
+    sizeUnit = defaultSizeUnit
+    leverage = defaltLeverage
+  }
 
-  val defaultSizeUnit = 0.32
+  val defaultSizeUnit = 0.2
+  val defaltLeverage = 1
   var sizeUnit = defaultSizeUnit
+  var leverage = defaltLeverage
 }

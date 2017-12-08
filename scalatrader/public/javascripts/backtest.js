@@ -56,6 +56,24 @@ function ticker() {
     });
 }
 
+function momentum() {
+    var r = jsRoutes.controllers.BackTestController.momentum();
+    fetch(r.url, {
+        method: r.type,
+        body: new FormData(document.getElementById('tickerParameters')),
+        credentials: 'include'
+    }).then(function (response) {
+        if (response.status === 200) {
+            response.json().then(function (json) {
+                momentumChart(json);
+            });
+        } else {
+            console.log(response.statusText); // => Error Message
+        }
+    });
+}
+
+
 function showOrders(values){
     var table = document.getElementById('orders');
     var child;
@@ -188,6 +206,36 @@ function tickerChart(tickers) {
         },
         data: [{
             type: "scatter",
+            toolTipContent: "<b>Timestamp: </b>{d}<br/><b>Price: </b>{y}",
+            dataPoints:data
+        }]
+    });
+    chart.render();
+}
+function momentumChart(momentums) {
+
+    var data = momentums.map(function (e) {
+        return {x:new Date(e.timestamp), y:e.value}
+    });
+    var chart = new CanvasJS.Chart("chartContainer3", {
+        animationEnabled: true,
+        zoomEnabled: true,
+        title:{
+            text: "Momentum data"
+        },
+        axisX: {
+            title:"Date",
+            minimum: data[0].x,
+            maximum: data[data.length - 1].x,
+            valueFormatString: "HH:mm:ss"
+        },
+        axisY:{
+            title: "Momentum",
+            includeZero: false,
+            valueFormatString: "#,##0"
+        },
+        data: [{
+            type: "line",
             toolTipContent: "<b>Timestamp: </b>{d}<br/><b>Price: </b>{y}",
             dataPoints:data
         }]
