@@ -8,4 +8,5 @@ object Path {
   val COLLATERAL = "/v1/me/getcollateral"
   val POSITIONS = s"/v1/me/getpositions?product_code=${ProductCode.btcFx}"
   val CHILD_ORDER = "/v1/me/sendchildorder"
+  val ME_EXECUTIONS = "/v1/me/getexecutions"
 }

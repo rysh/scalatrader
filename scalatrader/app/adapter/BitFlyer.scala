@@ -80,4 +80,33 @@ object BitFlyer {
     header.put("ACCESS-SIGN", sign)
     body.map(_ => header.put("Content-Type", "application/json"))
   }
+
+  def myPosition() = {
+
+  }
+  def myExecutions(api_key: String, api_secret: String) = {
+    val count = 36
+    val before = 83994945
+    val after = 83778650
+    val path = ME_EXECUTIONS + s"?product_code=FX_BTC_JPY&count=$count&before=$before&after=$after"
+    val request = Request(BASE + path)
+    addSign(request, path, "GET", api_key, api_secret, None)
+
+    import io.circe.generic.auto._
+    import io.circe.parser._
+    decode[Seq[MyExecution]](HTTP.get(request).textBody) match {
+      case Right(ex) => ex
+      case Left(err) => throw err
+    }
+  }
+  case class MyExecution(
+    id: Long,
+    side: String,
+    price: Double,
+    size: Double,
+    exec_date: String,
+    child_order_id: String,
+    commission: Long,
+    child_order_acceptance_id: String
+  )
 }
