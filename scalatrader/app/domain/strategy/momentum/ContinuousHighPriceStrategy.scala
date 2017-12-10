@@ -36,7 +36,7 @@ class ContinuousHighPriceStrategy(user: User) extends Strategy {
     val key2 = key(2)
     val key3 = key(3)
     val key4 = key(4)
-    judge(Strategies.coreData.candles10sec, key1, key2, key3, key4)
+    judge(Strategies.coreData.candles10sec.values, key1, key2, key3, key4)
   }
 
   override def judgeEveryMinutes(key: Long): Option[Ordering] = {

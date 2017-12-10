@@ -43,7 +43,7 @@ class MomentumStrategy(user: User) extends Strategy {
     val key12 = key(12)
     val key13 = key(13)
     val key14 = key(14)
-    judge(Strategies.coreData.candles10sec, key1, key2, key3, key4, key11, key12, key13, key14)
+    judge(Strategies.coreData.candles10sec.values, key1, key2, key3, key4, key11, key12, key13, key14)
   }
 
   override def judgeEveryMinutes(key: Long): Option[Ordering] = {
