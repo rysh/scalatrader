@@ -84,7 +84,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
-      val key = DateUtil.keyOfUnit1Minutes(now)
+      val key = DateUtil.keyOf(now)
       Strategies.values.foreach(strategy => {
         if (!WaitingOrder.isWaiting(strategy.email, now)) {
           strategy.judgeEveryMinutes(key).map(Orders.market).foreach((order: models.Order) => {

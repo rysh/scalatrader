@@ -34,7 +34,7 @@ class MomentumStrategy(user: User) extends Strategy {
   override def judgeByTicker(ticker: models.Ticker): Option[Ordering] = {
     val duration = 10
     val now = ZonedDateTime.parse(ticker.timestamp)
-    def key(num:Int) = DateUtil.keyOfUnitSeconds(now.minus(num * duration, ChronoUnit.SECONDS), duration)
+    def key(num:Int) = DateUtil.keyOf(now.minus(num * duration, ChronoUnit.SECONDS), duration)
     val key1 = key(1)
     val key2 = key(2)
     val key3 = key(3)

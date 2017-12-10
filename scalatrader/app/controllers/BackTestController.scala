@@ -46,7 +46,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
   def chart(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
     import DateUtil._
     val orders = BackTestResults.valuesForChart()
-    val orderMap: Map[Long, (String, String)] = orders.map(a => (keyOfUnit1Minutes(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
+    val orderMap: Map[Long, (String, String)] = orders.map(a => (keyOf(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
     val bars = BackTestResults.candles1min.values.map(b => {
       ChartBar(b.key, keyToTimestamp(b.key), b.high, b.low, b.open, b.close, orderMap.get(b.key).map(label).getOrElse(""))
     }).toSeq.sortBy(_.key)
@@ -86,7 +86,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
     val moments = JavaConverters.seqAsJavaList(BackTestResults.momentum
-      .map(t => (DateUtil.parseKeyOfUnitSeconds(t._1), t._2))
+      .map(t => (DateUtil.parseKey(t._1), t._2))
       .filter(t => t._1.isAfter(start) && t._1.isBefore(end))
       .map(t => TimedValue(t._1.toOffsetDateTime.toString, t._2)).toSeq)
     val gson: Gson = new Gson()

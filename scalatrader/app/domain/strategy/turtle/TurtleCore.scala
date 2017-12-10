@@ -25,13 +25,13 @@ class TurtleCore {
   }
 
   private def new1min =
-    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 1, ChronoUnit.MINUTES, now => DateUtil.keyOfUnit1Minutes(now))
+    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 1, ChronoUnit.MINUTES, now => DateUtil.keyOf(now))
 
   private def new10sec =
-    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 10, ChronoUnit.SECONDS, now => DateUtil.keyOfUnitSeconds(now, 10))
+    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 10, ChronoUnit.SECONDS, now => DateUtil.keyOf(now, 10))
 
   private def new30sec =
-    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 30, ChronoUnit.SECONDS, now => DateUtil.keyOfUnitSeconds(now, 30))
+    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 30, ChronoUnit.SECONDS, now => DateUtil.keyOf(now, 30))
 
 
   def put(ticker: models.Ticker): Option[Box] = {

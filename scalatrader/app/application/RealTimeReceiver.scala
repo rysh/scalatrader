@@ -78,7 +78,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         val initialData = (1 to 60).reverse.par.flatMap(i => {
           val time = now().minus(i, ChronoUnit.MINUTES)
           val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-          val key = keyOfUnit1Minutes(time)
+          val key = keyOf(time)
           s3.getLines("btcfx-ticker-scala", s3Path)
         }).map(json => gson.fromJson(json, classOf[Ticker]))
         initialData.foreach(ticker => {

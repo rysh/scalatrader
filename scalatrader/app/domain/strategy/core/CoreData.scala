@@ -36,37 +36,37 @@ class CoreData {
 
   def putTicker(ticker: models.Ticker) = {
     val now = ZonedDateTime.parse(ticker.timestamp)
-    val key = DateUtil.keyOfUnit1Minutes(now)
+    val key = DateUtil.keyOf(now)
     candles1min.get(key) match {
       case Some(v) => v.put(ticker)
       case _ => {
         candles1min.put(key, new Bar(key).put(ticker))
-        momentum1min.update(DateUtil.keyOfUnit1Minutes(now.minusMinutes(1)))
-        momentum1min.clean(DateUtil.keyOfUnit1Minutes(now.minusHours(dataKeepTime)))
+        momentum1min.update(DateUtil.keyOf(now.minusMinutes(1)))
+        momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime)))
       }
     }
 
-    val key10Sec = DateUtil.keyOfUnitSeconds(now, 10)
+    val key10Sec = DateUtil.keyOf(now, 10)
     candles10sec.get(key10Sec) match {
       case Some(v) => v.put(ticker)
       case _ => {
         candles10sec.put(key10Sec, new Bar(key10Sec).put(ticker))
-        momentum10.update(DateUtil.keyOfUnitSeconds(now.minusSeconds(10), 10))
-        momentum10.clean(DateUtil.keyOfUnitSeconds(now.minusHours(dataKeepTime), 10))
+        momentum10.update(DateUtil.keyOf(now.minusSeconds(10), 10))
+        momentum10.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 10))
       }
     }
 
-    val key20Sec = DateUtil.keyOfUnitSeconds(now, 20)
+    val key20Sec = DateUtil.keyOf(now, 20)
     candles20sec.get(key20Sec) match {
       case Some(v) => v.put(ticker)
       case _ => {
         candles20sec.put(key20Sec, new Bar(key20Sec).put(ticker))
-        momentum20.update(DateUtil.keyOfUnitSeconds(now.minusSeconds(20), 20))
-        momentum20.clean(DateUtil.keyOfUnitSeconds(now.minusHours(dataKeepTime), 20))
+        momentum20.update(DateUtil.keyOf(now.minusSeconds(20), 20))
+        momentum20.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 20))
       }
     }
 
-    val key30Sec = DateUtil.keyOfUnitSeconds(now, 30)
+    val key30Sec = DateUtil.keyOf(now, 30)
     candles30sec.get(key30Sec) match {
       case Some(v) => v.put(ticker)
       case _ => candles30sec.put(key30Sec, new Bar(key30Sec).put(ticker))
@@ -78,7 +78,7 @@ class CoreData {
     val now = DateUtil.now()
 
     def keyOfBefore(min:Int) =
-      DateUtil.keyOfUnitSeconds(now.minus(min, ChronoUnit.MINUTES), 10)
+      DateUtil.keyOf(now.minus(min, ChronoUnit.MINUTES), 10)
     
     val key60 = keyOfBefore(60)
 
@@ -90,7 +90,7 @@ class CoreData {
     cleanCandle(candles20sec, key60)
     cleanCandle(candles30sec, key60)
 
-    val key1 = DateUtil.keyOfUnit1Minutes(now.minusHours(dataKeepTime))
+    val key1 = DateUtil.keyOf(now.minusHours(dataKeepTime))
     cleanCandle(candles1min, key1)
 
 //    val c4h = candles1min.values

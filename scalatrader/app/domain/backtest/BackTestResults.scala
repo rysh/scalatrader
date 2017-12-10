@@ -78,7 +78,7 @@ object BackTestResults {
   def addTicker(ticker: Ticker) = {
     if (tickers.size == 0 || tickers.last.ltp != ticker.ltp) tickers += ticker
 
-    val key = DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(ticker.timestamp))
+    val key = DateUtil.keyOf(ZonedDateTime.parse(ticker.timestamp))
     candles1min.get(key) match {
       case Some(v) => v.put(ticker)
       case _ => {
