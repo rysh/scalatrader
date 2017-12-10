@@ -17,8 +17,8 @@ class PriceReverseStrategy(user: User) extends Strategy {
   override def key = user.api_key
   override def secret = user.api_secret
 
-  var leverage = 2.0
-  var orderSize = Margin.sizeUnit * leverage
+  var leverage = Margin.defaltLeverage
+  var orderSize: Double = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
   def entry(o: Ordering): Option[Ordering] = {
     position = Some(o)
@@ -105,7 +105,7 @@ class PriceReverseStrategy(user: User) extends Strategy {
     position = None
     stopLine = None
     core.init()
-    leverage = 2.0
-    orderSize = 0.2 * leverage
+    leverage = Margin.defaltLeverage
+    orderSize = Margin.defaultSizeUnit * leverage
   }
 }

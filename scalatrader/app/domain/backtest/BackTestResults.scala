@@ -13,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 
 object BackTestResults {
 
-  def init() = {
+  def init(): Unit = {
     total = 0
     entry = None
     candles1min.clear()
@@ -27,6 +27,7 @@ object BackTestResults {
   val candles1min = new mutable.HashMap[Long, Bar]()
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
   val tickers = new mutable.ArrayBuffer[Ticker]
+  val momentum = new mutable.LinkedHashMap[Long, Double]()
 
   var total: Int = 0
   var entry: Option[OrderResult] = None

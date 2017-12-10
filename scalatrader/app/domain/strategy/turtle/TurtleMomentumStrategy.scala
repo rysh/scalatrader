@@ -22,9 +22,10 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
   override def key: String = user.api_key
   override def secret: String = user.api_secret
 
-  var leverage = 2.0
+  var leverage = Margin.defaltLeverage
   var orderSize: Double = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
+
   def entry(o: Ordering): Option[Ordering] = {
     position = Some(o)
     updateSizeUnit()
@@ -64,14 +65,11 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
           if (losLimit.exists(_ < ltp)) {
             close()
             Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
-          } else if (momentum.isNeedToBuyClose) {
-            close()
-            Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
           } else if (box10.high < ltp && momentum.isAvailableToBuyClose) {
             close()
             Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
           } else if (ltp < box20.low) {
-            losLimit = stopRange.map(ltp + _)
+            losLimit = None
             None
           } else {
             None
@@ -80,14 +78,11 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
           if (losLimit.exists(ltp < _)) {
             close()
             Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
-          } else if (momentum.isNeedToSellClose) {
-            close()
-            Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
           } else if (ltp < box10.low && momentum.isAvailableToSellClose) {
             close()
             Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
           } else if (box20.high < ltp) {
-            losLimit = stopRange.map(ltp - _)
+            losLimit = None
             None
           } else {
             None
@@ -124,12 +119,10 @@ class TurtleMomentumValue(t:(Long,Double)) {
   val key: Long = t._1
   val value: Double = t._2
 
-  def isAvailableBuyEntry: Boolean = value > 1000
-  def isAvailableSellEntry: Boolean = value < -1000
-  def isAvailableToBuyClose: Boolean = value > -500
-  def isAvailableToSellClose: Boolean = value < 500
-  def isNeedToBuyClose: Boolean = value > 0
-  def isNeedToSellClose: Boolean = value < 0
+  def isAvailableBuyEntry: Boolean = value > Strategies.coreData.momentum20.box1h.buyEntrySign
+  def isAvailableSellEntry: Boolean = value < Strategies.coreData.momentum20.box1h.sellEntrySign
+  def isAvailableToBuyClose: Boolean = value > Strategies.coreData.momentum20.box1h.buyCloseSign
+  def isAvailableToSellClose: Boolean = value < Strategies.coreData.momentum20.box1h.sellCloseSign
 
-  override def toString = s"TurtleMomentumValue(key=$key, value=$value, isAvailableBuyEntry=$isAvailableBuyEntry, isAvailableSellEntry=$isAvailableSellEntry, isAvailableToBuyClose=$isAvailableToBuyClose, isAvailableToSellClose=$isAvailableToSellClose, isNeedToBuyClose=$isNeedToBuyClose, isNeedToSellClose=$isNeedToSellClose)"
+  override def toString = s"TurtleMomentumValue(key=$key, value=$value, isAvailableBuyEntry=$isAvailableBuyEntry, isAvailableSellEntry=$isAvailableSellEntry, isAvailableToBuyClose=$isAvailableToBuyClose, isAvailableToSellClose=$isAvailableToSellClose)"
 }

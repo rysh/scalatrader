@@ -7,6 +7,7 @@ import domain.models
 import domain.strategy.{Strategies, Strategy}
 import repository.model.scalatrader.User
 import domain.Side._
+import domain.margin.Margin
 import domain.models.Ordering
 import domain.strategy.core.Bar
 import domain.time.DateUtil
@@ -28,7 +29,8 @@ class MomentumStrategy(user: User) extends Strategy {
     position = None
   }
 
-  val sizeUnit = 0.2
+  var leverage = Margin.defaltLeverage
+  var orderSize: Double = Margin.defaultSizeUnit * leverage
   override def judgeByTicker(ticker: models.Ticker): Option[Ordering] = {
     val duration = 10
     val now = ZonedDateTime.parse(ticker.timestamp)
@@ -66,9 +68,9 @@ class MomentumStrategy(user: User) extends Strategy {
     } yield {
       if (position.isEmpty) {
         if (m1 > 0 && m2 > 0 && m3 < 0 && m4 < 0) {
-          entry(Ordering(Buy, sizeUnit))
+          entry(Ordering(Buy, orderSize))
         } else if (m1 < 0 && m2 < 0 && m3 > 0 && m4 > 0) {
-          entry(Ordering(Sell, sizeUnit))
+          entry(Ordering(Sell, orderSize))
         } else {
           Ordering(Buy, 0)
         }
@@ -76,10 +78,10 @@ class MomentumStrategy(user: User) extends Strategy {
         val isBuy = position.exists(_.side == Buy)
         if (isBuy && m1 < 0 && m2 < 0) {
           close
-          Ordering(Sell, sizeUnit)
+          Ordering(Sell, orderSize)
         } else if (!isBuy && m1 > 0 && m2 > 0) {
           close
-          Ordering(Buy, sizeUnit)
+          Ordering(Buy, orderSize)
         } else {
           Ordering(Buy, 0)
         }

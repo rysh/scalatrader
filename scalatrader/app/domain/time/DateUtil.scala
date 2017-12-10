@@ -37,6 +37,13 @@ object DateUtil {
     val local = LocalDateTime.parse(key.toString, ofPattern("yyyyMMddHHmmss"))
     ZonedDateTime.ofInstant(local.atOffset(ZoneOffset.ofHours(0)).toInstant, zoneUtc)
   }
+  def parseKeyOfUnitMinutes(key: Long): ZonedDateTime ={
+    val local = LocalDateTime.parse(key.toString, ofPattern("yyyyMMddHHmm"))
+    ZonedDateTime.ofInstant(local.atOffset(ZoneOffset.ofHours(0)).toInstant, zoneUtc)
+  }
   def fromTimestamp(str: String): ZonedDateTime = ZonedDateTime.parse(str, ofPattern("yyyy-MM-dd HH:mm:ss Z"))
   def of(str: String): ZonedDateTime = ZonedDateTime.parse(str, ofPattern("yyyy/MM/dd HH:mm:ss Z"))
+  def keyToTimestamp(key: Long) = {
+    parseKeyOfUnitMinutes(key).toOffsetDateTime.toString
+  }
 }

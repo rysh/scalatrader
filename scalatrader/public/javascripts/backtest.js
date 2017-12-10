@@ -99,7 +99,7 @@ function showOrders(values){
 
 function candleChart(bars) {
     var data = bars.map(function (bar) {
-        return [String(bar.key), bar.open, bar.high, bar.low, bar.close, bar.label]
+        return [bar.timestamp, bar.open, bar.high, bar.low, bar.close, bar.label]
     });
     var dataPoints = [];
     var chart = new CanvasJS.Chart("chartContainer", {
@@ -134,13 +134,7 @@ function candleChart(bars) {
     for (var i = 0; i < data.length; i++) {
         if (data[i].length > 0) {
             var points = data[i];
-            var date = new Date(
-                parseInt(points[0].substr(0, 4)),
-                parseInt(points[0].substr(4, 2)),
-                parseInt(points[0].substr(6, 2)),
-                parseInt(points[0].substr(8, 2)),
-                parseInt(points[0].substr(10, 2))
-            );
+            var date = new Date(points[0]);
             var datum = {
                 x: date,
                 y: [points[1], points[2], points[3], points[4]],
@@ -155,7 +149,7 @@ function candleChart(bars) {
 
 function performanceChart(values) {
     var data = values.map(function (a) {
-        return {x: new Date(a._3.timestamp), y: a._2}
+        return {x: new Date(a.timestamp), y: a.value}
     });
     var chart = new CanvasJS.Chart("chartContainer2", {
         animationEnabled: true,
@@ -197,7 +191,7 @@ function tickerChart(tickers) {
             title:"Tickers",
             minimum: data[0].x,
             maximum: data[data.length - 1].x,
-            valueFormatString: "HH:mm:ss"
+            valueFormatString: "DD HH:mm"
         },
         axisY:{
             title: "Price",
@@ -227,7 +221,7 @@ function momentumChart(momentums) {
             title:"Date",
             minimum: data[0].x,
             maximum: data[data.length - 1].x,
-            valueFormatString: "HH:mm:ss"
+            valueFormatString: "DD HH:mm"
         },
         axisY:{
             title: "Momentum",

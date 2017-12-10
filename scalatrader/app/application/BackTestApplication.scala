@@ -78,6 +78,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           ltp = ticker.ltp
         }
       })
+      Strategies.coreData.momentum20.values.takeRight(3).foreach(t => BackTestResults.momentum.put(t._1,t._2))
       Strategies.processEvery1minutes()
       //println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
       //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x

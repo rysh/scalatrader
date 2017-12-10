@@ -36,25 +36,33 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     )(BackTestProps.apply)(BackTestProps.unapply)
   )
 
-  var start = DateUtil.now
-  var end = DateUtil.now
+  var start: ZonedDateTime = DateUtil.now()
+  var end: ZonedDateTime = DateUtil.now()
 
-  case class ChartResponse(bars: util.List[ChartBar], values: util.List[(String, Int, BackTestResults.OrderResult, Int)])
-  case class ChartBar(key: Long, high: Double, low: Double, open: Double, close: Double, label: String)
+  case class ChartResponse(bars: util.List[ChartBar], values: util.List[TimedValue])
+  case class ChartBar(key: Long, timestamp:String, high: Double, low: Double, open: Double, close: Double, label: String)
+  case class TimedValue(timestamp: String, value: Double)
 
-  def chart() = withAuth { _ => implicit request: Request[AnyContent] =>
-
+  def chart(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
+    import DateUtil._
     val orders = BackTestResults.valuesForChart()
-    val orderMap: Map[Long, (String, String)] = orders.map(a => (DateUtil.keyOfUnit1Minutes(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
-    val bars: util.List[ChartBar] = JavaConverters.seqAsJavaList(BackTestResults.candles1min.values.map(b => {
-      ChartBar(b.key,b.high,b.low,b.open,b.close,orderMap.get(b.key).map(label).getOrElse(""))
-    }).toSeq.sortBy(_.key))
-    val values = JavaConverters.seqAsJavaList(orders.toSeq)
+    val orderMap: Map[Long, (String, String)] = orders.map(a => (keyOfUnit1Minutes(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
+    val bars = BackTestResults.candles1min.values.map(b => {
+      ChartBar(b.key, keyToTimestamp(b.key), b.high, b.low, b.open, b.close, orderMap.get(b.key).map(label).getOrElse(""))
+    }).toSeq.sortBy(_.key)
+
+    val values1 = orders.toSeq.map(a => TimedValue(a._3.timestamp, a._2))
+
+    val firstData = keyToTimestamp(bars.head.key)
+    val lastDate = keyToTimestamp(bars.last.key)
+    val lastValue = values1.lastOption.map(_.value).getOrElse(0.0)
+    val values = TimedValue(firstData, 0) +: values1 :+ TimedValue(lastDate, lastValue)
 
     val gson: Gson = new Gson()
-    val json = gson.toJsonTree(ChartResponse(bars,values)).toString
+    val json = gson.toJsonTree(ChartResponse(JavaConverters.seqAsJavaList(bars), JavaConverters.seqAsJavaList(values))).toString
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
+
   private def label(a:(String,String)): String = {
     val (inOut, side) = a
     (if (inOut == "entry") "E" else "C")  + side.substring(0, 1)
@@ -73,15 +81,14 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
 
-  case class ChartMomentum(timestamp: String, value: Double)
   def momentum(): EssentialAction = withAuth { _ =>implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
-    val moments = JavaConverters.seqAsJavaList(Strategies.coreData.momentum20.values
+    val moments = JavaConverters.seqAsJavaList(BackTestResults.momentum
       .map(t => (DateUtil.parseKeyOfUnitSeconds(t._1), t._2))
       .filter(t => t._1.isAfter(start) && t._1.isBefore(end))
-      .map(t => ChartMomentum(t._1.toOffsetDateTime.toString, t._2)).toSeq)
+      .map(t => TimedValue(t._1.toOffsetDateTime.toString, t._2)).toSeq)
     val gson: Gson = new Gson()
     val json = gson.toJsonTree(moments).toString
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")

@@ -17,7 +17,7 @@ class TurtleStrategy(user: User) extends Strategy {
   override def key = user.api_key
   override def secret = user.api_secret
 
-  var leverage = 2.0
+  var leverage = Margin.defaltLeverage
   var orderSize: Double = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
   def entry(o: Ordering): Option[Ordering] = {
@@ -34,7 +34,7 @@ class TurtleStrategy(user: User) extends Strategy {
   var losLimit:Option[Double] = None
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
-    val data = core.unit30sec
+    val data = core.unit10sec
 
     val ltp = ticker.ltp
     val result = if (!isAvailable || data.candles.size < 22) {
@@ -100,7 +100,7 @@ class TurtleStrategy(user: User) extends Strategy {
     position = None
     losLimit = None
     core.init()
-    leverage = 2.0
-    orderSize = 0.2 * leverage
+    leverage = Margin.defaltLeverage
+    orderSize = Margin.defaultSizeUnit * leverage
   }
 }
