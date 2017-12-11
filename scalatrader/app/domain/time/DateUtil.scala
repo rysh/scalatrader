@@ -27,7 +27,14 @@ object DateUtil {
 
   def keyOf(time: ZonedDateTime, duration: Int = 1): Long = {
     val temp = time.format(ofPattern("yyyyMMddHHmmss")).toLong
-    temp - (temp % 100 % duration)
+    if (duration >= 60) {
+      val minutes = if (duration >= 60) {
+        temp / 100 % (duration / 60)
+      } else 0
+      temp - minutes * 100 -  temp % 100
+    } else {
+      temp -  temp % 100 % duration
+    }
   }
   def parseKey(key: Long): ZonedDateTime ={
     val local = LocalDateTime.parse(key.toString, ofPattern("yyyyMMddHHmmss"))
