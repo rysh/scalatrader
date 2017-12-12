@@ -1,5 +1,7 @@
 package domain.strategy.core
 
+import domain.time.DateUtil
+
 import scala.collection.mutable
 
 class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, momentumDuration: Int = 10) {
@@ -22,12 +24,14 @@ class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, m
   }
 
   def calc(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, momentumDuration: Int, key: Long): Option[(Long, Double)] = {
+    import DateUtil._
+    val now = parseKey(key)
     val ret = for {
-      p3 <- candles.get(key - momentumDuration * candleDuration * 2)
-      p2 <- candles.get(key - momentumDuration * candleDuration * 1)
-      p1 <- candles.get(key - momentumDuration * candleDuration)
-      d3 <- candles.get(key - candleDuration * 2)
-      d2 <- candles.get(key - candleDuration * 1)
+      p3 <- candles.get(keyOf(now.minusSeconds(candleDuration * (momentumDuration + 2)), candleDuration))
+      p2 <- candles.get(keyOf(now.minusSeconds(candleDuration * (momentumDuration + 1)), candleDuration))
+      p1 <- candles.get(keyOf(now.minusSeconds(candleDuration * momentumDuration), candleDuration))
+      d3 <- candles.get(keyOf(now.minusSeconds(candleDuration * 2), candleDuration))
+      d2 <- candles.get(keyOf(now.minusSeconds(candleDuration * 1), candleDuration))
       d1 <- candles.get(key)
       m1 = d1.close - p1.close
       m2 = d2.close - p2.close
@@ -39,6 +43,7 @@ class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, m
   }
 
   def latest: Option[(Long,Double)] = values.lastOption
+  def oneFromLast: Option[(Long,Double)] = values.takeRight(2).headOption
 
   def clear(): Unit = {
     values.clear()
@@ -54,15 +59,13 @@ class MomentumBox(momentum: Seq[Double]) {
     if (high < newValue) high = newValue
     if (newValue < low) low = newValue
   }
-  def absValue: Double = {
-    val abs = if (high < low.abs) low.abs else high
-    if (abs > 10000) abs else 10000.0
-  }
 
-  def buyEntrySign: Double = absValue * 0.4
-  def sellEntrySign: Double = - absValue * 0.4
-  def buyCloseSign: Double = absValue * 0.2
-  def sellCloseSign: Double = - absValue * 0.2
+  def limit(value: Double, limit: Double) = if (value.abs > limit) value else limit * (if(value > 0) 1 else -1)
+
+  def buyEntrySign: Double = limit(high, 10000) * 0
+  def sellEntrySign: Double = limit(low, 10000) * 0
+  def buyCloseSign: Double = limit(high, 10000) * 0
+  def sellCloseSign: Double = limit(low, 10000) * 0
 //  def buyEntrySign: Double = 5000
 //  def sellEntrySign: Double = -5000
 //  def buyCloseSign: Double = 4000
