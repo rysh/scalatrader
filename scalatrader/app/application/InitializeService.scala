@@ -1,13 +1,14 @@
 package application
 
-import javax.inject.{Inject}
+import javax.inject.Inject
 
 import adapter.BitFlyer
 import domain.models.Orders
+import domain.strategy.Strategies
 import play.api.Configuration
 import repository.UserRepository
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class InitializeService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
   println("InitializeService load")
@@ -30,5 +31,6 @@ class InitializeService @Inject()(config: Configuration)(implicit executionConte
 
   Future {
     clearOldOrders()
+    Strategies.values.foreach(s => s.availability.manualOn = true)
   } (scala.concurrent.ExecutionContext.Implicits.global)
 }

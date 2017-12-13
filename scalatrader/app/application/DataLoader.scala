@@ -14,11 +14,11 @@ import domain.time.DateUtil
 import scala.collection.parallel.ParSeq
 
 object DataLoader {
-  def loadFromS3(): ParSeq[Ticker] = {
+  def loadFromS3(): Seq[Ticker] = {
     val s3 = S3.create(Regions.US_WEST_1)
     val gson: Gson = new Gson
     val refTime = now()
-    (1 to 120).reverse.par.flatMap(i => {
+    (1 to 120).reverse.flatMap(i => {
       val time = refTime.minus(i, ChronoUnit.MINUTES)
       val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
       println(s"loading... $s3Path")

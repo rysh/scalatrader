@@ -1,13 +1,10 @@
 package application
 
-import java.time.temporal.ChronoUnit
 import javax.inject.Named
 
 import adapter.BitFlyer
-import adapter.aws.S3
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
-import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.{Inject, Singleton}
 import com.pubnub.api.PubNub
@@ -18,8 +15,6 @@ import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.Strategies
 import domain.strategy.momentum.MomentumReverseStrategy
-import domain.strategy.turtle.TurtleStrategy
-import domain.time.DateUtil
 import play.api.Configuration
 import repository.UserRepository
 
@@ -80,8 +75,8 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     println("PubNubReceiver started")
     def loadInitialData() = {
       Future{
-//        val initialData: Seq[Ticker] = InitialDataLoader.loadFromS3()
-        val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
+        val initialData: Seq[Ticker] = DataLoader.loadFromS3()
+//        val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
         initialData.foreach(ticker => {
           Strategies.coreData.putTicker(ticker)
           Strategies.values.foreach(_.putTicker(ticker))
