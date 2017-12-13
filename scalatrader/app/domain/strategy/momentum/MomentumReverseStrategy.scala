@@ -5,14 +5,13 @@ import java.time.ZonedDateTime
 import domain.Side.{Sell, Buy}
 import domain.margin.Margin
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.Momentum
 import domain.models
 import domain.strategy.{Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class MomentumStrategy(user: User) extends Strategy {
+class MomentumReverseStrategy(user: User) extends Strategy {
   override def putTicker(ticker: models.Ticker): Unit = {
   }
 
@@ -33,31 +32,41 @@ class MomentumStrategy(user: User) extends Strategy {
     position = None
     losLimit = None
     entryTime = None
+    top = None
+    bottom = None
   }
 
   var position: Option[Ordering] = None
   var entryTime: Option[ZonedDateTime] = None
   val stopRange:Option[Double] = None
   var losLimit:Option[Double] = None
+  var top:Option[Double] = None
+  var bottom:Option[Double] = None
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
     val momentum5min = Strategies.coreData.momentum5min
-    val latestOption = momentum5min.latest
-    val previousOption = momentum5min.oneFromLast
+    val momentum = momentum5min.values.values.takeRight(3).toSeq
     val ltp = ticker.ltp
-    val macd = Strategies.coreData.macd5m
 
-    val result = if (!isAvailable || latestOption.isEmpty || previousOption.isEmpty || macd.isEmpty()) {
+    val result = if (!isAvailable || momentum.size < 3) {
       None
     } else {
-      val latest = latestOption.get._2
-      val previous = previousOption.get._2
+      val one = momentum.head
+      val two = momentum.tail.head
+      val three = momentum.last
+      if (one < two && two > three) {
+        top = Some(two)
+      } else if (one > two && two < three) {
+        bottom = Some(two)
+      }
       if (position.isEmpty) {
-        if (previous < 0 && latest > 0 && ((previous - latest).abs > 2000) && macd.buySignal) {
+        if (one < two && two > three) {
+//        if (top.exists(t => (t - 5000) > three) && box20m.exists(_.isUp)) {
           losLimit = stopRange.map(ltp - _)
           entry(Ordering(Buy, orderSize))
-        } else if (previous > 0 && latest < 0 && ((previous - latest).abs > 2000) && macd.sellSignal) {
+        } else if (one > two && two < three) {
+//          } else if (bottom.exists(b => (b + 5000) < three) && box20m.exists(_.isDown)) {
           losLimit = stopRange.map(ltp + _)
           entry(Ordering(Sell, orderSize))
         } else {
@@ -68,7 +77,7 @@ class MomentumStrategy(user: User) extends Strategy {
           if (losLimit.exists(_ < ltp)) {
             close()
             Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
-          } else if (latest > 0) {
+          } else if (one < two && two > three) {
             close()
             Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
           } else if (false) {
@@ -81,7 +90,7 @@ class MomentumStrategy(user: User) extends Strategy {
           if (losLimit.exists(ltp < _)) {
             close()
             Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
-          } else if (latest < 0) {
+          } else if (one > two && two < three) {
             close()
             Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
           } else if (false) {

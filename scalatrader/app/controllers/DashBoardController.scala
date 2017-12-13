@@ -15,7 +15,6 @@ class DashBoardController @Inject()(cc: ControllerComponents) extends AbstractCo
   }
 
   def run() = withAuth { email => implicit request: Request[AnyContent] =>
-    Strategies.init()
     Strategies.values.filter(_.email == email).foreach(s => s.availability.manualOn = true)
     Ok("OK")
   }

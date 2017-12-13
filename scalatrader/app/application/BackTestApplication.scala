@@ -15,7 +15,8 @@ import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
 import domain.strategy.Strategies
-import domain.strategy.turtle.{PriceReverseStrategy, TurtleStrategy, TurtleMomentumStrategy}
+import domain.strategy.turtle.{PriceReverseStrategy, TurtleMomentumStrategy, TurtleStrategy}
+import domain.strategy.momentum.{MomentumStrategy, MomentumReverseStrategy}
 import domain.time.{DateUtil, MockedTime}
 import domain.time.DateUtil.format
 import play.api.Configuration
@@ -42,7 +43,9 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
 //      .map(user => new TurtleStrategy(user))
-      .map(user => new TurtleMomentumStrategy(user))
+//      .map(user => new TurtleMomentumStrategy(user))
+//      .map(user => new MomentumStrategy(user))
+      .map(user => new MomentumReverseStrategy(user))
       .foreach(st => {
       Strategies.register(st)
       st.availability.manualOn = true
@@ -55,7 +58,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     while(MockedTime.now.isBefore(end)) {
       var ltp = 0.0
 
-      val lines = fetchOrReadLines(s3, DateUtil.now)
+      val lines = DataLoader.fetchOrReadLines(s3, DateUtil.now)
       lines.foreach(json => {
         val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
         try {
@@ -78,7 +81,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           ltp = ticker.ltp
         }
       })
-      Strategies.coreData.momentum20.values.takeRight(3).foreach(t => BackTestResults.momentum.put(t._1,t._2))
+      Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1,t._2))
       Strategies.processEvery1minutes()
       //println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
       //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
@@ -98,38 +101,17 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   }
 
   private def loadInitialData(s3: S3): Unit = {
-    val gson: Gson = new Gson
-    val initialData: Seq[Ticker] = (1 to 60).reverse.flatMap(i => {
-      import DateUtil._
-      val time = now().minus(i, ChronoUnit.MINUTES)
-      fetchOrReadLines(s3, time)
-    }).map(json => gson.fromJson(json, classOf[Ticker]))
+    val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
 
     initialData.foreach(ticker => {
       Strategies.coreData.putTicker(ticker)
       Strategies.values.foreach(_.putTicker(ticker))
     })
-    Strategies.coreData.momentum10.loadAll()
+//    Strategies.coreData.momentum10.loadAll()
+//    Strategies.coreData.momentum20.loadAll()
+//    Strategies.coreData.momentum1min.loadAll()
+//    Strategies.coreData.momentum5min.loadAll()
     Strategies.processEvery1minutes()
     Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
-  }
-
-  private def fetchOrReadLines(s3: S3, now: ZonedDateTime): Iterator[String] = {
-    val localPath = "tmp/btc_fx/"
-
-    val filePath = localPath + format(now, "yyyyMMddHHmm")
-    val file = better.files.File(filePath)
-    if (file.isEmpty) {
-      file.createIfNotExists()
-      try {
-        val lines = s3.getLines("btcfx-ticker-scala", format(now, "yyyy/MM/dd/HH/mm")).toSeq
-        lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
-        lines.toIterator
-      } catch {
-        case e:Exception => Iterator.empty
-      }
-    } else {
-      file.lines.filter(l => l.length > 0).toIterator
-    }
   }
 }

@@ -17,6 +17,7 @@ import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageRe
 import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.Strategies
+import domain.strategy.momentum.MomentumReverseStrategy
 import domain.strategy.turtle.TurtleStrategy
 import domain.time.DateUtil
 import play.api.Configuration
@@ -31,12 +32,11 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
 
   def start: Unit = {
     lazy val users = UserRepository.everyoneWithApiKey(secret)
-    if (users.isEmpty) return ()
-    users.map(user => new TurtleStrategy(user)).foreach(st => {
-      if (!Strategies.values.exists(_.email == st.email)) {
-        Strategies.register(st)
-      }
-    })
+    if (users.isEmpty) return
+    users.filter(user => !Strategies.values.exists(_.email == user.email))
+      .map(user => new MomentumReverseStrategy(user))
+      .foreach(Strategies.register)
+
 
     val gson: Gson = new Gson()
 
@@ -55,7 +55,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
             })
           }
         })
-        Strategies.values.foreach(_.putTicker(ticker))
+        Strategies.putTicker(ticker)
       }
       override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {
         println("RealTimeReceiver#presence")
@@ -72,20 +72,17 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     println("PubNubReceiver started")
     def loadInitialData() = {
       Future{
-        val s3 = S3.create(Regions.US_WEST_1)
-        val gson: Gson = new Gson
-        import DateUtil._
-        val initialData = (1 to 60).reverse.par.flatMap(i => {
-          val time = now().minus(i, ChronoUnit.MINUTES)
-          val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-          val key = keyOf(time)
-          s3.getLines("btcfx-ticker-scala", s3Path)
-        }).map(json => gson.fromJson(json, classOf[Ticker]))
+//        val initialData: Seq[Ticker] = InitialDataLoader.loadFromS3()
+        val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
         initialData.foreach(ticker => {
           Strategies.coreData.putTicker(ticker)
           Strategies.values.foreach(_.putTicker(ticker))
         })
-        Strategies.coreData.momentum10.loadAll()
+//        Strategies.coreData.momentum10.loadAll()
+//        Strategies.coreData.momentum20.loadAll()
+//        Strategies.coreData.momentum1min.loadAll()
+//        Strategies.coreData.momentum5min.loadAll()
+        Strategies.processEvery1minutes()
         Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
       } (scala.concurrent.ExecutionContext.Implicits.global)
     }

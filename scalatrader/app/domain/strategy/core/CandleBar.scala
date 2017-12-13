@@ -16,14 +16,14 @@ class CandleBar(duration: Int) {
     values.clear()
   }
 
-  def put(now:ZonedDateTime, ticker:Ticker, func: () => Unit) = {
+  def put(now:ZonedDateTime, ticker:Ticker, func: Long => Unit) = {
 
     val key10Sec = DateUtil.keyOf(now, duration)
     values.get(key10Sec) match {
       case Some(v) => v.put(ticker)
       case _ => {
         values.put(key10Sec, new Bar(key10Sec).put(ticker))
-        func()
+        func(key10Sec)
       }
     }
   }

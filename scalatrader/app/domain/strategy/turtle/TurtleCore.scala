@@ -15,17 +15,23 @@ class TurtleCore {
 
 
   var unit1min:TurtleData = new1min
+  var unit5min:TurtleData = new5min
   var unit10sec:TurtleData = new10sec
   var unit30sec:TurtleData = new30sec
 
   def init(): Unit = {
     unit1min = new1min
+    unit5min = new1min
     unit10sec = new10sec
     unit30sec = new30sec
   }
 
+
   private def new1min =
     TurtleData(new mutable.HashMap[Long, Bar](), None, None, 1, ChronoUnit.MINUTES, now => DateUtil.keyOf(now))
+
+  private def new5min =
+    TurtleData(new mutable.HashMap[Long, Bar](), None, None, 5, ChronoUnit.MINUTES, now => DateUtil.keyOf(now, 300))
 
   private def new10sec =
     TurtleData(new mutable.HashMap[Long, Bar](), None, None, 10, ChronoUnit.SECONDS, now => DateUtil.keyOf(now, 10))
@@ -41,6 +47,7 @@ class TurtleCore {
   private def putTicker(ticker: Ticker) = {
     val now = ZonedDateTime.parse(ticker.timestamp)
     unit1min.put(ticker, now)
+    unit5min.put(ticker, now)
     unit10sec.put(ticker, now)
     unit30sec.put(ticker, now)
   }
