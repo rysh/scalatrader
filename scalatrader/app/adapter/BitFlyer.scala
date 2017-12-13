@@ -7,7 +7,7 @@ import domain.ProductCode
 import domain.models._
 import domain.util.crypto.HmacSHA256
 import io.circe.Printer
-import skinny.http.{HTTP, Request}
+import skinny.http.{HTTP, Request, Response}
 
 object BitFlyer {
 
@@ -54,7 +54,7 @@ object BitFlyer {
     }
   }
 
-  def orderByMarket(order: Order, api_key: String, api_secret: String): Unit = {
+  def orderByMarket(order: Order, api_key: String, api_secret: String): OrderResponse = {
     import io.circe.syntax._
     import io.circe.generic.auto._
     val p = Printer.noSpaces.copy(dropNullKeys = true)
@@ -65,7 +65,13 @@ object BitFlyer {
     request.connectTimeoutMillis(30 * 1000)
     request.readTimeoutMillis(30 * 1000)
     addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
-    HTTP.post(request)
+
+
+    import io.circe.parser._
+    decode[OrderResponse](HTTP.post(request).textBody) match {
+      case Right(ex) => ex
+      case Left(err) => throw err
+    }
     //SES.send(MailContent("rysh.cact@gmail.com","info@scalatrader.com", "デモ約定通知", order.toString, order.toString))
   }
 
@@ -84,7 +90,7 @@ object BitFlyer {
   def myPosition() = {
 
   }
-  def myExecutions(api_key: String, api_secret: String) = {
+  def myExecutions(api_key: String, api_secret: String): Seq[MyExecution] = {
     val count = 36
     val before = 83994945
     val after = 83778650
@@ -109,4 +115,5 @@ object BitFlyer {
     commission: Long,
     child_order_acceptance_id: String
   )
+  case class OrderResponse(child_order_acceptance_id: String)
 }
