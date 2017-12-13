@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 @Singleton
 class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
-  print("init RealTimeReceiver")
+  println("init RealTimeReceiver")
   val secret = config.get[String]("play.http.secret.key")
 
   def start: Unit = {
@@ -47,10 +47,18 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
         Strategies.values.filter(_.isAvailable)foreach(strategy => {
           strategy.synchronized {
-            strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
+            strategy.judgeByTicker(ticker).foreach(ordering => {
+              val order: models.Order = Orders.market(ordering)
               println(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               Future {
-                BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+                val response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+                if (ordering.isEntry) {
+                  strategy.orderId = Some(response.child_order_acceptance_id)
+                  UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
+                } else {
+                  strategy.orderId = None
+                  UserRepository.clearCurrentOrder(strategy.email, response.child_order_acceptance_id)
+                }
               } (scala.concurrent.ExecutionContext.Implicits.global)
             })
           }

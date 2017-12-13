@@ -62,10 +62,10 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
 //        println(m5)
         if (box20.high < ltp && momentum.isAvailableBuyEntry && m5.exists(_ > 0)) {
           losLimit = stopRange.map(ltp - _)
-          entry(Ordering(Buy, orderSize))
+          entry(Ordering(Buy, orderSize, true))
         } else if (ltp < box20.low && momentum.isAvailableSellEntry && m5.exists(_ < 0)) {
           losLimit = stopRange.map(ltp + _)
-          entry(Ordering(Sell, orderSize))
+          entry(Ordering(Sell, orderSize, true))
         } else {
           None
         }
@@ -73,13 +73,13 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
         if (position.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (box10.high < ltp && momentum.isAvailableToBuyClose) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (box20.high < ltp) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
 //          } else if (entryTime.exists(now.minusMinutes(10).isBefore(_)) && isFake(Sell)) {
 //            close()
 //            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
@@ -92,13 +92,13 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
         } else { // BUY
           if (losLimit.exists(ltp < _)) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (ltp < box10.low && momentum.isAvailableToSellClose) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (ltp < box20.low) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
 //          } else if (entryTime.exists(now.minusMinutes(10).isBefore(_)) && isFake(Buy)) {
 //            close()
 //            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))

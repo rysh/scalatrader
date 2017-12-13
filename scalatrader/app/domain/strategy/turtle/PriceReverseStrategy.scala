@@ -49,19 +49,19 @@ class PriceReverseStrategy(user: User) extends Strategy {
       val box20 = data.box20.get
       if (position.isEmpty) {
         if (box20.high < ltp) {
-          entry(Ordering(Side.Sell, orderSize))
+          entry(Ordering(Side.Sell, orderSize, true))
         } else if (ltp < box20.low) {
-          entry(Ordering(Side.Buy, orderSize))
+          entry(Ordering(Side.Buy, orderSize, true))
         } else {
           None
         }
       } else if (position.get.side == Side.Buy) {
         if (stopLine.exists(_ < ltp) | limitLine.exists(ltp < _)) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (box10.high < ltp) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box20.low) {
           stopLine = stopRange.map(ltp + _)
           limitLine = limitRange.map(ltp - _)
@@ -72,10 +72,10 @@ class PriceReverseStrategy(user: User) extends Strategy {
       } else { // BUY
         if (stopLine.exists(ltp < _) || limitLine.exists(_ < ltp)) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box10.low) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (box20.high < ltp) {
           stopLine = stopRange.map(ltp - _)
           limitLine = limitRange.map(ltp + _)

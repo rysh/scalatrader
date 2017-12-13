@@ -56,10 +56,10 @@ class MomentumStrategy(user: User) extends Strategy {
       if (position.isEmpty) {
         if (previous < 0 && latest > 0 && ((previous - latest).abs > 2000) && macd.buySignal) {
           losLimit = stopRange.map(ltp - _)
-          entry(Ordering(Buy, orderSize))
+          entry(Ordering(Buy, orderSize, true))
         } else if (previous > 0 && latest < 0 && ((previous - latest).abs > 2000) && macd.sellSignal) {
           losLimit = stopRange.map(ltp + _)
-          entry(Ordering(Sell, orderSize))
+          entry(Ordering(Sell, orderSize, true))
         } else {
           None
         }
@@ -67,10 +67,10 @@ class MomentumStrategy(user: User) extends Strategy {
         if (position.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (latest > 0) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (false) {
             losLimit = stopRange.map(ltp + _)
             None
@@ -80,10 +80,10 @@ class MomentumStrategy(user: User) extends Strategy {
         } else { // BUY
           if (losLimit.exists(ltp < _)) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (latest < 0) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (false) {
             losLimit = stopRange.map(ltp - _)
             None

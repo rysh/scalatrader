@@ -2,7 +2,7 @@ package repository
 
 import com.google.inject.Inject
 import domain.util.crypto.Aes
-import repository.model.scalatrader.User
+import repository.model.scalatrader.{User, CurrentOrder}
 import scalikejdbc.AutoSession
 import scalikejdbc._
 
@@ -10,7 +10,7 @@ object UserRepository {
 
   def get(email: String, secret: String): Option[User] = {
     implicit val session = AutoSession
-    sql"select email from user where email = ${email}".map(map(secret)).single().apply()
+    sql"select * from user where email = ${email}".map(map(secret)).single().apply()
   }
   def all(secret: String): Seq[User] = {
     implicit val session = AutoSession
@@ -28,6 +28,27 @@ object UserRepository {
       str.length > 0
     }
   }
+
+  def storeCurrentOrder(email: String, acceptanceId: String, side: String, size: Double): Int = {
+    implicit val session = AutoSession
+    sql"insert into current_position (email, child_order_acceptance_id, side, size) values ($email, $acceptanceId, $side, $size)".update.apply()
+  }
+  def clearCurrentOrder(email: String, acceptanceId: String): Int = {
+    implicit val session = AutoSession
+    sql"delete from current_position where email = $email and child_order_acceptance_id = $acceptanceId".update.apply()
+  }
+  def fetchCurrentOrder(): Seq[CurrentOrder] = {
+    implicit val session = AutoSession
+    sql"select * from current_position".map((rs: WrappedResultSet) => {
+      CurrentOrder(rs.long("id"),
+        rs.string("email"),
+        rs.string("child_order_acceptance_id"),
+        rs.string("side"),
+        rs.double("size"),
+        rs.string("timestamp"))
+    }).list().apply()
+  }
+
   private def map = {
     secret:String => (rs: WrappedResultSet) => {
       User(rs.long("id"),

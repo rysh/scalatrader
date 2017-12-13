@@ -22,10 +22,10 @@ class CoreData {
   var box20min: Option[Box] = None
   var box1h: Option[Box] = None
 
-  val momentum10 = new Momentum(candles10sec.values, 10)
-  val momentum20 = new Momentum(candles20sec.values, 20)
-  val momentum1min = new Momentum(candles1min.values, 60)
-  val momentum5min = new Momentum(candles1min.values, 5 * 60)
+//  val momentum10 = new Momentum(candles10sec.values, 10)
+//  val momentum20 = new Momentum(candles20sec.values, 20)
+//  val momentum1min = new Momentum(candles1min.values, 60)
+  val momentum5min = new Momentum(candles5min.values, 5 * 60)
 
   val macd1m = new MACD(26,12, candles1min.values)
   val macd5m = new MACD(26,12, candles5min.values)
@@ -37,9 +37,9 @@ class CoreData {
     candles1min.clear()
     candles5min.clear()
     candles10min.clear()
-    momentum10.clear()
-    momentum20.clear()
-    momentum1min.clear()
+//    momentum10.clear()
+//    momentum20.clear()
+//    momentum1min.clear()
     momentum5min.clear()
     macd1m.clear()
     macd5m.clear()
@@ -49,24 +49,24 @@ class CoreData {
     val now = ZonedDateTime.parse(ticker.timestamp)
 
     candles1min.put(now, ticker, _ => {
-      momentum1min.update(DateUtil.keyOf(now.minusMinutes(1), 60))
-      momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime)))
+//      momentum1min.update(DateUtil.keyOf(now.minusMinutes(1), 60))
+//      momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime * 2)))
     })
     candles10min.put(now, ticker, _ => {})
 
-    candles5min.put(now, ticker, key => {
+    candles5min.put(now, ticker, _ => {
       momentum5min.update(DateUtil.keyOf(now.minusMinutes(5), 300))
-      momentum5min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime)))
+      momentum5min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime * 2), 300))
     })
 
     candles10sec.put(now, ticker, _ => {
-      momentum10.update(DateUtil.keyOf(now.minusSeconds(10), 10))
-      momentum10.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 10))
+//      momentum10.update(DateUtil.keyOf(now.minusSeconds(10), 10))
+//      momentum10.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 10))
     })
 
     candles20sec.put(now, ticker, _ => {
-      momentum20.update(DateUtil.keyOf(now.minusSeconds(20), 20))
-      momentum20.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 20))
+//      momentum20.update(DateUtil.keyOf(now.minusSeconds(20), 20))
+//      momentum20.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 20))
     })
 
     candles30sec.put(now, ticker, _ => {})
@@ -91,12 +91,16 @@ class CoreData {
 //    val c4h = candles1min.values
 //    val c2h = c4h.takeRight(120)
     val c1h = candles1min.values.values
-    val c20m = c1h.takeRight(20)
-    val c10m = c20m.takeRight(10)
-//    box4h = Some(Box.of(c4h.toSeq, 240 * 60))
-//    box2h = Some(Box.of(c2h.toSeq, 120 * 60))
-    box1h = Some(Box.of(c1h.toSeq, 60 * 60))
-    box20min = Some(Box.of(c20m.toSeq, 20 * 60))
-    box10min = Some(Box.of(c10m.toSeq, 10 * 60))
+    if (c1h.isEmpty) {
+      ()
+    } else {
+      val c20m = c1h.takeRight(20)
+      val c10m = c20m.takeRight(10)
+      //    box4h = Some(Box.of(c4h.toSeq, 240 * 60))
+      //    box2h = Some(Box.of(c2h.toSeq, 120 * 60))
+      box1h = Some(Box.of(c1h.toSeq, 60 * 60))
+      box20min = Some(Box.of(c20m.toSeq, 20 * 60))
+      box10min = Some(Box.of(c10m.toSeq, 10 * 60))
+    }
   }
 }

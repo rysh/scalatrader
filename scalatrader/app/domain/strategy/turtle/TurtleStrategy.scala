@@ -45,20 +45,20 @@ class TurtleStrategy(user: User) extends Strategy {
       if (position.isEmpty) {
         if (box20.high < ltp) {
           losLimit = None
-          entry(Ordering(Side.Buy, orderSize))
+          entry(Ordering(Side.Buy, orderSize, true))
         } else if (ltp < box20.low) {
           losLimit = None
-          entry(Ordering(Side.Sell, orderSize))
+          entry(Ordering(Side.Sell, orderSize, true))
         } else {
           None
         }
       } else if (position.get.side == Side.Sell) {
         if (losLimit.exists(_ < ltp)) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (box10.high < ltp) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box20.low) {
           losLimit = stopRange.map(ltp + _)
           None
@@ -68,10 +68,10 @@ class TurtleStrategy(user: User) extends Strategy {
       } else { // BUY
         if (losLimit.exists(ltp < _)) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box10.low) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize)))
+          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (box20.high < ltp) {
           losLimit = stopRange.map(ltp - _)
           None

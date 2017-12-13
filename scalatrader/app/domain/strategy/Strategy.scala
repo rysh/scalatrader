@@ -10,6 +10,7 @@ trait Strategy {
   def secret:String
 
   val availability = new Availability
+  var orderId:Option[String] = None
   def isAvailable = availability.isAvailable
 
   def putTicker(ticker: models.Ticker)

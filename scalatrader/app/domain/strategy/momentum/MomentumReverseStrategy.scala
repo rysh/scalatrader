@@ -64,11 +64,11 @@ class MomentumReverseStrategy(user: User) extends Strategy {
         if (one < two && two > three) {
 //        if (top.exists(t => (t - 5000) > three) && box20m.exists(_.isUp)) {
           losLimit = stopRange.map(ltp - _)
-          entry(Ordering(Buy, orderSize))
+          entry(Ordering(Buy, orderSize, true))
         } else if (one > two && two < three) {
 //          } else if (bottom.exists(b => (b + 5000) < three) && box20m.exists(_.isDown)) {
           losLimit = stopRange.map(ltp + _)
-          entry(Ordering(Sell, orderSize))
+          entry(Ordering(Sell, orderSize, true))
         } else {
           None
         }
@@ -76,10 +76,10 @@ class MomentumReverseStrategy(user: User) extends Strategy {
         if (position.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (one < two && two > three) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (false) {
             losLimit = stopRange.map(ltp + _)
             None
@@ -89,10 +89,10 @@ class MomentumReverseStrategy(user: User) extends Strategy {
         } else { // BUY
           if (losLimit.exists(ltp < _)) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (one > two && two < three) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
+            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (false) {
             losLimit = stopRange.map(ltp - _)
             None
