@@ -51,8 +51,8 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                   strategy.orderId = Some(response.child_order_acceptance_id)
                   UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
                 } else {
+                  UserRepository.clearCurrentOrder(strategy.email, strategy.orderId.get)
                   strategy.orderId = None
-                  UserRepository.clearCurrentOrder(strategy.email, response.child_order_acceptance_id)
                 }
               } (scala.concurrent.ExecutionContext.Implicits.global)
             })
