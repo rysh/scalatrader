@@ -9,10 +9,17 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class ScheduledTasks @Inject()(actorSystem: ActorSystem,
-                               @Named("hello") someActor: ActorRef,
+                               @Named("candle") candleActor: ActorRef,
+                               @Named("positionAdjustment") positionAdjustment: ActorRef,
                                regularObservation: RegularObservation)(implicit executionContext: ExecutionContext) {
   def schedule(interval: FiniteDuration) = actorSystem.scheduler.schedule(initialDelay = initialDelay(interval), interval = interval)(_)
 
-  schedule(30.minutes)(someActor ! "tick")
-  schedule(2.hours)(regularObservation summary)
+  if (!domain.isBackTesting) {
+    schedule(1.minutes)(candleActor ! "1min")
+    schedule(2.hours)(regularObservation summary)
+    schedule(24.hours)(positionAdjustment ! "")
+
+    // initial update
+    positionAdjustment ! ""
+  }
 }

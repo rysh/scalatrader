@@ -10,13 +10,22 @@ GET     /login                      controllers.AuthController.login
 POST    /login                      controllers.AuthController.authenticate
 GET     /logout                     controllers.AuthController.logout
 
-GET     /signup                     controllers.AuthController.signUp
-POST    /signup                     controllers.AuthController.signUpAction
+# 本番では当面登録禁止
+# GET     /signup                     controllers.AuthController.signUp
+# POST    /signup                     controllers.AuthController.signUpAction
 
 GET     /settings                   controllers.SettingsController.settings
 POST    /settings                   controllers.SettingsController.update
 
 GET     /dashboard                  controllers.DashBoardController.main
+GET     /dashboard/run              controllers.DashBoardController.run
+GET     /dashboard/stop             controllers.DashBoardController.stop
+
+GET     /backtest                   controllers.BackTestController.main
+POST    /backtest/run               controllers.BackTestController.run()
+GET     /backtest/chart             controllers.BackTestController.chart()
+POST    /backtest/ticker            controllers.BackTestController.ticker()
+POST    /backtest/momentum            controllers.BackTestController.momentum()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

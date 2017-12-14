@@ -31,6 +31,9 @@ object Aes {
     } else {
       Hex.encodeHexString(encode(src.getBytes(), Aes.makeKey(key)))
     }
+  } catch {
+    case e: Exception =>
+      throw new RuntimeException(e)
   }
   def encode(src: Array[Byte], skey: Key): Array[Byte] = try {
     val cipher = Cipher.getInstance("AES")
@@ -51,7 +54,11 @@ object Aes {
     } else {
       new String(decode(Hex.decodeHex(src.toCharArray), Aes.makeKey(key)))
     }
+  } catch {
+    case e: Exception =>
+      throw new RuntimeException(e)
   }
+
   def decode(src: Array[Byte], skey: Key): Array[Byte] = try {
     val cipher = Cipher.getInstance("AES")
     cipher.init(Cipher.DECRYPT_MODE, skey)

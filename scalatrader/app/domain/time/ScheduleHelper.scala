@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 object ScheduleHelper {
 
   def initialDelay(interval: FiniteDuration): FiniteDuration = {
-    initialDelay(interval, ZonedDateTime.now(ZoneId.of("UTC")))
+    initialDelay(interval, DateUtil.now())
   }
 
   def initialDelay(interval: FiniteDuration, dateTime: ZonedDateTime): FiniteDuration = {
