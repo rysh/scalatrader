@@ -58,11 +58,12 @@ class Margin(
 object Margin {
   def resetSize() = {
     sizeUnit = defaultSizeUnit
-    leverage = defaltLeverage
+    leverage = defaultLeverage
   }
 
   val defaultSizeUnit = 0.2
-  val defaltLeverage = 1
-  var sizeUnit = defaultSizeUnit
-  var leverage = defaltLeverage
+  val defaultLeverage = 1.5
+  var sizeUnit: Double = defaultSizeUnit
+  var leverage: Double = defaultLeverage
+  def size: Double = (sizeUnit * leverage * 100).ceil / 100
 }

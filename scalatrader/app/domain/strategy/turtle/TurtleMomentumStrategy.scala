@@ -23,7 +23,7 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
   override def key: String = user.api_key
   override def secret: String = user.api_secret
 
-  var leverage = Margin.defaltLeverage
+  var leverage = Margin.defaultLeverage
   var orderSize: Double = Margin.defaultSizeUnit * leverage
 
   def entry(o: Ordering): Option[Ordering] = {

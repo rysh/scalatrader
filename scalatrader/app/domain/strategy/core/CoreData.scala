@@ -22,9 +22,9 @@ class CoreData {
   var box20min: Option[Box] = None
   var box1h: Option[Box] = None
 
-//  val momentum10 = new Momentum(candles10sec.values, 10)
-//  val momentum20 = new Momentum(candles20sec.values, 20)
-//  val momentum1min = new Momentum(candles1min.values, 60)
+  val momentum10 = new Momentum(candles10sec.values, 10)
+  val momentum20 = new Momentum(candles20sec.values, 20)
+  val momentum1min = new Momentum(candles1min.values, 60)
   val momentum5min = new Momentum(candles5min.values, 5 * 60)
 
   val macd1m = new MACD(26,12, candles1min.values)
@@ -37,9 +37,9 @@ class CoreData {
     candles1min.clear()
     candles5min.clear()
     candles10min.clear()
-//    momentum10.clear()
-//    momentum20.clear()
-//    momentum1min.clear()
+    momentum10.clear()
+    momentum20.clear()
+    momentum1min.clear()
     momentum5min.clear()
     macd1m.clear()
     macd5m.clear()
@@ -49,8 +49,8 @@ class CoreData {
     val now = ZonedDateTime.parse(ticker.timestamp)
 
     candles1min.put(now, ticker, _ => {
-//      momentum1min.update(DateUtil.keyOf(now.minusMinutes(1), 60))
-//      momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime * 2)))
+      momentum1min.update(DateUtil.keyOf(now.minusMinutes(1), 60))
+      momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime * 2)))
     })
     candles10min.put(now, ticker, _ => {})
 
@@ -60,13 +60,13 @@ class CoreData {
     })
 
     candles10sec.put(now, ticker, _ => {
-//      momentum10.update(DateUtil.keyOf(now.minusSeconds(10), 10))
-//      momentum10.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 10))
+      momentum10.update(DateUtil.keyOf(now.minusSeconds(10), 10))
+      momentum10.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 10))
     })
 
     candles20sec.put(now, ticker, _ => {
-//      momentum20.update(DateUtil.keyOf(now.minusSeconds(20), 20))
-//      momentum20.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 20))
+      momentum20.update(DateUtil.keyOf(now.minusSeconds(20), 20))
+      momentum20.clean(DateUtil.keyOf(now.minusHours(dataKeepTime), 20))
     })
 
     candles30sec.put(now, ticker, _ => {})

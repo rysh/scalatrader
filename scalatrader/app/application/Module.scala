@@ -11,6 +11,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
     domain.isBackTesting = false
 
     bindActor[CandleActor]("candle")
+    bindActor[PositionSizeAdjustmentActor]("positionAdjustment")
 
     if (domain.isBackTesting) {
       bind(classOf[BackTestApplication]).asEagerSingleton()

@@ -17,7 +17,7 @@ class TurtleStrategy(user: User) extends Strategy {
   override def key = user.api_key
   override def secret = user.api_secret
 
-  var leverage = Margin.defaltLeverage
+  var leverage = Margin.defaultLeverage
   var orderSize: Double = Margin.defaultSizeUnit * leverage
   var position: Option[Ordering] = None
   def entry(o: Ordering): Option[Ordering] = {
@@ -100,7 +100,7 @@ class TurtleStrategy(user: User) extends Strategy {
     position = None
     losLimit = None
     core.init()
-    leverage = Margin.defaltLeverage
+    leverage = Margin.defaultLeverage
     orderSize = Margin.defaultSizeUnit * leverage
   }
 }
