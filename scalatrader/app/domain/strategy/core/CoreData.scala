@@ -30,7 +30,9 @@ class CoreData {
   val macd1m = new MACD(26,12, candles1min.values)
   val macd5m = new MACD(26,12, candles5min.values)
 
-  def init() = {
+  val hv30min = new HV(candles1min.values, 30)
+
+  def init(): Unit = {
     candles10sec.clear()
     candles20sec.clear()
     candles30sec.clear()
@@ -43,14 +45,19 @@ class CoreData {
     momentum5min.clear()
     macd1m.clear()
     macd5m.clear()
+    hv30min.init()
   }
 
-  def putTicker(ticker: models.Ticker) = {
+  def putTicker(ticker: models.Ticker): Unit = {
     val now = ZonedDateTime.parse(ticker.timestamp)
 
     candles1min.put(now, ticker, _ => {
-      momentum1min.update(DateUtil.keyOf(now.minusMinutes(1), 60))
-      momentum1min.clean(DateUtil.keyOf(now.minusHours(dataKeepTime * 2)))
+      val key = DateUtil.keyOf(now.minusMinutes(1), 60)
+      momentum1min.update(key)
+      val clearKey = DateUtil.keyOf(now.minusHours(dataKeepTime * 2))
+      momentum1min.clean(clearKey)
+      hv30min.update(key)
+      hv30min.clean(clearKey)
     })
     candles10min.put(now, ticker, _ => {})
 
