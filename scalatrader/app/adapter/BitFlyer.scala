@@ -62,8 +62,8 @@ object BitFlyer {
     val path = CHILD_ORDER
     val request = Request(BASE + path)
     request.body(orderJson.getBytes("UTF-8"), "application/json")
-    request.connectTimeoutMillis(30 * 1000)
-    request.readTimeoutMillis(30 * 1000)
+    request.connectTimeoutMillis(60 * 1000)
+    request.readTimeoutMillis(60 * 1000)
     addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
 
 

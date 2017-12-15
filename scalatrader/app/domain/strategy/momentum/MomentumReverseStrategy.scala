@@ -24,8 +24,6 @@ class MomentumReverseStrategy(user: User) extends Strategy {
     entryPosition = None
   }
 
-  var entryPosition: Option[Ordering] = None
-
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
     val momentum5min = Strategies.coreData.momentum5min

@@ -46,13 +46,24 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               val order: models.Order = Orders.market(ordering)
               println(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               Future {
-                val response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
-                if (ordering.isEntry) {
-                  strategy.orderId = Some(response.child_order_acceptance_id)
-                  UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
-                } else {
-                  UserRepository.clearCurrentOrder(strategy.email, strategy.orderId.get)
-                  strategy.orderId = None
+                try {
+                  val response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+                  if (ordering.isEntry) {
+                    strategy.orderId = Some(response.child_order_acceptance_id)
+                    UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
+                  }
+                } catch{
+                  case e:Exception =>
+                    strategy.orderId = None
+                    strategy.entryPosition = None
+                    if (!ordering.isEntry) {
+                      println("!!!close request failed.!!!")
+                    }
+                } finally {
+                  if (!ordering.isEntry) {
+                    UserRepository.clearCurrentOrder(strategy.email, strategy.orderId.get)
+                    strategy.orderId = None
+                  }
                 }
               } (scala.concurrent.ExecutionContext.Implicits.global)
             })
