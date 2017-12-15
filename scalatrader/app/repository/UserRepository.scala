@@ -39,7 +39,7 @@ object UserRepository {
   }
   def fetchCurrentOrder(): Seq[CurrentOrder] = {
     implicit val session = AutoSession
-    sql"select * from current_position".map((rs: WrappedResultSet) => {
+    sql"select * from current_position order by id desc limit 1".map((rs: WrappedResultSet) => {
       CurrentOrder(rs.long("id"),
         rs.string("email"),
         rs.string("child_order_acceptance_id"),
