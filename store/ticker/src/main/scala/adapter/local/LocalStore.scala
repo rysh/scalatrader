@@ -14,8 +14,9 @@ class LocalStore(
 ) extends Store(timeKeeper) {
 
   /** インスタンス生成したときにファイルを作成する */
+  val namingRule = new NamingRule(fileNamePrefix)
 
-  lazy val fileName = NamingRule.path(timeKeeper)
+  lazy val fileName = namingRule.path(timeKeeper)
   lazy val file = better.files.File(fileName).createIfNotExists()
 
 

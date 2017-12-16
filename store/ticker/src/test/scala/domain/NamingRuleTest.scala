@@ -2,19 +2,23 @@ package domain
 
 import org.scalatest.FunSuite
 import testutil.TimeTestHelper
+import domain.NamingRule
 
 class NamingRuleTest extends FunSuite {
 
   test("testDir") {
-    assert(NamingRule.dir === "tmp")
+    val nr = new NamingRule("tmp")
+    assert(nr.dir === "tmp")
   }
 
   test("testPath") {
-    assert(NamingRule.path(createTime) == "tmp/ticker-201707120430")
+    val nr = new NamingRule("tmp")
+    assert(nr.path(createTime) == "tmp/201707120430")
   }
 
   test("testS3Path") {
-    assert(NamingRule.s3Path(createTime) == "2017/07/12/04/30")
+    val nr = new NamingRule("tmp")
+    assert(nr.s3Path(createTime) == "2017/07/12/04/30")
 
   }
 
