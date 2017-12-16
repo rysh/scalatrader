@@ -28,6 +28,7 @@ object BackTestResults {
   val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
   val tickers = new mutable.ArrayBuffer[Ticker]
   val momentum = new mutable.LinkedHashMap[Long, Double]()
+  val hv = new mutable.LinkedHashMap[Long, Double]()
 
   var total: Int = 0
   var entry: Option[OrderResult] = None

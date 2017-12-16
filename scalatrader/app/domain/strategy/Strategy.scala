@@ -12,6 +12,7 @@ trait Strategy {
   val availability = new Availability
   var orderId:Option[String] = None
   def isAvailable = availability.isAvailable
+  var entryPosition: Option[Ordering] = None
 
   def putTicker(ticker: models.Ticker)
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None

@@ -33,9 +33,13 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     if (!domain.isBackTesting) return
     println("BackTestApplication run")
+    println("BackTestResults.init")
     BackTestResults.init()
+    println("Strategies.init")
     Strategies.init()
+    println("Margin.init")
     Margin.resetSize()
+    println("all init done")
 
     MockedTime.now = start
 
@@ -52,7 +56,9 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     })
 
     val s3 = S3.create(Regions.US_WEST_1)
+    println("initial data loading...")
     loadInitialData(s3)
+    println("load data done")
 
     val gson: Gson = new Gson()
     while(MockedTime.now.isBefore(end)) {
@@ -82,6 +88,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         }
       })
       Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1,t._2))
+      Strategies.coreData.hv30min.values.takeRight(1).foreach(t => BackTestResults.hv.put(t._1,t._2))
       Strategies.processEvery1minutes()
       //println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
       //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
@@ -107,10 +114,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.coreData.putTicker(ticker)
       Strategies.values.foreach(_.putTicker(ticker))
     })
-//    Strategies.coreData.momentum10.loadAll()
-//    Strategies.coreData.momentum20.loadAll()
-//    Strategies.coreData.momentum1min.loadAll()
-//    Strategies.coreData.momentum5min.loadAll()
     Strategies.processEvery1minutes()
     Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
   }
