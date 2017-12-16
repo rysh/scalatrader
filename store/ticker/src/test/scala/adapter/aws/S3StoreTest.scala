@@ -16,11 +16,11 @@ import testutil.TimeTestHelper
 class S3StoreTest extends FunSuite with BeforeAndAfterAll {
 
   val now = TimeTestHelper.of(2017, 7, 12, 4, 30, 14, 11)
-  val s3Store: S3Store = new S3Store("btcfx-ticker-scala-test", Regions.US_WEST_1, new TimeKeeper(1, now))
+  val s3Store: S3Store = new S3Store("tmp", Regions.US_WEST_1, new TimeKeeper(1, now))
   val sample = new TestData()
   val gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create
 
-  override def beforeAll() = Validations.workingDirectoryExisits
+  override def beforeAll() = Validations.workingDirectoryExisits("tmp")
   override def afterAll() = s3Store.delete()
 
   test("testStore") {

@@ -9,8 +9,8 @@ import com.amazonaws.regions.Regions
   */
 object Validations {
   def bucketExists(bucketName: String, region: Regions): Either[Exception, Any] = MyS3.create(region).createBucket(bucketName)
-  def workingDirectoryExisits = {
-    val tmp = File("tmp")
+  def workingDirectoryExisits(bucketName: String) = {
+    val tmp = File(bucketName)
     if (!tmp.exists) {
       tmp.createDirectory()
     }

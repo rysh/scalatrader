@@ -9,7 +9,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
   * Created by ryuhei.ishibashi on 2017/07/13.
   */
 class MyS3Test extends FunSuite with BeforeAndAfterAll {
-  Validations.workingDirectoryExisits
+  Validations.workingDirectoryExisits("tmp")
 
   val bucketName = s"scala-trader-upload-s3-test-$flake"
   val keyName = s"MyS3Test-$flake"
