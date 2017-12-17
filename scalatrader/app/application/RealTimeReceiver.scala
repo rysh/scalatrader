@@ -3,6 +3,8 @@ package application
 import javax.inject.Named
 
 import adapter.BitFlyer
+import adapter.BitFlyer.OrderResponse
+import adapter.aws.{MailContent, SES}
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
 import com.google.gson.Gson
@@ -13,7 +15,7 @@ import com.pubnub.api.models.consumer.PNStatus
 import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageResult}
 import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
-import domain.strategy.Strategies
+import domain.strategy.{Strategies, Strategy}
 import domain.strategy.momentum.MomentumReverseStrategy
 import play.api.Configuration
 import repository.UserRepository
@@ -47,7 +49,10 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               println(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               Future {
                 try {
-                  val response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+                  var response: OrderResponse = null
+                    retry(10, () => {
+                      response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
+                    })
                   if (ordering.isEntry) {
                     strategy.orderId = Some(response.child_order_acceptance_id)
                     UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
@@ -58,6 +63,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                     strategy.entryPosition = None
                     if (!ordering.isEntry) {
                       println("!!!close request failed.!!!")
+                      sendRequestFailureNoticeMail(strategy, ordering)
                     }
                 } finally {
                   if (!ordering.isEntry) {
@@ -71,16 +77,33 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         })
         Strategies.putTicker(ticker)
       }
-      override def presence(pubnub: PubNub, presence: PNPresenceEventResult) = {
+      override def presence(pubnub: PubNub, presence: PNPresenceEventResult): Unit = {
         println("RealTimeReceiver#presence")
         println(presence)
       }
 
-      override def status(pubnub: PubNub, status: PNStatus) = {
+      override def status(pubnub: PubNub, status: PNStatus): Unit = {
         println("RealTimeReceiver#status")
         println(status)
       }
+
+      def retry(times: Int, func: () => Unit ): Unit = {
+        var i = 0
+        while (i < times) {
+          i += 1
+          try {
+            func()
+            i = times
+          } catch {
+            case e: Exception => if (i == times) throw e
+          }
+          if (i < times) {
+            Thread.sleep(2000)
+          }
+        }
+      }
     }
+
 
     PubNubReceiver.start(productCode,key, callback)
     println("PubNubReceiver started")
@@ -102,10 +125,19 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     }
     loadInitialData()
   }
+
+  private def sendRequestFailureNoticeMail(strategy: Strategy, ordering: models.Ordering) = {
+    val subject = "close request failed"
+    val text = s"failed: ${ordering.side} size:${ordering.size}"
+    SES.send(MailContent(strategy.email, "info@scalatrader.com", subject, text, text))
+  }
+
   Future {
     Thread.sleep(10 * 1000)
     if (!domain.isBackTesting) {
       start
     }
   } (scala.concurrent.ExecutionContext.Implicits.global)
+
 }
+
