@@ -7,7 +7,7 @@ class BitFlyerTest extends FunSuite {
 
   val key = "###"
   val secret = "###"
-  test("") {
+  ignore("") {
     val executions: Seq[MyExecution] = myExecutions(key, secret)
     executions.reverse.foreach(e => {
       val price = (e.price * e.size * (if (e.side == domain.Side.Sell) -1 else 1)).toLong

@@ -9,17 +9,11 @@ class HVTest extends FunSuite {
   test("testStd") {
     import DummyCandle._
     val candles = new mutable.LinkedHashMap[Long, Bar]()
-    candles.put(1L, new Bar(1).put(newTicker("1", 10.0)))
-    candles.put(2L, new Bar(2).put(newTicker("2", 20.0)))
-    candles.put(3L, new Bar(3).put(newTicker("3", 30.0)))
-    candles.put(4L, new Bar(4).put(newTicker("3", 40.0)))
+    candles.put(20171201000100L, new Bar(20171201000100L).put(newTicker("2017-12-01T00:01.000 Z", 10.0)))
+    candles.put(20171201000200L, new Bar(20171201000200L).put(newTicker("2017-12-01T00:02.000 Z", 20.0)))
+    candles.put(20171201000300L, new Bar(20171201000300L).put(newTicker("2017-12-01T00:03.000 Z", 30.0)))
+    candles.put(20171201000400L, new Bar(20171201000400L).put(newTicker("2017-12-01T00:04.000 Z", 40.0)))
     val hv = new HV(candles, 3)
-    hv.update(4)
-
+    hv.update(20171201000400L)
   }
-
-  test("testUpdate") {
-
-  }
-
 }

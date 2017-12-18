@@ -5,13 +5,13 @@ import scalikejdbc.ConnectionPool
 
 class UserApplicationTest extends FunSuite {
 
-  test("testRegister") {
+  ignore("testRegister") {
     ConnectionPool.singleton("jdbc:mysql://localhost:6603/scalatrader", "root", "password")
     UserApplication.register("fuga","fuga")
     UserApplication.delete("fuga","fuga")
   }
 
-  test("testExistsUser") {
+  ignore("testExistsUser") {
     ConnectionPool.singleton("jdbc:mysql://localhost:6603/scalatrader", "root", "password")
     assert(UserApplication.exists("hoge", "hoge"))
   }

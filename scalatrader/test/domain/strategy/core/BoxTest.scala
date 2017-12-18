@@ -13,7 +13,7 @@ class BoxTest extends FunSuite {
     box.put(highTicker)
 
 //    assert(box.isUpdatingHigh(ZonedDateTime.parse("2017-12-08T10:10:00Z"), 10) === true)
-    assert(box.isUpdatingHigh(ZonedDateTime.parse("2017-12-08T10:20:00Z"), 10 * 60) === true)
+    assert(box.isUpdatingHigh(ZonedDateTime.parse("2017-12-08T10:20:00Z"), 11 * 60) === true)
   }
 
   def newTicker(timestamp: String, ltp: Double) =  Ticker("",timestamp,0,0,0,0,0,0,0,ltp,0,0)
