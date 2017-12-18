@@ -1,4 +1,4 @@
-# scalatrader
+# scalatrader [![Build Status](https://travis-ci.org/rysh/scalatrader.svg?branch=master)](https://travis-ci.org/rysh/scalatrader)
 I want to make a trading system that can be operated by an individual.  
 Current target is bitflyer's bitcoin.
 
