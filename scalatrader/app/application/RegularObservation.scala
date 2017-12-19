@@ -45,7 +45,7 @@ class RegularObservation @Inject()(config: Configuration) {
 
   def createMailContent(to: String, latest: Execution, col: Collateral, pos: Positions, lossCutLine: Option[Long]): MailContent = {
     val latestPrice = latest.price.toInt
-    val delta = pos.btcFx.getOrElse(0.0).toInt
+    val delta = pos.btcFx
     val openPositionPnl = col.open_position_pnl.toInt
     val keepRate = (col.keep_rate * 100).toInt
 
@@ -57,17 +57,17 @@ class RegularObservation @Inject()(config: Configuration) {
     MailContent(to, from, subject, html, text)
   }
 
-  def textBody(latestPrice:Int, delta: Int, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
+  def textBody(latestPrice:Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
     s"""
       |最終取引価格   ${"%,9d".format(latestPrice)}
-      |デルタ         ${"%,9d".format(delta)}
+      |デルタ         ${"%1$.2f".format(delta)}
       |評価損益       ${"%,9d".format(openPositionPnl)}
       |証拠金維持率   ${"%,9d".format(keepRate)} %
       |ロスカット水準  ${lossCutLine.map(e => "%,9d".format(e)).getOrElse("")}
      """.stripMargin
   }
 
-  def htmlBody(latestPrice:Int, delta: Int, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
+  def htmlBody(latestPrice:Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
     s"""<!DOCTYPE html>
         <html>
         <head>
@@ -83,7 +83,7 @@ class RegularObservation @Inject()(config: Configuration) {
                 </tr>
                 <tr>
                   <th>デルタ</th>
-                  <td>${"%,9d".format(delta)}</td>
+                  <td>${"%1$.2f".format(delta)}</td>
                 </tr>
                 <tr>
                   <th>評価損益</th>

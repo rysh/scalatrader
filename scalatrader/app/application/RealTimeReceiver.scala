@@ -86,22 +86,6 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         println("RealTimeReceiver#status")
         println(status)
       }
-
-      def retry(times: Int, func: () => Unit ): Unit = {
-        var i = 0
-        while (i < times) {
-          i += 1
-          try {
-            func()
-            i = times
-          } catch {
-            case e: Exception => if (i == times) throw e
-          }
-          if (i < times) {
-            Thread.sleep(2000)
-          }
-        }
-      }
     }
 
 

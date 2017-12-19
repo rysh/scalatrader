@@ -36,7 +36,7 @@ object BitFlyer {
     }
   }
 
-  def getPosition(product_code: String, api_key: String, api_secret: String): Option[Position] = {
+  def getPosition(product_code: String, api_key: String, api_secret: String): Seq[Position] = {
     getPositions(api_key, api_secret).get(ProductCode.btcFx)
   }
 

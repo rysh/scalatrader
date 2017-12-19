@@ -22,9 +22,9 @@ class PositionSizeAdjustmentActor @Inject()(config: Configuration) extends Actor
     val users = UserRepository.everyoneWithApiKey(secret)
     users.foreach(user => {
       try {
-        val latest = BitFlyer.getLatestExecution()
-        val col = BitFlyer.getCollateral(user.api_key, user.api_secret)
-        val pos = BitFlyer.getPositions(user.api_key, user.api_secret)
+        val latest = retry(3, () => BitFlyer.getLatestExecution())
+        val col = retry(3, () => BitFlyer.getCollateral(user.api_key, user.api_secret))
+        val pos = retry(3, () => BitFlyer.getPositions(user.api_key, user.api_secret))
         val oldSieUnit = Margin.sizeUnit
         Margin.sizeUnit = new Margin(col.collateral - col.open_position_pnl, pos, latest.price).sizeOf1x
         if (oldSieUnit != Margin.sizeUnit) {
