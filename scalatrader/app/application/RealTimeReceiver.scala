@@ -17,14 +17,14 @@ import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
 import domain.strategy.momentum.MomentumReverseStrategy
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import repository.UserRepository
 
 import scala.concurrent.Future
 
 @Singleton
 class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
-  println("init RealTimeReceiver")
+  Logger.info("init RealTimeReceiver")
   val secret = config.get[String]("play.http.secret.key")
 
   def start: Unit = {
@@ -46,7 +46,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
           strategy.synchronized {
             strategy.judgeByTicker(ticker).foreach(ordering => {
               val order: models.Order = Orders.market(ordering)
-              println(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+              Logger.info(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               Future {
                 try {
                   var response: OrderResponse = null
@@ -62,7 +62,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                     strategy.orderId = None
                     strategy.entryPosition = None
                     if (!ordering.isEntry) {
-                      println("!!!close request failed.!!!")
+                      Logger.warn("!!!close request failed.!!!")
                       sendRequestFailureNoticeMail(strategy, ordering)
                     }
                 } finally {
@@ -78,19 +78,19 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         Strategies.putTicker(ticker)
       }
       override def presence(pubnub: PubNub, presence: PNPresenceEventResult): Unit = {
-        println("RealTimeReceiver#presence")
-        println(presence)
+        Logger.info("RealTimeReceiver#presence")
+        Logger.info(presence.toString)
       }
 
       override def status(pubnub: PubNub, status: PNStatus): Unit = {
-        println("RealTimeReceiver#status")
-        println(status)
+        Logger.info("RealTimeReceiver#status")
+        Logger.info(status.toString)
       }
     }
 
 
     PubNubReceiver.start(productCode,key, callback)
-    println("PubNubReceiver started")
+    Logger.info("PubNubReceiver started")
     def loadInitialData() = {
       Future{
         val initialData: Seq[Ticker] = DataLoader.loadFromS3()

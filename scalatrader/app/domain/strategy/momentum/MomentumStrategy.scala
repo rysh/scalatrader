@@ -9,6 +9,7 @@ import domain.strategy.core.Momentum
 import domain.models
 import domain.strategy.{Strategies, Strategy}
 import domain.time.DateUtil
+import play.api.Logger
 import repository.model.scalatrader.User
 
 
@@ -99,7 +100,7 @@ class MomentumStrategy(user: User) extends Strategy {
   private def updateSizeUnit(): Unit = {
     val newSize = Margin.sizeUnit * leverage
     if (orderSize < newSize) {
-      println(s"orderSize($orderSize) -> newSize($newSize)")
+      Logger.info(s"orderSize($orderSize) -> newSize($newSize)")
       orderSize = newSize
     }
   }

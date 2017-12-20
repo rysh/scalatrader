@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import domain.models
 import domain.models.Ticker
 import domain.time.DateUtil
+import play.api.Logger
 
 import scala.collection.parallel.ParSeq
 
@@ -21,7 +22,7 @@ object DataLoader {
     (1 to 120).reverse.flatMap(i => {
       val time = refTime.minus(i, ChronoUnit.MINUTES)
       val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-      println(s"loading... $s3Path")
+      Logger.info(s"loading... $s3Path")
       s3.getLines("btcfx-ticker-scala", s3Path)
     }).map(json => gson.fromJson(json, classOf[Ticker]))
   }
@@ -47,7 +48,7 @@ object DataLoader {
       file.createIfNotExists()
       try {
         val path = format(now, "yyyy/MM/dd/HH/mm")
-        println(s"loading... $path")
+        Logger.info(s"loading... $path")
         val lines = s3.getLines("btcfx-ticker-scala", path).toSeq
         lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
         lines.toIterator

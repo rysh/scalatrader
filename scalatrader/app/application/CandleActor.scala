@@ -3,6 +3,7 @@ package application
 import akka.actor.Actor
 import com.google.inject.Inject
 import domain.strategy.Strategies
+import play.api.Logger
 
 class CandleActor @Inject()() extends Actor {
 

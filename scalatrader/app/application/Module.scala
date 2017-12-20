@@ -1,14 +1,14 @@
 package application
 
-import com.google.inject.{Singleton, AbstractModule}
-import domain.strategy.turtle.TurtleStrategy
+import com.google.inject.{AbstractModule}
+import play.api.Logger
 import play.api.libs.concurrent.AkkaGuiceSupport
 
 class Module extends AbstractModule with AkkaGuiceSupport {
 
   override def configure() = {
-    println("Module.configure")
-    domain.isBackTesting = false
+    Logger.info("Module.configure")
+    domain.isBackTesting = true
 
     bindActor[CandleActor]("candle")
     bindActor[PositionSizeAdjustmentActor]("positionAdjustment")

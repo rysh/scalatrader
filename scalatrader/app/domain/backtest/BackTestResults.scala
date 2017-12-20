@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import domain.models.Ticker
 import domain.strategy.core.Bar
 import domain.time.DateUtil
+import play.api.Logger
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -42,7 +43,7 @@ object BackTestResults {
       depositMargin = depositMargin + value
       total = total + value
       values += ((entry.get, order, value, total))
-      println(format(entry.get, order, value, total))
+      Logger.info(format(entry.get, order, value, total))
       entry = None
     }
   }
@@ -55,9 +56,9 @@ object BackTestResults {
     values.foreach{ case (entry, close, _, _) => {
       val value = calc(entry, close).toInt
       total = total + value
-      println(format(entry, close, value, total))
+      Logger.info(format(entry, close, value, total))
     }}
-    println(s"最終損益 $total")
+    Logger.info(s"最終損益 $total")
   }
 
   private def calc(entry: OrderResult, close: OrderResult) = {

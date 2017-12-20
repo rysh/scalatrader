@@ -10,6 +10,7 @@ import domain.strategy.core.{Indices, Momentum, Box}
 import domain.{Side, models}
 import domain.strategy.{Strategies, Strategy}
 import domain.time.DateUtil
+import play.api.Logger
 import repository.model.scalatrader.User
 
 
@@ -131,7 +132,7 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
   private def updateSizeUnit(): Unit = {
     val newSize = Margin.sizeUnit * leverage
     if (orderSize < newSize) {
-      println(s"orderSize($orderSize) -> newSize($newSize)")
+      Logger.info(s"orderSize($orderSize) -> newSize($newSize)")
       orderSize = newSize
     }
   }
