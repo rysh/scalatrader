@@ -1,6 +1,5 @@
 package domain.strategy
 
-import domain.Side.Buy
 import domain.margin.Margin
 import domain.models
 import domain.models.{Ticker, Ordering}
@@ -34,15 +33,16 @@ abstract class Strategy(user: User) {
   def processEvery1minutes():Unit = ()
 
   // operation
+  private val entry: Boolean  = true
   def entry(size: String): Option[Ordering] = {
-    entryPosition = Some(Ordering(size, Margin.size, true))
+    entryPosition = Some(Ordering(size, Margin.size, entry))
     entryPosition
   }
   def close(): Option[Ordering] = {
     val side = domain.reverseSide(entryPosition.get.side)
     val size = entryPosition.map(_.size).getOrElse(Margin.size)
     entryPosition = None
-    Some(Ordering(side, size))
+    Some(Ordering(side, size, !entry))
   }
 
 }

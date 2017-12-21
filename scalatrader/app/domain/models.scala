@@ -80,5 +80,5 @@ object models {
     def market(side: String, size: Double): Order = Order(ProductCode.btcFx, "MARKET", side, None, size, 5, "GTC")
   }
 
-  case class Ordering(side:String, size:Double, isEntry:Boolean = false)
+  case class Ordering(side:String, size:Double, isEntry:Boolean)
 }
