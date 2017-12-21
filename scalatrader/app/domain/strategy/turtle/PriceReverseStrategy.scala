@@ -1,37 +1,25 @@
 package domain.strategy.turtle
 
-import domain.margin.Margin
+import domain.Side._
 import domain.models.{Ticker, Ordering}
 import domain.{Side, models}
 import domain.strategy.Strategy
-import play.api.Logger
 import repository.model.scalatrader.User
 
 
-class PriceReverseStrategy(user: User) extends Strategy {
-  override def putTicker(ticker: models.Ticker) = {
-    core.put(ticker)
-  }
+class PriceReverseStrategy(user: User) extends Strategy(user) {
 
   val core = new TurtleCore
-  override def email = user.email
-  override def key = user.api_key
-  override def secret = user.api_secret
 
-  var leverage = Margin.defaultLeverage
-  var orderSize: Double = Margin.defaultSizeUnit * leverage
-  var position: Option[Ordering] = None
-  def entry(o: Ordering): Option[Ordering] = {
-    position = Some(o)
-    updateSizeUnit
+  override def entry(side: String): Option[Ordering] = {
     stopLine = None
     limitLine = None
-    position
+    super.entry(side)
   }
-  def close = {
-    position = None
+  override def close(): Option[Ordering] = {
     stopLine = None
     limitLine = None
+    super.close()
   }
 
   val limitRange:Option[Double] = Some(3000)
@@ -48,21 +36,21 @@ class PriceReverseStrategy(user: User) extends Strategy {
     } else {
       val box10 = data.box10.get
       val box20 = data.box20.get
-      if (position.isEmpty) {
+      if (entryPosition.isEmpty) {
         if (box20.high < ltp) {
-          entry(Ordering(Side.Sell, orderSize, true))
+          entry(Sell)
+
         } else if (ltp < box20.low) {
-          entry(Ordering(Side.Buy, orderSize, true))
+          entry(Buy)
+
         } else {
           None
         }
-      } else if (position.get.side == Side.Buy) {
+      } else if (entryPosition.get.side == Side.Buy) {
         if (stopLine.exists(_ < ltp) | limitLine.exists(ltp < _)) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (box10.high < ltp) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box20.low) {
           stopLine = stopRange.map(ltp + _)
           limitLine = limitRange.map(ltp - _)
@@ -73,10 +61,8 @@ class PriceReverseStrategy(user: User) extends Strategy {
       } else { // BUY
         if (stopLine.exists(ltp < _) || limitLine.exists(_ < ltp)) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box10.low) {
-          close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
+          close()
         } else if (box20.high < ltp) {
           stopLine = stopRange.map(ltp - _)
           limitLine = limitRange.map(ltp + _)
@@ -89,24 +75,17 @@ class PriceReverseStrategy(user: User) extends Strategy {
     result
   }
 
-  private def updateSizeUnit = {
-    val newSize = Margin.sizeUnit * leverage
-    if (orderSize < newSize) {
-      Logger.info(s"orderSize($orderSize) -> newSize($newSize)")
-      orderSize = newSize
-    }
+  override def putTicker(ticker: models.Ticker): Unit = {
+    core.put(ticker)
   }
-
 
   override def processEvery1minutes(): Unit = {
     core.refresh()
   }
 
   override def init(): Unit = {
-    position = None
+    super.init()
     stopLine = None
     core.init()
-    leverage = Margin.defaultLeverage
-    orderSize = Margin.defaultSizeUnit * leverage
   }
 }
