@@ -33,19 +33,16 @@ abstract class Strategy(user: User) {
   def putTicker(ticker: models.Ticker): Unit = {}
   def processEvery1minutes():Unit = ()
 
-
-  //operation
-  def entrySize(): Double = Margin.size
-  def closeSize(): Double = entryPosition.map(_.size).getOrElse(Margin.size)
-
+  // operation
   def entry(size: String): Option[Ordering] = {
-    entryPosition = Some(Ordering(size, entrySize(), true))
+    entryPosition = Some(Ordering(size, Margin.size, true))
     entryPosition
   }
   def close(): Option[Ordering] = {
-    val entrySide = entryPosition.get.side
+    val side = domain.reverseSide(entryPosition.get.side)
+    val size = entryPosition.map(_.size).getOrElse(Margin.size)
     entryPosition = None
-    Some(Ordering(domain.reverseSide(entrySide), closeSize()))
+    Some(Ordering(side, size))
   }
 
 }
