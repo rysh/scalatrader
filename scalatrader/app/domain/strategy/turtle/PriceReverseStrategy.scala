@@ -3,11 +3,11 @@ package domain.strategy.turtle
 import domain.Side._
 import domain.models.{Ticker, Ordering}
 import domain.{Side, models}
-import domain.strategy.Strategy
+import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class PriceReverseStrategy(user: User) extends Strategy(user) {
+class PriceReverseStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
 
   val core = new TurtleCore
 

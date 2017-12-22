@@ -16,7 +16,6 @@ import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageRe
 import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
-import domain.strategy.momentum.MomentumReverseStrategy
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 
@@ -25,22 +24,14 @@ import scala.concurrent.Future
 @Singleton
 class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
   Logger.info("init RealTimeReceiver")
-  val secret = config.get[String]("play.http.secret.key")
 
-  def start: Unit = {
-    lazy val users = UserRepository.everyoneWithApiKey(secret)
-    if (users.isEmpty) return
-    users.filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => new MomentumReverseStrategy(user))
-      .foreach(Strategies.register)
-
-
+  def start(): Unit = {
     val gson: Gson = new Gson()
 
     val productCode = s"lightning_ticker_${ProductCode.btcFx}"
     val key =  "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
     val callback = new SubscribeCallback() {
-      override def message(pubnub: PubNub, message: PNMessageResult) = {
+      override def message(pubnub: PubNub, message: PNMessageResult): Unit = {
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
         Strategies.values.filter(_.isAvailable)foreach(strategy => {
           strategy.synchronized {
@@ -110,7 +101,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     loadInitialData()
   }
 
-  private def sendRequestFailureNoticeMail(strategy: Strategy, ordering: models.Ordering) = {
+  private def sendRequestFailureNoticeMail(strategy: Strategy, ordering: models.Ordering): Unit = {
     val subject = "close request failed"
     val text = s"failed: ${ordering.side} size:${ordering.size}"
     SES.send(MailContent(strategy.email, "info@scalatrader.com", subject, text, text))

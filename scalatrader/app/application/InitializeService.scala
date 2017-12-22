@@ -4,33 +4,29 @@ import javax.inject.Inject
 
 import adapter.BitFlyer
 import domain.models.Orders
-import domain.strategy.Strategies
+import domain.strategy.{StrategyState, StrategyFactory, Strategies}
 import play.api.{Configuration, Logger}
-import repository.UserRepository
+import repository.{StrategyRepository, UserRepository}
+import repository.model.scalatrader.User
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 class InitializeService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
   Logger.info("InitializeService load")
 
   val secret: String = config.get[String]("play.http.secret.key")
 
-  def clearOldOrders(): Unit = {
-    UserRepository.fetchCurrentOrder().foreach(currentOrder => {
-      Logger.info(currentOrder.toString)
-      UserRepository.get(currentOrder.email, secret).foreach(user => {
-        Logger.info(user.toString)
-        val order = Orders.market(currentOrder.reverseSide, currentOrder.size)
-        BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
-        Logger.info("reverse orderd")
-        UserRepository.clearCurrentOrder(user.email, currentOrder.child_order_acceptance_id)
-        Logger.info("deleted")
+  def reverseOrder(user: User, side: String, size: Double):Unit = {
+    val order = Orders.market(side, size)
+    BitFlyer.orderByMarket(order, user.api_key, user.api_secret)
+    Logger.info(s"reverse ordered (${user.email})")
+  }
+
+  def restoreStrategies(): Unit = {
+    UserRepository.all(secret).foreach(user => {
+      StrategyRepository.list(user).filter(_.availability).foreach((state: StrategyState) => {
+        Strategies.register(StrategyFactory.create(state, user))
       })
     })
   }
-
-  Future {
-    clearOldOrders()
-    Strategies.values.foreach(s => s.availability.manualOn = true)
-  } (scala.concurrent.ExecutionContext.Implicits.global)
 }

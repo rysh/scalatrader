@@ -4,14 +4,14 @@ import java.time.ZonedDateTime
 
 import domain.Side.{Sell, Buy}
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.{ Momentum}
-import domain.{models}
-import domain.strategy.{Strategies, Strategy}
+import domain.strategy.core.Momentum
+import domain.models
+import domain.strategy.{Strategies, Strategy, StrategyState}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class TurtleMomentumStrategy(user: User) extends Strategy(user) {
+class TurtleMomentumStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }

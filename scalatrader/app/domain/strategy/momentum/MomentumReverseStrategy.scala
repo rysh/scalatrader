@@ -2,11 +2,11 @@ package domain.strategy.momentum
 
 import domain.Side.{Sell, Buy}
 import domain.models.{Ticker, Ordering}
-import domain.strategy.{Strategies, Strategy}
+import domain.strategy.{Strategies, Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class MomentumReverseStrategy(user: User) extends Strategy(user) {
+class MomentumReverseStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 

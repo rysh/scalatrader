@@ -1,15 +1,74 @@
 @import helper._
 
-@(status: String)(implicit req: RequestHeader)
+@(status: String, newStrategy:Form[StrategySettings], form:Form[SystemSettings], strategyOptions: List[(String, String)] = List("MomentumReverse" -> "MomentumReverse", "Turtle" -> "Turtle"))(implicit req: RequestHeader, messagesProvider: MessagesProvider)
 
 @main("Welcome to dashboard") {
   <h1>Welcome to Dashboard!</h1>
   @helper.javascriptRouter("jsRoutes")(
-    routes.javascript.DashBoardController.run,
-    routes.javascript.DashBoardController.stop,
+    routes.javascript.DashBoardController.update,
+    routes.javascript.DashBoardController.add,
+    routes.javascript.DashBoardController.delete,
   )
+  <style>
+  dl {
+    float:left;
+    width:160px;
+  }
+  dt {
+    float:left;
+    width:0;
+  }
+  dt > label {
+    display:none;
+  }
+  .info {
+    display:none;
+  }
+  dd {
+    float:left;
+    width:160px;
+  }
+  .leverage {
+    width: 50px;
+  }
+  </style>
   <p>Trading is <span>@status</span></p>
   <button onclick="run()">run</button>
   <button onclick="stop()">stop</button>
+
+  <form id="newStrategy">
+    <input name="id" type="hidden" value="0">
+    @helper.select(newStrategy("name"), options = strategyOptions)
+    @helper.checkbox(newStrategy("availability"), (Symbol("_text"), "availability"), (Symbol("class"), "availability"))
+    @helper.inputText(newStrategy("leverage"), (Symbol("class"), "leverage"))
+    @CSRF.formField
+  </form>
+  <button onclick="add();return false;" style="float:left">add</button>
+  <div style="clear:both;"></div>
+  <form id="strategies">
+    <span style="display:none;"><input type="submit"/></span>
+        @helper.repeat(form("strategies"), min = 0) { settings =>
+          <div style="border: thin solid lightgray">
+            <span style="float:left">@settings("name").value</span>
+            <span style="display:none;">@helper.inputText(settings("id"))</span>
+            <span style="display:none;">@helper.inputText(settings("name"))</span>
+            @helper.checkbox(settings("availability"), (Symbol("_text"), "availability"), (Symbol("class"), "availability"))
+            <span style="float:left">leverage:</span>@helper.inputText(settings("leverage"), (Symbol("class"), "leverage"))
+            <button onclick="deleteStrategy('@settings("id").value');return false">delete</button>
+            <div style="clear:both;"></div>
+      </div>
+    }
+    @CSRF.formField
+  </form>
+  <div style="display:none">
+
+  @helper.repeat(form("strategies"), min = 1) { settings =>
+    <form id="delete-@settings("id").value">
+      <input name="id" type="hidden" value="@settings("id").value" />
+      @CSRF.formField
+    </form>
+  }
+  </div>
+  <button onclick="submit();return false;">update</button>
   <script src="@routes.Assets.versioned("javascripts/dashboard.js")"></script>
 }

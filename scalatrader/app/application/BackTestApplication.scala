@@ -14,14 +14,12 @@ import domain.models
 import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
-import domain.strategy.Strategies
-import domain.strategy.turtle.{PriceReverseStrategy, TurtleMomentumStrategy, TurtleStrategy}
-import domain.strategy.momentum.{MomentumReverseStrategy, MomentumStrategy}
+import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import domain.time.{DateUtil, MockedTime}
-import domain.time.DateUtil.format
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 import repository.model.scalatrader.User
+import StrategyFactory.MomentumReverse
 
 
 @Singleton
@@ -40,17 +38,11 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     MockedTime.now = start
 
-    val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
-    if (users.isEmpty) return
-    users.filter(user => !Strategies.values.exists(_.email == user.email))
-//      .map(user => new TurtleStrategy(user))
-//      .map(user => new TurtleMomentumStrategy(user))
-//      .map(user => new MomentumStrategy(user))
-      .map(user => new MomentumReverseStrategy(user))
-      .foreach(st => {
-      Strategies.register(st)
-      st.availability.manualOn = true
-    })
+//    val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
+//    if (users.isEmpty) return
+//    users.filter(user => !Strategies.values.exists(_.email == user.email))
+//      .map(user => StrategyFactory.create(StrategyState(0L, MomentumReverse, true, 1.5), user))
+//      .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)
     Logger.info("initial data loading...")

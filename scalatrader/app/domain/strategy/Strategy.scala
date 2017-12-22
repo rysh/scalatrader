@@ -5,14 +5,16 @@ import domain.models
 import domain.models.{Ticker, Ordering}
 import repository.model.scalatrader.User
 
-abstract class Strategy(user: User) {
+abstract class Strategy(
+  var state: StrategyState,
+  user: User) {
 
   val email: String = user.email
   val key: String = user.api_key
   val secret: String = user.api_secret
 
   // state for system
-  val availability = new Availability
+  val availability = new Availability(state)
   def isAvailable: Boolean = availability.isAvailable
 
 
@@ -35,20 +37,34 @@ abstract class Strategy(user: User) {
   // operation
   private val entry: Boolean  = true
   def entry(size: String): Option[Ordering] = {
-    entryPosition = Some(Ordering(size, Margin.size, entry))
+    entryPosition = Some(Ordering(size, Margin.size(state.leverage), entry))
     entryPosition
   }
   def close(): Option[Ordering] = {
     val side = domain.reverseSide(entryPosition.get.side)
-    val size = entryPosition.map(_.size).getOrElse(Margin.size)
+    val size = entryPosition.map(_.size).getOrElse(Margin.size(state.leverage))
     entryPosition = None
     Some(Ordering(side, size, !entry))
+  }
+  def update(newState: StrategyState): Unit = {
+    availability.state = newState
+    state = newState
   }
 
 }
 
-class Availability {
-  var manualOn = false
+class Availability(var state: StrategyState) {
+  def manualOn: Boolean = state.availability
   var initialDataLoaded = false
   def isAvailable: Boolean = manualOn && initialDataLoaded
 }
+
+case class StrategyState(
+  var id: Long,
+  name: String,
+  availability: Boolean,
+  leverage: Double,
+  orderId: Option[String] = None,
+  order: Option[Ordering] = None,
+  params: Map[String, String] = Map.empty,
+)

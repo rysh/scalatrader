@@ -4,12 +4,12 @@ import java.time.ZonedDateTime
 
 import domain.Side.{Sell, Buy}
 import domain.models.{Ticker, Ordering}
-import domain.strategy.{Strategies, Strategy}
+import domain.strategy.{Strategies, Strategy, StrategyState}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class MomentumStrategy(user: User) extends Strategy(user) {
+class MomentumStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
 
   override def entry(side: String): Option[Ordering] = {
     entryTime = Some(DateUtil.now())
