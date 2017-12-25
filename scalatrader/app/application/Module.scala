@@ -8,7 +8,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
 
   override def configure() = {
     Logger.info("Module.configure")
-    domain.isBackTesting = true
+    domain.isBackTesting = false
 
     bindActor[CandleActor]("candle")
     bindActor[PositionSizeAdjustmentActor]("positionAdjustment")

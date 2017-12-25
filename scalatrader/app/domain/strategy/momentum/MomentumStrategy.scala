@@ -38,7 +38,7 @@ class MomentumStrategy(state: StrategyState, user: User) extends Strategy(state,
     } else {
       val latest = latestOption.get._2
       val previous = previousOption.get._2
-      if (entryPosition.isEmpty) {
+      if (state.order.isEmpty) {
         if (previous < 0 && latest > 0 && ((previous - latest).abs > 2000) && macd.buySignal) {
           losLimit = stopRange.map(ltp - _)
           entry(Buy)
@@ -49,7 +49,7 @@ class MomentumStrategy(state: StrategyState, user: User) extends Strategy(state,
           None
         }
       } else  {
-        if (entryPosition.get.side == Sell) {
+        if (state.order.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
 

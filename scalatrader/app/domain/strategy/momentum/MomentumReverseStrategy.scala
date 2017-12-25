@@ -19,8 +19,7 @@ class MomentumReverseStrategy(state: StrategyState, user: User) extends Strategy
       val one = momentum.head
       val two = momentum.tail.head
       val three = momentum.last
-
-      if (entryPosition.isEmpty) {
+      if (state.order.isEmpty) {
         if (one < two && two > three) {
           entry(Buy)
 
@@ -31,7 +30,7 @@ class MomentumReverseStrategy(state: StrategyState, user: User) extends Strategy
           None
         }
       } else  {
-        if (entryPosition.get.side == Sell) {
+        if (state.order.get.side == Sell) {
           if (one < two && two > three) {
             close()
 

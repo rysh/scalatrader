@@ -36,7 +36,7 @@ class PriceReverseStrategy(state: StrategyState, user: User) extends Strategy(st
     } else {
       val box10 = data.box10.get
       val box20 = data.box20.get
-      if (entryPosition.isEmpty) {
+      if (state.order.isEmpty) {
         if (box20.high < ltp) {
           entry(Sell)
 
@@ -46,7 +46,7 @@ class PriceReverseStrategy(state: StrategyState, user: User) extends Strategy(st
         } else {
           None
         }
-      } else if (entryPosition.get.side == Side.Buy) {
+      } else if (state.order.get.side == Side.Buy) {
         if (stopLine.exists(_ < ltp) | limitLine.exists(ltp < _)) {
           close
         } else if (box10.high < ltp) {

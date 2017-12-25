@@ -4,12 +4,12 @@ import javax.inject.Inject
 
 import adapter.BitFlyer
 import domain.models.Orders
-import domain.strategy.{StrategyState, StrategyFactory, Strategies}
+import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import play.api.{Configuration, Logger}
 import repository.{StrategyRepository, UserRepository}
 import repository.model.scalatrader.User
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class InitializeService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
   Logger.info("InitializeService load")
@@ -29,4 +29,9 @@ class InitializeService @Inject()(config: Configuration)(implicit executionConte
       })
     })
   }
+
+  Future {
+    Thread.sleep(10 * 1000)
+    restoreStrategies()
+  } (scala.concurrent.ExecutionContext.Implicits.global)
 }

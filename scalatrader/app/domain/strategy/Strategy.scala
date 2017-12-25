@@ -17,11 +17,6 @@ abstract class Strategy(
   val availability = new Availability(state)
   def isAvailable: Boolean = availability.isAvailable
 
-
-  // state for transaction
-  var orderId: Option[String] = None
-  var entryPosition: Option[Ordering] = None
-
   // main logic
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None
   def judgeEveryMinutes(key: Long): Option[Ordering] = None
@@ -29,7 +24,7 @@ abstract class Strategy(
 
   // maintenance
   def init():Unit = {
-    entryPosition = None
+    state.order = None
   }
   def putTicker(ticker: models.Ticker): Unit = {}
   def processEvery1minutes():Unit = ()
@@ -37,13 +32,13 @@ abstract class Strategy(
   // operation
   private val entry: Boolean  = true
   def entry(size: String): Option[Ordering] = {
-    entryPosition = Some(Ordering(size, Margin.size(state.leverage), entry))
-    entryPosition
+    state.order = Some(Ordering(size, Margin.size(state.leverage), entry))
+    state.order
   }
   def close(): Option[Ordering] = {
-    val side = domain.reverseSide(entryPosition.get.side)
-    val size = entryPosition.map(_.size).getOrElse(Margin.size(state.leverage))
-    entryPosition = None
+    val side = domain.reverseSide(state.order.get.side)
+    val size = state.order.map(_.size).getOrElse(Margin.size(state.leverage))
+    state.order = None
     Some(Ordering(side, size, !entry))
   }
   def update(newState: StrategyState): Unit = {
@@ -64,7 +59,7 @@ case class StrategyState(
   name: String,
   availability: Boolean,
   leverage: Double,
-  orderId: Option[String] = None,
-  order: Option[Ordering] = None,
+  var orderId: Option[String] = None,
+  var order: Option[Ordering] = None,
   params: Map[String, String] = Map.empty,
 )

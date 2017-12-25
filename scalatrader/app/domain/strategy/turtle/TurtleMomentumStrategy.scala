@@ -45,7 +45,7 @@ class TurtleMomentumStrategy(state: StrategyState, user: User) extends Strategy(
       val box10 = data.box10.get
       val box20 = data.box20.get
       val momentum = new TurtleMomentumValue(momentumValueOption.get, momentum5min)
-      if (entryPosition.isEmpty) {
+      if (state.order.isEmpty) {
         val m5 = momentum5min.values.takeRight(1).values.headOption
         if (box20.high < ltp && momentum.isAvailableBuyEntry && m5.exists(_ > 0)) {
           losLimit = stopRange.map(ltp - _)
@@ -57,7 +57,7 @@ class TurtleMomentumStrategy(state: StrategyState, user: User) extends Strategy(
           None
         }
       } else  {
-        if (entryPosition.get.side == Sell) {
+        if (state.order.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
           } else if (box10.high < ltp && momentum.isAvailableToBuyClose) {

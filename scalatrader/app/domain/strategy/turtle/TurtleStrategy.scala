@@ -31,7 +31,7 @@ class TurtleStrategy(state: StrategyState, user: User) extends Strategy(state, u
     } else {
       val box10 = data.box10.get
       val box20 = data.box20.get
-      if (entryPosition.isEmpty) {
+      if (state.order.isEmpty) {
         if (box20.high < ltp) {
           losLimit = None
           entry(Buy)
@@ -41,7 +41,7 @@ class TurtleStrategy(state: StrategyState, user: User) extends Strategy(state, u
         } else {
           None
         }
-      } else if (entryPosition.get.side == Side.Sell) {
+      } else if (state.order.get.side == Side.Sell) {
         if (losLimit.exists(_ < ltp)) {
           close
         } else if (box10.high < ltp) {
@@ -74,7 +74,7 @@ class TurtleStrategy(state: StrategyState, user: User) extends Strategy(state, u
   }
 
   override def init(): Unit = {
-    entryPosition = None
+    super.init()
     losLimit = None
     core.init()
   }
