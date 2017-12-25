@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import com.google.inject.Singleton
 import controllers.{StrategySettings, DeleteTarget}
+import domain.models.Ordering
 import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import play.api.{Configuration, Logger}
 import repository.model.scalatrader.User
@@ -54,6 +55,20 @@ class StrategySettingApplication @Inject()(config: Configuration, initializeServ
         case None =>
       }
     })
+  }
+
+  def updateOrder(email: String, currentState: StrategyState, orderId: Option[String], order: Option[Ordering]): Unit = {
+    val user = UserRepository.get(email, secret).get
+    val newState = StrategyState(
+      currentState.id,
+      currentState.name,
+      currentState.availability,
+      currentState.leverage.toDouble,
+      orderId,
+      order,
+      currentState.params)
+    Strategies.update(newState)
+    StrategyRepository.update(user, newState)
   }
 
   def delete(email: String, target: DeleteTarget): Unit = {

@@ -22,7 +22,7 @@ import repository.UserRepository
 import scala.concurrent.Future
 
 @Singleton
-class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef) {
+class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef, strategySettingApplication: StrategySettingApplication) {
   Logger.info("init RealTimeReceiver")
 
   def start(): Unit = {
@@ -39,29 +39,31 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               val order: models.Order = Orders.market(ordering)
               Logger.info(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               Future {
-                try {
-                  var response: OrderResponse = null
-                    retry(10, () => {
-                      response = BitFlyer.orderByMarket(order, strategy.key, strategy.secret)
-                    })
-                  if (ordering.isEntry) {
-                    strategy.orderId = Some(response.child_order_acceptance_id)
-                    UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
-                  }
-                } catch{
-                  case e:Exception =>
-                    strategy.orderId = None
-                    strategy.entryPosition = None
+                (try {
+                  Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
+                } catch {
+                  case _:Exception =>
+                    // request error case
+                    strategy.state.orderId = None
+                    strategy.state.order = None
                     if (!ordering.isEntry) {
                       Logger.warn("!!!close request failed.!!!")
                       sendRequestFailureNoticeMail(strategy, ordering)
                     }
-                } finally {
-                  if (!ordering.isEntry) {
-                    UserRepository.clearCurrentOrder(strategy.email, strategy.orderId.get)
-                    strategy.orderId = None
+                    None
+                }).foreach(response => {
+                  if (ordering.isEntry) {
+                    // entry case
+                    strategy.state.orderId = Some(response.child_order_acceptance_id)
+                    UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
+                    strategySettingApplication.updateOrder(strategy.email, strategy.state, strategy.state.orderId, Some(ordering))
+                  } else {
+                    // close case
+                    UserRepository.clearCurrentOrder(strategy.email, strategy.state.orderId.get)
+                    strategy.state.orderId = None
+                    strategySettingApplication.updateOrder(strategy.email, strategy.state, None, None)
                   }
-                }
+                })
               } (scala.concurrent.ExecutionContext.Implicits.global)
             })
           }
@@ -90,10 +92,6 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
           Strategies.coreData.putTicker(ticker)
           Strategies.values.foreach(_.putTicker(ticker))
         })
-//        Strategies.coreData.momentum10.loadAll()
-//        Strategies.coreData.momentum20.loadAll()
-//        Strategies.coreData.momentum1min.loadAll()
-//        Strategies.coreData.momentum5min.loadAll()
         Strategies.processEvery1minutes()
         Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
       } (scala.concurrent.ExecutionContext.Implicits.global)
