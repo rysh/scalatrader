@@ -20,6 +20,7 @@ import play.api.{Configuration, Logger}
 import repository.UserRepository
 import repository.model.scalatrader.User
 import StrategyFactory.MomentumReverse
+import service.DataLoader
 
 
 @Singleton

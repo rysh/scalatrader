@@ -1,6 +1,7 @@
-package application
+package service
 
-import com.google.inject.{AbstractModule}
+import application._
+import com.google.inject.AbstractModule
 import play.api.Logger
 import play.api.libs.concurrent.AkkaGuiceSupport
 
@@ -22,6 +23,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
       bind(classOf[RealTimeReceiver]).asEagerSingleton()
       bind(classOf[ScheduledTasks]).asEagerSingleton()
       bind(classOf[InitializeService]).asEagerSingleton()
+      bind(classOf[StrategyStateService]).asEagerSingleton()
     }
   }
 }

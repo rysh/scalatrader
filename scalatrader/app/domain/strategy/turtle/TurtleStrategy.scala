@@ -7,7 +7,7 @@ import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class TurtleStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
+class TurtleStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }

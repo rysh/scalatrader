@@ -9,7 +9,7 @@ import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class MomentumStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
+class MomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   override def entry(side: String): Option[Ordering] = {
     entryTime = Some(DateUtil.now())

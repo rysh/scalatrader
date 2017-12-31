@@ -11,7 +11,7 @@ import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class TurtleMomentumStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
+class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }

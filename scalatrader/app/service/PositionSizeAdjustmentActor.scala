@@ -1,7 +1,8 @@
-package application
+package service
 
 import adapter.BitFlyer
 import akka.actor.Actor
+import application.retry
 import com.google.inject.Inject
 import domain.margin.Margin
 import domain.strategy.Strategies

@@ -18,6 +18,7 @@ import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
 import play.api.{Configuration, Logger}
 import repository.UserRepository
+import service.DataLoader
 
 import scala.concurrent.Future
 

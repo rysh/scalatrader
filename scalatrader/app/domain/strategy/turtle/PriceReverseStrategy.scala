@@ -7,7 +7,7 @@ import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class PriceReverseStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
+class PriceReverseStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   val core = new TurtleCore
 

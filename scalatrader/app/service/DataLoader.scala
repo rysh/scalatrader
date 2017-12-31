@@ -1,4 +1,4 @@
-package application
+package service
 
 import domain.time.DateUtil.{format, now}
 import java.time.ZonedDateTime
@@ -9,10 +9,7 @@ import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import domain.models
 import domain.models.Ticker
-import domain.time.DateUtil
 import play.api.Logger
-
-import scala.collection.parallel.ParSeq
 
 object DataLoader {
   def loadFromS3(): Seq[Ticker] = {

@@ -6,7 +6,7 @@ import domain.strategy.{Strategies, Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class MomentumReverseStrategy(state: StrategyState, user: User) extends Strategy(state, user) {
+class MomentumReverseStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 

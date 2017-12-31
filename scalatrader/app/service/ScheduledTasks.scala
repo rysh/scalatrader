@@ -1,8 +1,9 @@
-package application
+package service
 
 import javax.inject.{Named, Inject}
 
 import akka.actor.{ActorRef, ActorSystem}
+import application.RegularObservation
 import domain.time.ScheduleHelper.initialDelay
 
 import scala.concurrent.ExecutionContext

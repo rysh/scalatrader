@@ -7,12 +7,12 @@ import controllers.{StrategySettings, DeleteTarget}
 import domain.models.Ordering
 import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import play.api.{Configuration, Logger}
-import repository.model.scalatrader.User
 import repository.{StrategyRepository, UserRepository}
+import service.{InitializeService, StrategyStateService}
 
 
 @Singleton
-class StrategySettingApplication @Inject()(config: Configuration, initializeService: InitializeService) {
+class StrategySettingApplication @Inject()(config: Configuration, strategyStateService: StrategyStateService) {
 
   val secret: String = config.get[String]("play.http.secret.key")
 
@@ -39,19 +39,20 @@ class StrategySettingApplication @Inject()(config: Configuration, initializeServ
     StrategyRepository.list(user).foreach((currentState: StrategyState) => {
       updatingStrategies.find(_.id == currentState.id) match {
         case Some(setting) =>
-          val newState = StrategyState(
-            currentState.id,
-            currentState.name,
-            setting.availability,
-            setting.leverage.toDouble,
-            currentState.orderId,
-            currentState.order,
-            currentState.params)
+          val newState = if (currentState.availability && !setting.availability) {
+            strategyStateService.reverseOrder(user, currentState)
+            currentState.copy(
+              availability = setting.availability,
+              leverage = setting.leverage.toDouble,
+              order = None,
+              orderId = None)
+          } else {
+            currentState.copy(
+              availability = setting.availability,
+              leverage = setting.leverage.toDouble)
+          }
           Strategies.update(newState)
           StrategyRepository.update(user, newState)
-          if (currentState.availability && !setting.availability) {
-            reverseOrder(user, currentState)
-          }
         case None =>
       }
     })
@@ -78,19 +79,7 @@ class StrategySettingApplication @Inject()(config: Configuration, initializeServ
         println("setting delete")
         StrategyRepository.delete(user, target.id)
         Strategies.remove(user, target.id)
-        reverseOrder(user, state)
-      case None =>
-    }
-  }
-
-  private def reverseOrder(user: User, state: StrategyState): Unit = {
-    state.order match {
-      case Some(order) =>
-        if (!domain.isBackTesting) {
-          initializeService.reverseOrder(user, domain.reverseSide(order.side), order.size)
-        } else {
-          Logger.info(s"deleted: ${order.toString}")
-        }
+        initializeService.reverseOrder(user, state)
       case None =>
     }
   }
