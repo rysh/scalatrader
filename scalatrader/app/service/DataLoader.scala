@@ -17,10 +17,14 @@ object DataLoader {
     val gson: Gson = new Gson
     val refTime = now()
     (1 to 120).reverse.flatMap(i => {
-      val time = refTime.minus(i, ChronoUnit.MINUTES)
-      val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
-      Logger.info(s"loading... $s3Path")
-      s3.getLines("btcfx-ticker-scala", s3Path)
+      try {
+        val time = refTime.minus(i, ChronoUnit.MINUTES)
+        val s3Path: String = format(time, "yyyy/MM/dd/HH/mm")
+        Logger.info(s"loading... $s3Path")
+        s3.getLines("btcfx-ticker-scala", s3Path)
+      } catch {
+        case _:Exception => Iterator.empty
+      }
     }).map(json => gson.fromJson(json, classOf[Ticker]))
   }
 
@@ -50,7 +54,7 @@ object DataLoader {
         lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
         lines.toIterator
       } catch {
-        case e:Exception => Iterator.empty
+        case _:Exception => Iterator.empty
       }
     } else {
       file.lines.filter(l => l.length > 0).toIterator

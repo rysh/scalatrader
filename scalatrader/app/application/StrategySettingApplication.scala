@@ -79,7 +79,9 @@ class StrategySettingApplication @Inject()(config: Configuration, strategyStateS
         println("setting delete")
         StrategyRepository.delete(user, target.id)
         Strategies.remove(user, target.id)
-        initializeService.reverseOrder(user, state)
+        if (state.order.isDefined) {
+          strategyStateService.reverseOrder(user,  state)
+        }
       case None =>
     }
   }
