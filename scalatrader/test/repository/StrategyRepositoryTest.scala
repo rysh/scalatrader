@@ -25,7 +25,7 @@ class StrategyRepositoryTest extends FunSuite {
     ConnectionPool.singleton("jdbc:mysql://localhost:6603/scalatrader", "root", "password")
     val user = User(1L,"hoge","hoge","hoge","hoge","hoge")
     StrategyRepository.list(user).foreach(state => {
-      StrategyRepository.delete(user, state)
+      StrategyRepository.delete(user, state.id)
     })
   }
 
