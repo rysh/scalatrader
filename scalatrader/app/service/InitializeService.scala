@@ -5,11 +5,10 @@ import javax.inject.Inject
 import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import play.api.{Configuration, Logger}
 import repository.{StrategyRepository, UserRepository}
-import repository.model.scalatrader.User
 
 import scala.concurrent.{Future, ExecutionContext}
 
-class InitializeService @Inject()(config: Configuration, strategyStateService: StrategyStateService)(implicit executionContext: ExecutionContext) {
+class InitializeService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
   Logger.info("InitializeService load")
 
   val secret: String = config.get[String]("play.http.secret.key")
@@ -17,11 +16,7 @@ class InitializeService @Inject()(config: Configuration, strategyStateService: S
   def restoreStrategies(): Unit = {
     UserRepository.all(secret).foreach(user => {
       StrategyRepository.list(user).filter(_.availability).foreach((state: StrategyState) => {
-        val newState = if (state.order.isDefined) {
-          strategyStateService.reverseOrder(user, state)
-          state.copy(order = None, orderId = None)
-        } else state
-        Strategies.register(StrategyFactory.create(newState, user))
+        Strategies.register(StrategyFactory.create(state, user))
       })
     })
   }
