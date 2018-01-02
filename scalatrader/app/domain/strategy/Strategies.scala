@@ -29,7 +29,7 @@ object Strategies {
   }
 
   def update(newState: StrategyState): Unit = {
-    values.find(_.state.id == newState.id).foreach(strategy => strategy.state = newState)
+    values.find(_.state.id == newState.id).foreach(strategy => strategy.update(newState))
   }
 
   def remove(user: User, id: Long): Unit = {
