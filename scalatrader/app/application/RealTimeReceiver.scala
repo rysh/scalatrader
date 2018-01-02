@@ -17,7 +17,7 @@ import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
 import play.api.{Configuration, Logger}
-import repository.UserRepository
+import repository.{UserRepository, StrategyRepository}
 import service.DataLoader
 
 import scala.concurrent.Future
@@ -52,17 +52,16 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                   }
                   None
               }).foreach(response => {
-                if (ordering.isEntry) {
+                val newState = if (ordering.isEntry) {
                   // entry case
-                  strategy.state.orderId = Some(response.child_order_acceptance_id)
                   UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
-                  strategySettingApplication.updateOrder(strategy.email, strategy.state, strategy.state.orderId, Some(ordering))
+                  strategy.state.copy(orderId = Some(response.child_order_acceptance_id), order = Some(ordering))
                 } else {
                   // close case
                   UserRepository.clearCurrentOrder(strategy.email, strategy.state.orderId.get)
-                  strategy.state.orderId = None
-                  strategySettingApplication.updateOrder(strategy.email, strategy.state, None, None)
+                  strategy.state.copy(orderId = None, order = None)
                 }
+                strategySettingApplication.updateOrder(strategy.email, newState)
               })
             })
           }
