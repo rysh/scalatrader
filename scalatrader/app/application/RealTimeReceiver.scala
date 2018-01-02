@@ -39,33 +39,31 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
             strategy.judgeByTicker(ticker).foreach(ordering => {
               val order: models.Order = Orders.market(ordering)
               Logger.info(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
-              Future {
-                (try {
-                  Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
-                } catch {
-                  case _:Exception =>
-                    // request error case
-                    strategy.state.orderId = None
-                    strategy.state.order = None
-                    if (!ordering.isEntry) {
-                      Logger.warn("!!!close request failed.!!!")
-                      sendRequestFailureNoticeMail(strategy, ordering)
-                    }
-                    None
-                }).foreach(response => {
-                  if (ordering.isEntry) {
-                    // entry case
-                    strategy.state.orderId = Some(response.child_order_acceptance_id)
-                    UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
-                    strategySettingApplication.updateOrder(strategy.email, strategy.state, strategy.state.orderId, Some(ordering))
-                  } else {
-                    // close case
-                    UserRepository.clearCurrentOrder(strategy.email, strategy.state.orderId.get)
-                    strategy.state.orderId = None
-                    strategySettingApplication.updateOrder(strategy.email, strategy.state, None, None)
+              (try {
+                Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
+              } catch {
+                case _:Exception =>
+                  // request error case
+                  strategy.state.orderId = None
+                  strategy.state.order = None
+                  if (!ordering.isEntry) {
+                    Logger.warn("!!!close request failed.!!!")
+                    sendRequestFailureNoticeMail(strategy, ordering)
                   }
-                })
-              } (scala.concurrent.ExecutionContext.Implicits.global)
+                  None
+              }).foreach(response => {
+                if (ordering.isEntry) {
+                  // entry case
+                  strategy.state.orderId = Some(response.child_order_acceptance_id)
+                  UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
+                  strategySettingApplication.updateOrder(strategy.email, strategy.state, strategy.state.orderId, Some(ordering))
+                } else {
+                  // close case
+                  UserRepository.clearCurrentOrder(strategy.email, strategy.state.orderId.get)
+                  strategy.state.orderId = None
+                  strategySettingApplication.updateOrder(strategy.email, strategy.state, None, None)
+                }
+              })
             })
           }
         })
