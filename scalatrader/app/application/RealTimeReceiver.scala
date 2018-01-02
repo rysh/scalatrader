@@ -91,7 +91,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
           Strategies.values.foreach(_.putTicker(ticker))
         })
         Strategies.processEvery1minutes()
-        Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
+        Strategies.values.foreach(st => st.initialDataLoaded = true)
       } (scala.concurrent.ExecutionContext.Implicits.global)
     }
     loadInitialData()

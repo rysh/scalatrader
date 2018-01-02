@@ -38,7 +38,7 @@ class StrategySettingApplication @Inject()(config: Configuration, strategyStateS
     StrategyRepository.list(user).foreach((currentState: StrategyState) => {
       updatingStrategies.find(_.id == currentState.id) match {
         case Some(setting) =>
-          val newState = if (currentState.availability && !setting.availability) {
+          val newState = if (currentState.availability && !setting.availability && currentState.order.isDefined) {
             strategyStateService.reverseOrder(user, currentState)
             currentState.copy(
               availability = setting.availability,

@@ -14,8 +14,8 @@ abstract class Strategy(
   val secret: String = user.api_secret
 
   // state for system
-  val availability = new Availability(state)
-  def isAvailable: Boolean = availability.isAvailable
+  var initialDataLoaded = false
+  def isAvailable: Boolean = state.availability && initialDataLoaded
 
   // main logic
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None
@@ -42,17 +42,11 @@ abstract class Strategy(
     Some(Ordering(side, size, !entry))
   }
   def update(newState: StrategyState): Unit = {
-    availability.state = newState
     state = newState
   }
 
 }
 
-class Availability(var state: StrategyState) {
-  def manualOn: Boolean = state.availability
-  var initialDataLoaded = false
-  def isAvailable: Boolean = manualOn && initialDataLoaded
-}
 
 case class StrategyState(
   var id: Long,
