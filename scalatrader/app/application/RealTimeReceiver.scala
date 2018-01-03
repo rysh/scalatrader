@@ -3,7 +3,6 @@ package application
 import javax.inject.Named
 
 import adapter.BitFlyer
-import adapter.BitFlyer.OrderResponse
 import adapter.aws.{MailContent, SES}
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
@@ -17,7 +16,7 @@ import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
 import play.api.{Configuration, Logger}
-import repository.{UserRepository, StrategyRepository}
+import repository.UserRepository
 import service.DataLoader
 
 import scala.concurrent.Future
@@ -36,7 +35,13 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
         Strategies.values.filter(_.isAvailable)foreach(strategy => {
           strategy.synchronized {
-            strategy.judgeByTicker(ticker).foreach(ordering => {
+            (try {
+              strategy.judgeByTicker(ticker)
+            } catch {
+              case e:Exception =>
+                e.printStackTrace()
+                None
+            }).foreach(ordering => {
               val order: models.Order = Orders.market(ordering)
               Logger.info(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               (try {

@@ -95,7 +95,11 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     start = DateUtil.of(props.start)
     end = DateUtil.of(props.end)
     Future {
-      app.run(start, end)
+      try {
+        app.run(start, end)
+      } catch {
+        case e:Exception => e.printStackTrace()
+      }
     } (scala.concurrent.ExecutionContext.Implicits.global)
     val gson:Gson = new Gson()
     Ok(Json.parse(gson.toJsonTree(props).toString)).withHeaders("Access-Control-Allow-Credentials" -> "true")

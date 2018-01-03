@@ -101,11 +101,12 @@ class CoreData {
     if (c1h.isEmpty) {
       ()
     } else {
+      val c60m = c1h.takeRight(60)
       val c20m = c1h.takeRight(20)
       val c10m = c20m.takeRight(10)
       //    box4h = Some(Box.of(c4h.toSeq, 240 * 60))
       //    box2h = Some(Box.of(c2h.toSeq, 120 * 60))
-      box1h = Some(Box.of(c1h.toSeq, 60 * 60))
+      box1h = Some(Box.of(c60m.toSeq, 60 * 60))
       box20min = Some(Box.of(c20m.toSeq, 20 * 60))
       box10min = Some(Box.of(c10m.toSeq, 10 * 60))
     }

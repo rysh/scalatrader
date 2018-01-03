@@ -42,7 +42,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => StrategyFactory.create(StrategyState(0L, MomentumReverse, true, 1.5), user))
+      .map(user => StrategyFactory.create(StrategyState(0L, "BoxReverseLimit", true, 1.5), user))
       .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)
@@ -63,7 +63,13 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
             })) {
-              strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
+              (try {
+                strategy.judgeByTicker(ticker)
+              } catch {
+                case e:Exception =>
+                  e.printStackTrace()
+                  None
+              }).map(Orders.market).foreach((order: models.Order) => {
                 WaitingOrder.request(strategy.email, time, order)
                 Logger.info(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
               })

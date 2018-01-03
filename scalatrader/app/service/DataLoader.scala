@@ -43,21 +43,21 @@ object DataLoader {
   def fetchOrReadLines(s3: S3, now: ZonedDateTime): Iterator[String] = {
     val localPath = "tmp/btc_fx/"
 
+    try {
     val filePath = localPath + format(now, "yyyyMMddHHmm")
     val file = better.files.File(filePath)
-    if (file.isEmpty) {
-      file.createIfNotExists()
-      try {
-        val path = format(now, "yyyy/MM/dd/HH/mm")
-        Logger.info(s"loading... $path")
-        val lines = s3.getLines("btcfx-ticker-scala", path).toSeq
-        lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
-        lines.toIterator
-      } catch {
-        case _:Exception => Iterator.empty
+      if (file.isEmpty) {
+        file.createIfNotExists()
+          val path = format(now, "yyyy/MM/dd/HH/mm")
+          Logger.info(s"loading... $path")
+          val lines = s3.getLines("btcfx-ticker-scala", path).toSeq
+          lines.withFilter(l => l.length > 0).foreach(line => file.appendLine(line))
+          lines.toIterator
+      } else {
+        file.lines.filter(l => l.length > 0).toIterator
       }
-    } else {
-      file.lines.filter(l => l.length > 0).toIterator
+    } catch {
+      case _:Exception => Iterator.empty
     }
   }
 }

@@ -67,7 +67,7 @@ class Box(key: Long, duration: Long) {
   def isUp: Boolean = highTime.isAfter(lowTime) && open < close
   def isDown: Boolean = lowTime.isAfter(highTime) && open > close
 
-  override def toString = s"Box(high=$high, low=$low, open=$open, close=$close)"
+  override def toString = s"Box(high=$high, low=$low, open=$open, close=$close, highTime=$highTime, lowTime=$lowTime)"
 }
 
 object Box {
