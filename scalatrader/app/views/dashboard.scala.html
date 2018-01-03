@@ -1,6 +1,6 @@
 @import helper._
 
-@(status: String, newStrategy:Form[StrategySettings], form:Form[SystemSettings], strategyOptions: List[(String, String)] = List("MomentumReverse" -> "MomentumReverse", "Turtle" -> "Turtle"))(implicit req: RequestHeader, messagesProvider: MessagesProvider)
+@(status: String, newStrategy:Form[StrategySettings], form:Form[SystemSettings], strategyOptions: List[(String, String)] = List("MomentumReverse" -> "MomentumReverse", "BoxReverseLimit" -> "BoxReverseLimit", "Turtle" -> "Turtle"))(implicit req: RequestHeader, messagesProvider: MessagesProvider)
 
 @main("Welcome to dashboard") {
   <h1>Welcome to Dashboard!</h1>
