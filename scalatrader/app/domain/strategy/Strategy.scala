@@ -4,6 +4,7 @@ import domain.margin.Margin
 import domain.models
 import domain.models.{Ticker, Ordering}
 import repository.model.scalatrader.User
+import service.DataLoader
 
 abstract class Strategy(
   var state: StrategyState,
@@ -14,8 +15,7 @@ abstract class Strategy(
   val secret: String = user.api_secret
 
   // state for system
-  var initialDataLoaded = false
-  def isAvailable: Boolean = state.availability && initialDataLoaded
+  def isAvailable: Boolean = state.availability && DataLoader.loaded
 
   // main logic
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None

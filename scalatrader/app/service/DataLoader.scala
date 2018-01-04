@@ -12,6 +12,9 @@ import domain.models.Ticker
 import play.api.Logger
 
 object DataLoader {
+
+  var loaded = false
+
   def loadFromS3(): Seq[Ticker] = {
     val s3 = S3.create(Regions.US_WEST_1)
     val gson: Gson = new Gson

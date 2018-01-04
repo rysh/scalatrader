@@ -111,6 +111,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.values.foreach(_.putTicker(ticker))
     })
     Strategies.processEvery1minutes()
-    Strategies.values.foreach(st => st.initialDataLoaded = true)
+    DataLoader.loaded = true
   }
 }
