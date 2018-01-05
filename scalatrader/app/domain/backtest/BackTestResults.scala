@@ -42,7 +42,7 @@ object BackTestResults {
       val value = calc(entry.get, order).toInt
       depositMargin = depositMargin + value
       total = total + value
-      values += ((entry.get, order, value, total))
+      //values += ((entry.get, order, value, total))
       Logger.info(format(entry.get, order, value, total))
       entry = None
     }

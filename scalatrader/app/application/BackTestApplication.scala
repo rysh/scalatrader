@@ -19,7 +19,6 @@ import domain.time.{DateUtil, MockedTime}
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 import repository.model.scalatrader.User
-import StrategyFactory.MomentumReverse
 import service.DataLoader
 
 
@@ -42,7 +41,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => StrategyFactory.create(StrategyState(0L, "BoxReverseLimit", true, 1.5), user))
+      .map(user => StrategyFactory.create(StrategyState(0L, "MixedBoxesStrategy", true, 1.5), user))
       .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)
@@ -71,7 +70,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
                   None
               }).map(Orders.market).foreach((order: models.Order) => {
                 WaitingOrder.request(strategy.email, time, order)
-                Logger.info(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
+                //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
               })
             }
           })
@@ -95,12 +94,13 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         if (!WaitingOrder.isWaiting(strategy.email, now)) {
           strategy.judgeEveryMinutes(key).map(Orders.market).foreach((order: models.Order) => {
             WaitingOrder.request(strategy.email, now, order)
-            Logger.info(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
+            //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
           })
         }
       })
     }
-    BackTestResults.report()
+    //BackTestResults.report()
+    Logger.info("complete")
   }
 
   private def loadInitialData(s3: S3): Unit = {
