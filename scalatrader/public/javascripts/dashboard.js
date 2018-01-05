@@ -30,6 +30,7 @@ function submit() {
     }).then(function (response) {
         if (response.status === 200) {
             console.log(response.statusText); // => "OK"
+            location.reload();
         } else {
             console.log(response.statusText); // => Error Message
         }

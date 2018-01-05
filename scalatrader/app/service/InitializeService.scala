@@ -15,7 +15,7 @@ class InitializeService @Inject()(config: Configuration)(implicit executionConte
 
   def restoreStrategies(): Unit = {
     UserRepository.all(secret).foreach(user => {
-      StrategyRepository.list(user).filter(_.availability).foreach((state: StrategyState) => {
+      StrategyRepository.list(user).foreach((state: StrategyState) => {
         Strategies.register(StrategyFactory.create(state, user))
       })
     })

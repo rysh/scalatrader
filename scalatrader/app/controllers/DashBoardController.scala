@@ -36,7 +36,7 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
     )(DeleteTarget.apply)(DeleteTarget.unapply))
 
   def main(): EssentialAction = withAuth { email =>implicit request: Request[AnyContent] =>
-    val isAvailable = Strategies.values.find(_.email == email).exists(_.isAvailable)
+    val isAvailable = Strategies.values.filter(_.email == email).exists(_.isAvailable)
     val status = if (isAvailable) "running" else "stopped"
 
     val settings = strategySettingApplication.get(email)
