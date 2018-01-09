@@ -22,8 +22,8 @@ class Box(key: Long, duration: Long) {
       low = bar.low
       lowTime = DateUtil.parseKey(bar.key)
     }
-    if (bar.key < key) open = bar.open
-    if (key < bar.key) close = bar.close
+    if (bar.key <= key) open = bar.open
+    if (key <= bar.key) close = bar.close
     this
   }
 
