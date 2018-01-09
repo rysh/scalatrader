@@ -12,7 +12,6 @@ import repository.model.scalatrader.User
 
 class BoxTrendStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
-  var stop: Option[Double] = None
   var entryTime: Option[ZonedDateTime] = None
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
@@ -29,33 +28,25 @@ class BoxTrendStrategy(st: StrategyState, user: User) extends Strategy(st, user)
       val box10min = Strategies.coreData.box10min.get
       val box20min = Strategies.coreData.box20min.get
       val box1h = Strategies.coreData.box1h.get
+      lazy val isUpdatingHigh = box1h.isUpdatingHigh(now, 60 * 20)
+      lazy val isUpdatingLow = box1h.isUpdatingLow(now, 60 * 20)
       if (state.order.isEmpty) {
-
-        if (box10min.isUp && box20min.isUp && box1h.isUp && mid(box1h) < ticker.ltp) {
-          stop = Some(box1h.low)
+        if (box10min.isUp && box20min.isUp && box1h.isUp && isUpdatingHigh) {
           entry(Buy)
-        } else if (box10min.isDown && box20min.isDown && box1h.isDown && mid(box1h) > ticker.ltp) {
-            stop = Some(box1h.high)
+        } else if (box10min.isDown && box20min.isDown && box1h.isDown && isUpdatingLow) {
             entry(Sell)
         } else {
           None
         }
       } else  {
         if (state.order.get.side == Buy) {
-
-          def isUpdatingHigh = box1h.isUpdatingHigh(now, 60 * 20)
-          if (!(box10min.isUp && box20min.isUp && box1h.isUp) || mid(box1h) > ticker.ltp) {
-            close()
-          } else if (stop.exists(_ > ticker.ltp)) {
+          if (!isUpdatingHigh || box20min.low + 500 > ticker.ltp) {
             close()
           } else {
             None
           }
         } else { // Sell
-          def isUpdatingLow = box1h.isUpdatingLow(now, 60 * 20)
-          if (!(box10min.isDown && box20min.isDown && box1h.isDown) || mid(box1h) < ticker.ltp) {
-            close()
-          } else if (stop.exists(_ < ticker.ltp)) {
+          if (!isUpdatingLow || box20min.high - 500 < ticker.ltp) {
             close()
           } else {
             None
