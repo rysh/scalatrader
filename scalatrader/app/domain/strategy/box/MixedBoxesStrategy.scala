@@ -37,13 +37,11 @@ class MixedBoxesStrategy(st: StrategyState, user: User) extends Strategy(st, use
         lazy val anObviousUpwardTrend = momentum.exists(_ > 10000)
 
         if (isAsc(start, box20min.lowTime, end)
-          && ticker.ltp < box20min.high
           && !anObviousDownwardTrend && !tooLargeVolatility) {
           limit = Some((box1h.high + ticker.ltp) / 2 + 1000)
           stop = Some(box20min.low)
           entry(Buy)
         } else if (isAsc(start, box20min.highTime, end)
-          && ticker.ltp > box20min.low
           && !anObviousUpwardTrend && !tooLargeVolatility) {
             limit = Some((box1h.low + ticker.ltp) / 2 - 1000)
             stop = Some(box20min.high)
@@ -51,7 +49,7 @@ class MixedBoxesStrategy(st: StrategyState, user: User) extends Strategy(st, use
         } else {
           None
         }
-      } else  {
+      } else {
         if (entryTime.map(_.plusMinutes(10)).exists(_.isBefore(DateUtil.now()))) {
           close()
         } else if (state.order.get.side == Buy) {

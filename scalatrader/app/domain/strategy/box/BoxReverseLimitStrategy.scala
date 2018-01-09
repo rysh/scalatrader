@@ -26,11 +26,11 @@ class BoxReverseLimitStrategy(st: StrategyState, user: User) extends Strategy(st
         val start = now.minusMinutes(16)
         val end = now.minusMinutes(15)
 
-        if (start.isBefore(box1h.lowTime) && !end.isBefore(box1h.lowTime) && ticker.ltp < box1h.high && momentum.exists(_ > -10000) && momentum.exists(_.abs < 30000)) {
+        if (start.isBefore(box1h.lowTime) && !end.isBefore(box1h.lowTime) && momentum.exists(_ > -10000) && momentum.exists(_.abs < 30000)) {
           limit = Some((box1h.high + ticker.ltp) / 2 + 1000)
           stop = Some(box1h.low)
           entry(Buy)
-        } else if (start.isBefore(box1h.highTime) && !end.isBefore(box1h.highTime) && ticker.ltp > box1h.low && momentum.exists(_ < 10000) && momentum.exists(_.abs < 30000)) {
+        } else if (start.isBefore(box1h.highTime) && !end.isBefore(box1h.highTime) && momentum.exists(_ < 10000) && momentum.exists(_.abs < 30000)) {
           limit = Some((box1h.low + ticker.ltp) / 2 - 1000)
           stop = Some(box1h.high)
           entry(Sell)
