@@ -43,7 +43,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                 None
             }).foreach(ordering => {
               val order: models.Order = Orders.market(ordering)
-              Logger.info(s"[order][${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+              Logger.info(s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               (try {
                 Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
               } catch {
