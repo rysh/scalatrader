@@ -1,8 +1,8 @@
 package domain.strategy
 
-import domain.strategy.StrategyFactory.BoxTrendStrategy
-import domain.strategy.box.{BoxReverseLimitStrategy, MixedBoxesStrategy, BoxTrendStrategy}
+import domain.strategy.box.{BoxTrendStrategy, BoxReverseLimitStrategy, MixedBoxesStrategy}
 import domain.strategy.momentum.MomentumReverseStrategy
+import domain.strategy.other.OnceForTestStrategy
 import domain.strategy.turtle.TurtleStrategy
 import repository.model.scalatrader.User
 
@@ -24,6 +24,7 @@ object StrategyFactory {
       case "BoxReverseLimit" => new BoxReverseLimitStrategy(state, user)
       case "MixedBoxesStrategy" => new MixedBoxesStrategy(state, user)
       case "BoxTrendStrategy" => new BoxTrendStrategy(state, user)
+      case "Once" => new OnceForTestStrategy(state, user)
       case _ => throw new Exception()
     }
   }

@@ -87,9 +87,19 @@ object BitFlyer {
     body.map(_ => header.put("Content-Type", "application/json"))
   }
 
-  def myPosition() = {
+  def getMyExecution(id:String, api_key: String, api_secret: String): Seq[MyExecution] = {
+    val path = ME_EXECUTIONS + s"?product_code=FX_BTC_JPY&child_order_acceptance_id=$id"
+    val request = Request(BASE + path)
+    addSign(request, path, "GET", api_key, api_secret, None)
 
+    import io.circe.generic.auto._
+    import io.circe.parser._
+    decode[Seq[MyExecution]](HTTP.get(request).textBody) match {
+      case Right(ex) => ex
+      case Left(err) => throw err
+    }
   }
+
   def myExecutions(api_key: String, api_secret: String): Seq[MyExecution] = {
     val count = 36
     val before = 83994945

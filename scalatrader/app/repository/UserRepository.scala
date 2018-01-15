@@ -1,8 +1,7 @@
 package repository
 
-import com.google.inject.Inject
 import domain.util.crypto.Aes
-import repository.model.scalatrader.{User, CurrentOrder}
+import repository.model.scalatrader.{User}
 import scalikejdbc.AutoSession
 import scalikejdbc._
 
@@ -27,26 +26,6 @@ object UserRepository {
     } else {
       str.length > 0
     }
-  }
-
-  def storeCurrentOrder(email: String, acceptanceId: String, side: String, size: Double): Int = {
-    implicit val session = AutoSession
-    sql"insert into current_position (email, child_order_acceptance_id, side, size) values ($email, $acceptanceId, $side, $size)".update.apply()
-  }
-  def clearCurrentOrder(email: String, acceptanceId: String): Int = {
-    implicit val session = AutoSession
-    sql"delete from current_position where email = $email and child_order_acceptance_id = $acceptanceId".update.apply()
-  }
-  def fetchCurrentOrder(): Seq[CurrentOrder] = {
-    implicit val session = AutoSession
-    sql"select * from current_position order by id desc limit 1".map((rs: WrappedResultSet) => {
-      CurrentOrder(rs.long("id"),
-        rs.string("email"),
-        rs.string("child_order_acceptance_id"),
-        rs.string("side"),
-        rs.double("size"),
-        rs.string("timestamp"))
-    }).list().apply()
   }
 
   private def map = {

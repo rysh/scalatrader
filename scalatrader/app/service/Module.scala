@@ -23,6 +23,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
       bind(classOf[RealTimeReceiver]).asEagerSingleton()
       bind(classOf[ScheduledTasks]).asEagerSingleton()
       bind(classOf[InitializeService]).asEagerSingleton()
+      bind(classOf[ExecutionMonitorService]).asEagerSingleton()
       bind(classOf[StrategyStateService]).asEagerSingleton()
     }
   }

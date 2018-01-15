@@ -41,7 +41,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => StrategyFactory.create(StrategyState(0L, "MixedBoxesStrategy", true, 1.5), user))
+      .map(user => StrategyFactory.create(StrategyState(0L, StrategyFactory.MixedBoxesStrategy, true, 1.5), user))
       .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)

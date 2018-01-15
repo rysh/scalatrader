@@ -3,7 +3,7 @@ package application
 import javax.inject.Named
 
 import adapter.BitFlyer
-import adapter.aws.{MailContent, SES}
+import adapter.aws.{MailContent, SES, OrderQueueBody, SQS}
 import adapter.bitflyer.PubNubReceiver
 import akka.actor.ActorRef
 import com.google.gson.Gson
@@ -15,6 +15,7 @@ import com.pubnub.api.models.consumer.pubsub.{PNPresenceEventResult, PNMessageRe
 import domain.{ProductCode, models}
 import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
+import domain.time.DateUtil
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 import service.DataLoader
@@ -42,6 +43,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
                 e.printStackTrace()
                 None
             }).foreach(ordering => {
+              val now = DateUtil.now().toString
               val order: models.Order = Orders.market(ordering)
               Logger.info(s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               (try {
@@ -59,11 +61,11 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               }).foreach(response => {
                 val newState = if (ordering.isEntry) {
                   // entry case
-                  UserRepository.storeCurrentOrder(strategy.email, response.child_order_acceptance_id, order.side, order.size)
+                  SQS.send(OrderQueueBody(strategy.email, response.child_order_acceptance_id, now))
                   strategy.state.copy(orderId = Some(response.child_order_acceptance_id), order = Some(ordering))
                 } else {
                   // close case
-                  UserRepository.clearCurrentOrder(strategy.email, strategy.state.orderId.get)
+                  SQS.send(OrderQueueBody(strategy.email, response.child_order_acceptance_id, now, strategy.state.orderId))
                   strategy.state.copy(orderId = None, order = None)
                 }
                 strategySettingApplication.updateOrder(strategy.email, newState)
