@@ -7,15 +7,15 @@ import scalikejdbc.{AutoSession, _}
 
 object RecordRepository {
 
-  def insert(email:String, child_order_acceptance_id: String, entry: Seq[MyExecution], time: ZonedDateTime): Unit = {
+  def insert(email:String, strategyStateId: Long, child_order_acceptance_id: String, entry: Seq[MyExecution], time: ZonedDateTime): Unit = {
     implicit val session = AutoSession
     import io.circe.syntax._
     import io.circe.generic.auto._
     val json = entry.asJson.toString()
-    sql"insert into trading_record (email, entry_id, entry_execution, entry_timestamp) values ($email, $child_order_acceptance_id, $json, $time)".update.apply()
+    sql"insert into trading_record (email, trading_rule_state_id, entry_id, entry_execution, entry_timestamp) values ($email, $strategyStateId, $child_order_acceptance_id, $json, $time)".update.apply()
   }
 
-  def update(email:String, child_order_acceptance_id: String, entry_id: String, close: Seq[MyExecution], time: ZonedDateTime): Unit ={
+  def update(email:String, child_order_acceptance_id: String, entry_id: String, close: Seq[MyExecution], time: ZonedDateTime): Int ={
     implicit val session = AutoSession
     import io.circe.syntax._
     import io.circe.generic.auto._

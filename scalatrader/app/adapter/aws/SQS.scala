@@ -1,7 +1,5 @@
 package adapter.aws
 
-import java.util
-
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.sqs.{AmazonSQSClientBuilder, AmazonSQS}
 import com.amazonaws.services.sqs.model._
@@ -49,4 +47,4 @@ object SQS {
   }
 }
 
-case class OrderQueueBody(email: String, acceptanceId: String, timestamp: String , entryId: Option[String] = None)
+case class OrderQueueBody(email: String, strategyStateId: Long, acceptanceId: String, timestamp: String , entryId: Option[String] = None)

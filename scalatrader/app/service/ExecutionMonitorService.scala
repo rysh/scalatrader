@@ -25,12 +25,15 @@ class ExecutionMonitorService @Inject()(config: Configuration)(implicit executio
               application.retry(3, () => {
                 if (message.entryId.isEmpty) {
                   // entry
-                  RecordRepository.insert(message.email, message.acceptanceId, executions, ZonedDateTime.parse(message.timestamp))
+                  RecordRepository.insert(message.email, message.strategyStateId, message.acceptanceId, executions, ZonedDateTime.parse(message.timestamp))
+                  SQS.deleteOrder(awsMessage)
                 } else {
                   // close
-                  RecordRepository.update(message.email, message.acceptanceId, message.entryId.get, executions, ZonedDateTime.parse(message.timestamp))
+                  val count = RecordRepository.update(message.email, message.acceptanceId, message.entryId.get, executions, ZonedDateTime.parse(message.timestamp))
+                  if (count > 0) {
+                    SQS.deleteOrder(awsMessage)
+                  }
                 }
-                SQS.deleteOrder(awsMessage)
               })
             } catch {
               case e:Exception => e.printStackTrace()
