@@ -1,44 +1,33 @@
 package domain.strategy.turtle
 
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 import domain.Side.{Sell, Buy}
-import domain.margin.Margin
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.{Indices, Momentum, Box}
-import domain.{Side, models}
-import domain.strategy.{Strategies, Strategy}
+import domain.strategy.core.Momentum
+import domain.models
+import domain.strategy.{Strategies, Strategy, StrategyState}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
 
-class TurtleMomentumStrategy(user: User) extends Strategy {
+class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }
 
   val core = new TurtleCore
-  override def email: String = user.email
-  override def key: String = user.api_key
-  override def secret: String = user.api_secret
 
-  var leverage = Margin.defaultLeverage
-  var orderSize: Double = Margin.defaultSizeUnit * leverage
-
-  def entry(o: Ordering): Option[Ordering] = {
-    position = Some(o)
-    updateSizeUnit()
+  override def entry(side: String): Option[Ordering] = {
     entryTime = Some(DateUtil.now())
-    position
+    super.entry(side)
   }
-  def close(): Unit = {
-    position = None
+  override def close(): Option[Ordering] = {
     losLimit = None
     entryTime = None
+    super.close()
   }
 
-  var position: Option[Ordering] = None
   var entryTime: Option[ZonedDateTime] = None
   val stopRange:Option[Double] = None
   var losLimit:Option[Double] = None
@@ -49,7 +38,6 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
     val momentum5min = Strategies.coreData.momentum5min
     val momentumValueOption = momentum5min.latest
     val ltp = ticker.ltp
-    val now = DateUtil.now()
 
     val result = if (!isAvailable || data.candles.size < 22 || momentumValueOption.isEmpty) {
       None
@@ -57,29 +45,25 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
       val box10 = data.box10.get
       val box20 = data.box20.get
       val momentum = new TurtleMomentumValue(momentumValueOption.get, momentum5min)
-      if (position.isEmpty) {
+      if (state.order.isEmpty) {
         val m5 = momentum5min.values.takeRight(1).values.headOption
-//        println(m5)
         if (box20.high < ltp && momentum.isAvailableBuyEntry && m5.exists(_ > 0)) {
           losLimit = stopRange.map(ltp - _)
-          entry(Ordering(Buy, orderSize, true))
+          entry(Buy)
         } else if (ltp < box20.low && momentum.isAvailableSellEntry && m5.exists(_ < 0)) {
           losLimit = stopRange.map(ltp + _)
-          entry(Ordering(Sell, orderSize, true))
+          entry(Sell)
         } else {
           None
         }
       } else  {
-        if (position.get.side == Sell) {
+        if (state.order.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (box10.high < ltp && momentum.isAvailableToBuyClose) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
           } else if (box20.high < ltp) {
             close()
-            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize), false))
 //          } else if (entryTime.exists(now.minusMinutes(10).isBefore(_)) && isFake(Sell)) {
 //            close()
 //            Some(Ordering(Buy, position.map(_.size).getOrElse(orderSize)))
@@ -92,13 +76,10 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
         } else { // BUY
           if (losLimit.exists(ltp < _)) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (ltp < box10.low && momentum.isAvailableToSellClose) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
           } else if (ltp < box20.low) {
             close()
-            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize), false))
 //          } else if (entryTime.exists(now.minusMinutes(10).isBefore(_)) && isFake(Buy)) {
 //            close()
 //            Some(Ordering(Sell, position.map(_.size).getOrElse(orderSize)))
@@ -115,7 +96,7 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
   }
 
   def isFake(side: String): Boolean = {
-    val bars = Strategies.coreData.candles10min.values.takeRight(2).map(_._2)
+    val bars = Strategies.coreData.candles10min.values.takeRight(2).values
     if (bars.size != 2) {
       return false
     }
@@ -128,25 +109,15 @@ class TurtleMomentumStrategy(user: User) extends Strategy {
     }
   }
 
-  private def updateSizeUnit(): Unit = {
-    val newSize = Margin.sizeUnit * leverage
-    if (orderSize < newSize) {
-      println(s"orderSize($orderSize) -> newSize($newSize)")
-      orderSize = newSize
-    }
-  }
-
 
   override def processEvery1minutes(): Unit = {
     core.refresh()
   }
 
   override def init(): Unit = {
-    position = None
+    super.init()
     losLimit = None
     core.init()
-    leverage = Margin.leverage
-    orderSize = Margin.sizeUnit * leverage
   }
 }
 

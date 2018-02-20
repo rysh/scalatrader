@@ -1,17 +1,20 @@
-package application
+package service
 
-import com.google.inject.{Singleton, AbstractModule}
-import domain.strategy.turtle.TurtleStrategy
+import application._
+import com.google.inject.AbstractModule
+import play.api.Logger
 import play.api.libs.concurrent.AkkaGuiceSupport
 
 class Module extends AbstractModule with AkkaGuiceSupport {
 
   override def configure() = {
-    println("Module.configure")
+    Logger.info("Module.configure")
     domain.isBackTesting = false
 
     bindActor[CandleActor]("candle")
     bindActor[PositionSizeAdjustmentActor]("positionAdjustment")
+
+    bind(classOf[StrategySettingApplication]).asEagerSingleton()
 
     if (domain.isBackTesting) {
       bind(classOf[BackTestApplication]).asEagerSingleton()
@@ -20,6 +23,8 @@ class Module extends AbstractModule with AkkaGuiceSupport {
       bind(classOf[RealTimeReceiver]).asEagerSingleton()
       bind(classOf[ScheduledTasks]).asEagerSingleton()
       bind(classOf[InitializeService]).asEagerSingleton()
+      bind(classOf[ExecutionMonitorService]).asEagerSingleton()
+      bind(classOf[StrategyStateService]).asEagerSingleton()
     }
   }
 }

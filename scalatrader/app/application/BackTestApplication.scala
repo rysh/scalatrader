@@ -14,51 +14,40 @@ import domain.models
 import domain.models.{Ticker, Orders}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
-import domain.strategy.Strategies
-import domain.strategy.turtle.{PriceReverseStrategy, TurtleMomentumStrategy, TurtleStrategy}
-import domain.strategy.momentum.{MomentumStrategy, MomentumReverseStrategy}
+import domain.strategy.{StrategyState, Strategies, StrategyFactory}
 import domain.time.{DateUtil, MockedTime}
-import domain.time.DateUtil.format
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import repository.UserRepository
 import repository.model.scalatrader.User
+import service.DataLoader
 
 
 @Singleton
 class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSystem,
                                     @Named("candle") candleActor: ActorRef
                                    ) {
-  println("init BackTestApplication")
+  Logger.info("init BackTestApplication")
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     if (!domain.isBackTesting) return
-    println("BackTestApplication run")
-    println("BackTestResults.init")
+    Logger.info("BackTestApplication run")
     BackTestResults.init()
-    println("Strategies.init")
     Strategies.init()
-    println("Margin.init")
     Margin.resetSize()
-    println("all init done")
+    Logger.info("all init done")
 
     MockedTime.now = start
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
     users.filter(user => !Strategies.values.exists(_.email == user.email))
-//      .map(user => new TurtleStrategy(user))
-//      .map(user => new TurtleMomentumStrategy(user))
-//      .map(user => new MomentumStrategy(user))
-      .map(user => new MomentumReverseStrategy(user))
-      .foreach(st => {
-      Strategies.register(st)
-      st.availability.manualOn = true
-    })
+      .map(user => StrategyFactory.create(StrategyState(0L, StrategyFactory.MixedBoxesStrategy, true, 1.5), user))
+      .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)
-    println("initial data loading...")
+    Logger.info("initial data loading...")
     loadInitialData(s3)
-    println("load data done")
+    Logger.info("load data done")
 
     val gson: Gson = new Gson()
     while(MockedTime.now.isBefore(end)) {
@@ -73,9 +62,15 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
               BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
             })) {
-              strategy.judgeByTicker(ticker).map(Orders.market).foreach((order: models.Order) => {
+              (try {
+                strategy.judgeByTicker(ticker)
+              } catch {
+                case e:Exception =>
+                  e.printStackTrace()
+                  None
+              }).map(Orders.market).foreach((order: models.Order) => {
                 WaitingOrder.request(strategy.email, time, order)
-                println(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
+                //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
               })
             }
           })
@@ -90,7 +85,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1,t._2))
       Strategies.coreData.hv30min.values.takeRight(1).foreach(t => BackTestResults.hv.put(t._1,t._2))
       Strategies.processEvery1minutes()
-      //println(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
+      //Logger.info(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
       //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
@@ -99,12 +94,13 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         if (!WaitingOrder.isWaiting(strategy.email, now)) {
           strategy.judgeEveryMinutes(key).map(Orders.market).foreach((order: models.Order) => {
             WaitingOrder.request(strategy.email, now, order)
-            println(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
+            //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
           })
         }
       })
     }
-    BackTestResults.report()
+    //BackTestResults.report()
+    Logger.info("complete")
   }
 
   private def loadInitialData(s3: S3): Unit = {
@@ -115,6 +111,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       Strategies.values.foreach(_.putTicker(ticker))
     })
     Strategies.processEvery1minutes()
-    Strategies.values.foreach(st => st.availability.initialDataLoaded = true)
+    DataLoader.loaded = true
   }
 }

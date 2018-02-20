@@ -22,5 +22,5 @@ class Bar(arg: Long) {
     this
   }
 
-  override def toString = s"Bar($key, high:$high, low:$low, opwn:$open, close:$close)"
+  override def toString = s"Bar($key, high:$high, low:$low, open:$open, close:$close)"
 }

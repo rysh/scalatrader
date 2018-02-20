@@ -1,5 +1,7 @@
 package repository.model.scalatrader
 
+import adapter.BitFlyer.MyExecution
+
 case class User(id:Long,
                 email:String,
                 password:String,
@@ -7,14 +9,14 @@ case class User(id:Long,
                 api_key:String,
                 api_secret:String)
 
-case class CurrentOrder(
+case class TradingRecord(
   id:Long,
   email:String,
-  child_order_acceptance_id:String,
-  side: String,
-  size: Double,
+  entry_id:String,
+  entry_execution: Option[MyExecution],
+  entry_timestamp: String,
+  close_id: Option[String],
+  close_execution: Option[MyExecution],
+  close_timestamp: Option[String],
   timestamp:String
-) {
-  import domain.Side._
-  def reverseSide: String = if (Buy == side) Sell else Buy
-}
+)

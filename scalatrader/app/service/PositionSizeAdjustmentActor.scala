@@ -1,7 +1,8 @@
-package application
+package service
 
 import adapter.BitFlyer
 import akka.actor.Actor
+import application.retry
 import com.google.inject.Inject
 import domain.margin.Margin
 import domain.strategy.Strategies
@@ -14,7 +15,7 @@ class PositionSizeAdjustmentActor @Inject()(config: Configuration) extends Actor
 
   def receive: PartialFunction[Any, Unit] = {
     case "" => updateMargin()
-    case _ => println()
+    case _ => println
   }
 
   def updateMargin(): Unit = {
@@ -28,7 +29,7 @@ class PositionSizeAdjustmentActor @Inject()(config: Configuration) extends Actor
         val oldSieUnit = Margin.sizeUnit
         Margin.sizeUnit = new Margin(col.collateral - col.open_position_pnl, pos, latest.price).sizeOf1x
         if (oldSieUnit != Margin.sizeUnit) {
-          println(s"sizeUnit updating: $oldSieUnit -> ${Margin.sizeUnit}")
+          Logger.info(s"sizeUnit updating: $oldSieUnit -> ${Margin.sizeUnit}")
         }
       } catch {
         case e: Exception =>

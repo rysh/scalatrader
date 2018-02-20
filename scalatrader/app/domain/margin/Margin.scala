@@ -65,5 +65,5 @@ object Margin {
   val defaultLeverage = 1.5
   var sizeUnit: Double = defaultSizeUnit
   var leverage: Double = defaultLeverage
-  def size: Double = (sizeUnit * leverage * 100).ceil / 100
+  def size(leverage: Double): Double = (sizeUnit * leverage * 100).ceil / 100
 }

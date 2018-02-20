@@ -1,33 +1,22 @@
 package domain.strategy.turtle
 
-import domain.margin.Margin
 import domain.models.{Ticker, Ordering}
 import domain.{Side, models}
-import domain.strategy.{Strategies, Strategy}
+import domain.Side._
+import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
 
-class TurtleStrategy(user: User) extends Strategy {
+class TurtleStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
   }
 
   val core = new TurtleCore
-  override def email = user.email
-  override def key = user.api_key
-  override def secret = user.api_secret
 
-  var leverage = Margin.defaultLeverage
-  var orderSize: Double = Margin.defaultSizeUnit * leverage
-  var position: Option[Ordering] = None
-  def entry(o: Ordering): Option[Ordering] = {
-    position = Some(o)
-    updateSizeUnit
-    position
-  }
-  def close(): Unit = {
-    position = None
+  override def close(): Option[Ordering] = {
     losLimit = None
+    super.close()
   }
 
   val stopRange:Option[Double] = Some(3000)
@@ -42,23 +31,21 @@ class TurtleStrategy(user: User) extends Strategy {
     } else {
       val box10 = data.box10.get
       val box20 = data.box20.get
-      if (position.isEmpty) {
+      if (state.order.isEmpty) {
         if (box20.high < ltp) {
           losLimit = None
-          entry(Ordering(Side.Buy, orderSize, true))
+          entry(Buy)
         } else if (ltp < box20.low) {
           losLimit = None
-          entry(Ordering(Side.Sell, orderSize, true))
+          entry(Sell)
         } else {
           None
         }
-      } else if (position.get.side == Side.Sell) {
+      } else if (state.order.get.side == Side.Sell) {
         if (losLimit.exists(_ < ltp)) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (box10.high < ltp) {
           close
-          Some(Ordering(Side.Buy, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box20.low) {
           losLimit = stopRange.map(ltp + _)
           None
@@ -68,10 +55,8 @@ class TurtleStrategy(user: User) extends Strategy {
       } else { // BUY
         if (losLimit.exists(ltp < _)) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (ltp < box10.low) {
           close
-          Some(Ordering(Side.Sell, position.map(_.size).getOrElse(orderSize), false))
         } else if (box20.high < ltp) {
           losLimit = stopRange.map(ltp - _)
           None
@@ -83,24 +68,14 @@ class TurtleStrategy(user: User) extends Strategy {
     result
   }
 
-  private def updateSizeUnit = {
-    val newSize = Margin.sizeUnit * leverage
-    if (orderSize < newSize) {
-      println(s"orderSize($orderSize) -> newSize($newSize)")
-      orderSize = newSize
-    }
-  }
-
 
   override def processEvery1minutes(): Unit = {
     core.refresh()
   }
 
   override def init(): Unit = {
-    position = None
+    super.init()
     losLimit = None
     core.init()
-    leverage = Margin.defaultLeverage
-    orderSize = Margin.defaultSizeUnit * leverage
   }
 }

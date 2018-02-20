@@ -1,19 +1,13 @@
 package controllers
 
-import java.time.format.DateTimeFormatter.ofPattern
-import java.time.{ZonedDateTime, LocalDateTime, ZoneId}
+import java.time.{ZonedDateTime}
 import java.util
 import javax.inject._
 
 import application.BackTestApplication
-import application.settings.UserApplication
 import com.google.gson.Gson
 import domain.backtest.BackTestResults
-import domain.models.Ticker
-import domain.strategy.Strategies
 import domain.time.DateUtil
-import domain.user.Settings
-import io.circe.{Encoder, Decoder}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
@@ -101,7 +95,11 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     start = DateUtil.of(props.start)
     end = DateUtil.of(props.end)
     Future {
-      app.run(start, end)
+      try {
+        app.run(start, end)
+      } catch {
+        case e:Exception => e.printStackTrace()
+      }
     } (scala.concurrent.ExecutionContext.Implicits.global)
     val gson:Gson = new Gson()
     Ok(Json.parse(gson.toJsonTree(props).toString)).withHeaders("Access-Control-Allow-Credentials" -> "true")

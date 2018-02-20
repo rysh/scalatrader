@@ -22,8 +22,8 @@ class Box(key: Long, duration: Long) {
       low = bar.low
       lowTime = DateUtil.parseKey(bar.key)
     }
-    if (bar.key < key) open = bar.open
-    if (key < bar.key) close = bar.close
+    if (bar.key <= key) open = bar.open
+    if (key <= bar.key) close = bar.close
     this
   }
 
@@ -67,7 +67,7 @@ class Box(key: Long, duration: Long) {
   def isUp: Boolean = highTime.isAfter(lowTime) && open < close
   def isDown: Boolean = lowTime.isAfter(highTime) && open > close
 
-  override def toString = s"Box(high=$high, low=$low, open=$open, close=$close)"
+  override def toString = s"Box(high=$high, low=$low, open=$open, close=$close, highTime=$highTime, lowTime=$lowTime)"
 }
 
 object Box {

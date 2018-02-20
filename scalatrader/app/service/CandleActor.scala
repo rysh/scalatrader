@@ -1,4 +1,4 @@
-package application
+package service
 
 import akka.actor.Actor
 import com.google.inject.Inject
