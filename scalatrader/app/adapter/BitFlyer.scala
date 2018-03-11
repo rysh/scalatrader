@@ -11,7 +11,6 @@ import skinny.http.{HTTP, Request, Response}
 
 object BitFlyer {
 
-
   def getLatestExecution(): Execution = {
     val body = HTTP.get(BASE + EXECUTIONS, "product_code" -> ProductCode.btcFx, "count" -> 1).textBody
 
@@ -66,7 +65,6 @@ object BitFlyer {
     request.readTimeoutMillis(90 * 1000)
     addSign(request, path, "POST", api_key, api_secret, Some(orderJson))
 
-
     import io.circe.parser._
     decode[OrderResponse](HTTP.post(request).textBody) match {
       case Right(ex) => ex
@@ -74,7 +72,6 @@ object BitFlyer {
     }
     //SES.send(MailContent("rysh.cact@gmail.com","info@scalatrader.com", "デモ約定通知", order.toString, order.toString))
   }
-
 
   private def addSign(request: Request, path: String, method: String, api_key: String, api_secret: String, body: Option[String]): Unit = {
     val header = request.headers
@@ -87,7 +84,7 @@ object BitFlyer {
     body.map(_ => header.put("Content-Type", "application/json"))
   }
 
-  def getMyExecution(id:String, api_key: String, api_secret: String): Seq[MyExecution] = {
+  def getMyExecution(id: String, api_key: String, api_secret: String): Seq[MyExecution] = {
     val path = ME_EXECUTIONS + s"?product_code=FX_BTC_JPY&child_order_acceptance_id=$id"
     val request = Request(BASE + path)
     addSign(request, path, "GET", api_key, api_secret, None)
@@ -116,14 +113,14 @@ object BitFlyer {
     }
   }
   case class MyExecution(
-    id: Long,
-    side: String,
-    price: Double,
-    size: Double,
-    exec_date: String,
-    child_order_id: String,
-    commission: Long,
-    child_order_acceptance_id: String
+      id: Long,
+      side: String,
+      price: Double,
+      size: Double,
+      exec_date: String,
+      child_order_id: String,
+      commission: Long,
+      child_order_acceptance_id: String
   )
   case class OrderResponse(child_order_acceptance_id: String)
 }

@@ -9,13 +9,12 @@ import domain.strategy.Strategies
 import play.api.{Configuration, Logger}
 import repository.UserRepository
 
-
 class PositionSizeAdjustmentActor @Inject()(config: Configuration) extends Actor {
   val secret: String = config.get[String]("play.http.secret.key")
 
   def receive: PartialFunction[Any, Unit] = {
     case "" => updateMargin()
-    case _ => println
+    case _  => println
   }
 
   def updateMargin(): Unit = {

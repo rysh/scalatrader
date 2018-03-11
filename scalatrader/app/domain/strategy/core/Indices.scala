@@ -1,10 +1,8 @@
 package domain.strategy.core
 
-
 import domain.strategy.Strategies
 
 object Indices {
-
 
   def isUpTrend: Option[Boolean] = {
     import Strategies._

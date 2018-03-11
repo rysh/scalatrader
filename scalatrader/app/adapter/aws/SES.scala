@@ -10,11 +10,12 @@ object SES {
   def send(content: MailContent): Unit = {
     val request = new SendEmailRequest()
       .withDestination(new Destination().withToAddresses(content.to))
-      .withMessage(new Message()
-        .withBody(new Body()
-          .withHtml(new Content().withCharset("UTF-8").withData(content.htmlBody))
-          .withText(new Content().withCharset("UTF-8").withData(content.textBody)))
-        .withSubject(new Content().withCharset("UTF-8").withData(content.subject)))
+      .withMessage(
+        new Message()
+          .withBody(new Body()
+            .withHtml(new Content().withCharset("UTF-8").withData(content.htmlBody))
+            .withText(new Content().withCharset("UTF-8").withData(content.textBody)))
+          .withSubject(new Content().withCharset("UTF-8").withData(content.subject)))
       .withSource(content.from)
       .withConfigurationSetName("CONFIG")
     client.sendEmail(request)

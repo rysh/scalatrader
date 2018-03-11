@@ -10,7 +10,6 @@ import domain.strategy.{Strategies, Strategy, StrategyState}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
-
 class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
@@ -29,8 +28,8 @@ class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st,
   }
 
   var entryTime: Option[ZonedDateTime] = None
-  val stopRange:Option[Double] = None
-  var losLimit:Option[Double] = None
+  val stopRange: Option[Double] = None
+  var losLimit: Option[Double] = None
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
@@ -56,7 +55,7 @@ class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st,
         } else {
           None
         }
-      } else  {
+      } else {
         if (state.order.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
@@ -109,7 +108,6 @@ class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st,
     }
   }
 
-
   override def processEvery1minutes(): Unit = {
     core.refresh()
   }
@@ -121,7 +119,7 @@ class TurtleMomentumStrategy(st: StrategyState, user: User) extends Strategy(st,
   }
 }
 
-class TurtleMomentumValue(t:(Long,Double), data: Momentum) {
+class TurtleMomentumValue(t: (Long, Double), data: Momentum) {
   val key: Long = t._1
   val value: Double = t._2
 
@@ -130,5 +128,6 @@ class TurtleMomentumValue(t:(Long,Double), data: Momentum) {
   def isAvailableToBuyClose: Boolean = value > data.box1h.buyCloseSign
   def isAvailableToSellClose: Boolean = value < data.box1h.sellCloseSign
 
-  override def toString = s"TurtleMomentumValue(key=$key, value=$value, isAvailableBuyEntry=$isAvailableBuyEntry, isAvailableSellEntry=$isAvailableSellEntry, isAvailableToBuyClose=$isAvailableToBuyClose, isAvailableToSellClose=$isAvailableToSellClose)"
+  override def toString =
+    s"TurtleMomentumValue(key=$key, value=$value, isAvailableBuyEntry=$isAvailableBuyEntry, isAvailableSellEntry=$isAvailableSellEntry, isAvailableToBuyClose=$isAvailableToBuyClose, isAvailableToSellClose=$isAvailableToSellClose)"
 }

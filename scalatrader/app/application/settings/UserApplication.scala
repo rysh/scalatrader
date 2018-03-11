@@ -8,7 +8,7 @@ import scalikejdbc._
 object UserApplication {
 // see http://scalikejdbc.org/
 
-  def register(email:String, password: String) = {
+  def register(email: String, password: String) = {
     implicit val session = AutoSession
     sql"insert into user (email, password) values (${email}, ${Md5.hex(password)})".execute.apply()
   }
@@ -25,19 +25,18 @@ object UserApplication {
   def getSettings(email: String, secret: String): Option[Settings] = {
     implicit val session = AutoSession
     sql"select name, api_key, api_secret from user where email = ${email}"
-      .map(rs => Settings(rs.string("name"),
-        Aes.decode(rs.string("api_key"), secret),
-        Aes.decode(rs.string("api_secret"), secret)))
-      .single.apply()
+      .map(rs => Settings(rs.string("name"), Aes.decode(rs.string("api_key"), secret), Aes.decode(rs.string("api_secret"), secret)))
+      .single
+      .apply()
   }
 
-  def exists(email:String, password: String): Boolean = {
+  def exists(email: String, password: String): Boolean = {
     implicit val session = AutoSession
     val hoge = sql"select email from user where email = ${email} and password = ${Md5.hex(password)}".map(rs => rs.string("email")).single().apply()
     hoge.isDefined
   }
 
-  def delete(email:String, password: String): Unit = {
+  def delete(email: String, password: String): Unit = {
     implicit val session = AutoSession
     sql"delete from user where email = ${email} and password = ${Md5.hex(password)}".execute.apply()
   }

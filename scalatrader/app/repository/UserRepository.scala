@@ -28,14 +28,16 @@ object UserRepository {
     }
   }
 
-  private def map = {
-    secret:String => (rs: WrappedResultSet) => {
-      User(rs.long("id"),
+  private def map = { secret: String => (rs: WrappedResultSet) =>
+    {
+      User(
+        rs.long("id"),
         rs.string("email"),
         rs.string("password"),
         rs.string("name"),
         Aes.decode(rs.string("api_key"), secret),
-        Aes.decode(rs.string("api_secret"), secret))
+        Aes.decode(rs.string("api_secret"), secret)
+      )
     }
   }
 }

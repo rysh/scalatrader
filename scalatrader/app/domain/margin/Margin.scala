@@ -3,10 +3,10 @@ package domain.margin
 import domain.models.{Position, Positions}
 
 class Margin(
-  /** 預入証拠金 */
-  depositMargin: Double,
-  positions:Positions,
-  ltp: Double) {
+             /** 預入証拠金 */
+             depositMargin: Double,
+             positions: Positions,
+             ltp: Double) {
 
   /** 建玉評価損益 */
   def marketValuationGain(): Long = {
@@ -22,7 +22,7 @@ class Margin(
   }
 
   /** 評価証拠金 */
-  def evaluationMargin:Long = {
+  def evaluationMargin: Long = {
     depositMargin.toLong + marketValuationGain
   }
 

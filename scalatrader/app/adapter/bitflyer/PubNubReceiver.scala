@@ -19,7 +19,7 @@ object PubNubReceiver {
 
   }
 
-  private def configure(key: String) :PNConfiguration = {
+  private def configure(key: String): PNConfiguration = {
     val pnConfiguration = new PNConfiguration
     pnConfiguration.setSubscribeKey(key)
     pnConfiguration

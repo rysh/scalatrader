@@ -6,7 +6,7 @@ class Md5Test extends FunSuite {
 
   test("testHex") {
     val hoge = Md5.hex("hoge")
-      println(hoge)
+    println(hoge)
   }
 
 }

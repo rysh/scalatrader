@@ -1,6 +1,5 @@
 package adapter.aws
 
-
 import java.util.stream.Collectors
 
 import com.amazonaws.regions.Regions

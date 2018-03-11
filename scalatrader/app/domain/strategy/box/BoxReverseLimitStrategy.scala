@@ -8,7 +8,6 @@ import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
-
 class BoxReverseLimitStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   var limit: Option[Double] = None
@@ -37,7 +36,7 @@ class BoxReverseLimitStrategy(st: StrategyState, user: User) extends Strategy(st
         } else {
           None
         }
-      } else  {
+      } else {
         if (entryTime.map(_.plusMinutes(30)).exists(_.isBefore(DateUtil.now()))) {
           close()
         } else if (state.order.get.side == Buy) {

@@ -42,8 +42,8 @@ class Momentum(candles: mutable.LinkedHashMap[Long, Bar], candleDuration: Int, m
     ret
   }
 
-  def latest: Option[(Long,Double)] = values.lastOption
-  def oneFromLast: Option[(Long,Double)] = values.takeRight(2).headOption
+  def latest: Option[(Long, Double)] = values.lastOption
+  def oneFromLast: Option[(Long, Double)] = values.takeRight(2).headOption
 
   def clear(): Unit = {
     values.clear()
@@ -60,7 +60,7 @@ class MomentumBox(momentum: Seq[Double]) {
     if (newValue < low) low = newValue
   }
 
-  def limit(value: Double, limit: Double) = if (value.abs > limit) value else limit * (if(value > 0) 1 else -1)
+  def limit(value: Double, limit: Double) = if (value.abs > limit) value else limit * (if (value > 0) 1 else -1)
 
   def buyEntrySign: Double = limit(high, 10000) * 0
   def sellEntrySign: Double = limit(low, 10000) * 0

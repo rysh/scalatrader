@@ -13,11 +13,10 @@ import scala.collection.mutable
 
 class TurtleCore {
 
-
-  var unit1min:TurtleData = new1min
-  var unit5min:TurtleData = new5min
-  var unit10sec:TurtleData = new10sec
-  var unit30sec:TurtleData = new30sec
+  var unit1min: TurtleData = new1min
+  var unit5min: TurtleData = new5min
+  var unit10sec: TurtleData = new10sec
+  var unit30sec: TurtleData = new30sec
 
   def init(): Unit = {
     unit1min = new1min
@@ -25,7 +24,6 @@ class TurtleCore {
     unit10sec = new10sec
     unit30sec = new30sec
   }
-
 
   private def new1min =
     TurtleData(new mutable.HashMap[Long, Bar](), None, None, 1, ChronoUnit.MINUTES, now => DateUtil.keyOf(now))
@@ -39,7 +37,6 @@ class TurtleCore {
   private def new30sec =
     TurtleData(new mutable.HashMap[Long, Bar](), None, None, 30, ChronoUnit.SECONDS, now => DateUtil.keyOf(now, 30))
 
-
   def put(ticker: models.Ticker): Option[Box] = {
     putTicker(ticker)
   }
@@ -52,10 +49,9 @@ class TurtleCore {
     unit30sec.put(ticker, now)
   }
 
-  def refresh(): Unit = {
-  }
+  def refresh(): Unit = {}
 }
-case class TurtleData(candles:mutable.HashMap[Long, Bar], var box10: Option[Box], var box20: Option[Box],term: Long, unit: TemporalUnit, keyGen:ZonedDateTime => Long) {
+case class TurtleData(candles: mutable.HashMap[Long, Bar], var box10: Option[Box], var box20: Option[Box], term: Long, unit: TemporalUnit, keyGen: ZonedDateTime => Long) {
   def put(ticker: Ticker, now: ZonedDateTime) = {
     val key = keyGen(now)
     candles.get(keyGen(now)) match {

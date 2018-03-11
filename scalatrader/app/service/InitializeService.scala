@@ -14,15 +14,19 @@ class InitializeService @Inject()(config: Configuration)(implicit executionConte
   val secret: String = config.get[String]("play.http.secret.key")
 
   def restoreStrategies(): Unit = {
-    UserRepository.all(secret).foreach(user => {
-      StrategyRepository.list(user).foreach((state: StrategyState) => {
-        Strategies.register(StrategyFactory.create(state, user))
+    UserRepository
+      .all(secret)
+      .foreach(user => {
+        StrategyRepository
+          .list(user)
+          .foreach((state: StrategyState) => {
+            Strategies.register(StrategyFactory.create(state, user))
+          })
       })
-    })
   }
 
   Future {
     Thread.sleep(10 * 1000)
     restoreStrategies()
-  } (scala.concurrent.ExecutionContext.Implicits.global)
+  }(scala.concurrent.ExecutionContext.Implicits.global)
 }

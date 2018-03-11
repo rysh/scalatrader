@@ -4,7 +4,6 @@ import org.apache.commons.codec.binary.Hex
 
 object HmacSHA256 {
 
-
   import javax.crypto.Mac
   import javax.crypto.spec.SecretKeySpec
 

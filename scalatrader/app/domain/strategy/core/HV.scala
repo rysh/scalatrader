@@ -24,9 +24,13 @@ class HV(candles: mutable.LinkedHashMap[Long, Bar], term: Int) {
   def calc(key: Long): Option[Double] = {
     val now = DateUtil.parseKey(key)
     val start = DateUtil.keyOf(now.minusMinutes(term + 1), 60)
-    val days: Seq[Double] = candles.filter(p => {
-      start < p._1 && p._1 <= key
-    }).values.map(_.close).toSeq
+    val days: Seq[Double] = candles
+      .filter(p => {
+        start < p._1 && p._1 <= key
+      })
+      .values
+      .map(_.close)
+      .toSeq
     if (days.isEmpty) {
       None
     } else {

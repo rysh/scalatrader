@@ -16,7 +16,7 @@ class RegularObservation @Inject()(config: Configuration) {
     try {
       summary(secret)
     } catch {
-      case e:Exception => {
+      case e: Exception => {
         Logger.error("error in RegularObservation.summary", e)
       }
     }
@@ -24,7 +24,8 @@ class RegularObservation @Inject()(config: Configuration) {
 
   def summary(secret: String): Unit = {
     val latest: Execution = BitFlyer.getLatestExecution()
-    UserRepository.everyoneWithApiKey(secret)
+    UserRepository
+      .everyoneWithApiKey(secret)
       .foreach(user => {
         try {
           val col: Collateral = BitFlyer.getCollateral(user.api_key, user.api_secret)
@@ -52,12 +53,12 @@ class RegularObservation @Inject()(config: Configuration) {
     val subject = s"FX_BTC_JP ${DateUtil.jpDisplayTime} 定時観測"
     val html = htmlBody(latestPrice, delta, openPositionPnl, keepRate, lossCutLine)
     val text = textBody(latestPrice, delta, openPositionPnl, keepRate, lossCutLine)
-    
+
     val from = "info@scalatrader.com"
     MailContent(to, from, subject, html, text)
   }
 
-  def textBody(latestPrice:Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
+  def textBody(latestPrice: Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
     s"""
       |最終取引価格   ${"%,9d".format(latestPrice)}
       |デルタ         ${"%1$.2f".format(delta)}
@@ -67,7 +68,7 @@ class RegularObservation @Inject()(config: Configuration) {
      """.stripMargin
   }
 
-  def htmlBody(latestPrice:Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
+  def htmlBody(latestPrice: Int, delta: Double, openPositionPnl: Int, keepRate: Int, lossCutLine: Option[Long]) = {
     s"""<!DOCTYPE html>
         <html>
         <head>

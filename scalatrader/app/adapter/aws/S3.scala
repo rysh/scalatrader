@@ -21,16 +21,15 @@ class S3(region: Regions) {
     JavaConverters.asScalaIterator(reader.lines().iterator())
   }
 
-
   val s3: AmazonS3 = AmazonS3ClientBuilder.standard().withRegion(region).build()
 
   def listBuckets(): Iterable[Bucket] = {
     JavaConverters.collectionAsScalaIterable(s3.listBuckets())
   }
 
-  def getBucket(name : String) : Option[Bucket] = {
+  def getBucket(name: String): Option[Bucket] = {
     listBuckets()
       .filter(b => b.getName() == name)
-      .collectFirst({case x : Bucket => x})
+      .collectFirst({ case x: Bucket => x })
   }
 }

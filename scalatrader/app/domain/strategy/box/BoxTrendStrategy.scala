@@ -9,7 +9,6 @@ import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
-
 class BoxTrendStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   var entryTime: Option[ZonedDateTime] = None
@@ -34,11 +33,11 @@ class BoxTrendStrategy(st: StrategyState, user: User) extends Strategy(st, user)
         if (box10min.isUp && box20min.isUp && box1h.isUp && isUpdatingHigh) {
           entry(Buy)
         } else if (box10min.isDown && box20min.isDown && box1h.isDown && isUpdatingLow) {
-            entry(Sell)
+          entry(Sell)
         } else {
           None
         }
-      } else  {
+      } else {
         if (state.order.get.side == Buy) {
           if (!isUpdatingHigh || box20min.low + 500 > ticker.ltp) {
             close()

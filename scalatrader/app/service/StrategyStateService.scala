@@ -11,7 +11,7 @@ import repository.model.scalatrader.User
 
 class StrategyStateService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
 
-  def reverseOrder(user: User, state: StrategyState):Unit = {
+  def reverseOrder(user: User, state: StrategyState): Unit = {
     val side = domain.reverseSide(state.order.get.side)
     val size = state.order.get.size
     if (!domain.isBackTesting) {

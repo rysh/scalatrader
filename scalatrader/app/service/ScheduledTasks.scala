@@ -18,9 +18,9 @@ class ScheduledTasks @Inject()(actorSystem: ActorSystem,
 
   if (!domain.isBackTesting) {
     schedule(1.minutes)(candleActor ! "1min")
-    schedule(2.hours)(regularObservation summary())
+    schedule(2.hours)(regularObservation summary ())
     schedule(24.hours)(positionAdjustment ! "")
-    schedule(10.seconds)(executionMonitorService run())
+    schedule(10.seconds)(executionMonitorService run ())
 
     // initial update
     positionAdjustment ! ""

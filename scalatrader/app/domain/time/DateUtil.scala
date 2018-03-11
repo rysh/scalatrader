@@ -31,12 +31,12 @@ object DateUtil {
       val minutes = if (duration >= 60) {
         temp / 100 % (duration / 60)
       } else 0
-      temp - minutes * 100 -  temp % 100
+      temp - minutes * 100 - temp % 100
     } else {
-      temp -  temp % 100 % duration
+      temp - temp % 100 % duration
     }
   }
-  def parseKey(key: Long): ZonedDateTime ={
+  def parseKey(key: Long): ZonedDateTime = {
     val local = LocalDateTime.parse(key.toString, ofPattern("yyyyMMddHHmmss"))
     ZonedDateTime.ofInstant(local.atOffset(ZoneOffset.ofHours(0)).toInstant, zoneUtc)
   }

@@ -14,21 +14,21 @@ class SettingsController @Inject()(cc: ControllerComponents, configuration: play
   def settings() = withAuth { email => implicit request: Request[AnyContent] =>
     try {
       val settings = UserApplication.getSettings(email, configuration.underlying.getString("play.http.secret.key"))
-      Ok(views.html.settings(settings.getOrElse(Settings("","",""))))
+      Ok(views.html.settings(settings.getOrElse(Settings("", "", ""))))
     } catch {
-      case e: Exception => BadRequest(views.html.settings(Settings("","","")))
+      case e: Exception => BadRequest(views.html.settings(Settings("", "", "")))
     }
   }
 
   val form = Form(
     mapping(
-      "name" -> text ,
-      "key" -> nonEmptyText ,
+      "name" -> text,
+      "key" -> nonEmptyText,
       "secret" -> nonEmptyText
     )(Settings.apply)(Settings.unapply)
   )
 
-  def update() = withAuth { email =>implicit request: Request[AnyContent] =>
+  def update() = withAuth { email => implicit request: Request[AnyContent] =>
     val settings: Settings = form.bindFromRequest().get
     UserApplication.update(email, settings, configuration.underlying.getString("play.http.secret.key"))
     Ok(views.html.settings(settings))

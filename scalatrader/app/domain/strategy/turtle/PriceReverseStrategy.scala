@@ -6,7 +6,6 @@ import domain.{Side, models}
 import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
-
 class PriceReverseStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   val core = new TurtleCore
@@ -22,10 +21,10 @@ class PriceReverseStrategy(st: StrategyState, user: User) extends Strategy(st, u
     super.close()
   }
 
-  val limitRange:Option[Double] = Some(3000)
-  var limitLine:Option[Double] = None
-  val stopRange:Option[Double] = Some(500)
-  var stopLine:Option[Double] = None
+  val limitRange: Option[Double] = Some(3000)
+  var limitLine: Option[Double] = None
+  val stopRange: Option[Double] = Some(500)
+  var stopLine: Option[Double] = None
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
     val data = core.unit10sec

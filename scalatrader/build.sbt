@@ -11,14 +11,14 @@ scalaVersion := "2.12.3"
 
 libraryDependencies += guice
 libraryDependencies ++= Seq(
-  "mysql"           %  "mysql-connector-java"         % "5.1.34",
-  "org.scalikejdbc" %% "scalikejdbc"                  % "3.1.0",
-  "org.scalikejdbc" %% "scalikejdbc-config"           % "3.1.0",
-  "org.scalikejdbc" %% "scalikejdbc-test"             % "3.1.0"   % "test",
+  "mysql" % "mysql-connector-java" % "5.1.34",
+  "org.scalikejdbc" %% "scalikejdbc" % "3.1.0",
+  "org.scalikejdbc" %% "scalikejdbc-config" % "3.1.0",
+  "org.scalikejdbc" %% "scalikejdbc-test" % "3.1.0" % "test",
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % "2.6.0-scalikejdbc-3.1",
   "org.skinny-framework" %% "skinny-http-client" % "2.3.7",
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "ch.qos.logback" %  "logback-classic"   % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.scalaz" % "scalaz_2.12" % "7.3.0-M14",
   "com.amazonaws" % "aws-java-sdk" % "1.11.158",
   "com.pubnub" % "pubnub-gson" % "4.6.5",

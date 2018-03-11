@@ -18,7 +18,7 @@ class RealTimeReceiverTest extends FunSuite {
     }
   }
 
-  def retry(times: Int, func: () => Unit ): Unit = {
+  def retry(times: Int, func: () => Unit): Unit = {
     var i = 0
     while (i < times) {
       i += 1

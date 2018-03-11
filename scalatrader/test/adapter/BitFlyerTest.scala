@@ -12,7 +12,6 @@ class BitFlyerTest extends FunSuite {
     executions.reverse.foreach(e => {
       val price = (e.price * e.size * (if (e.side == domain.Side.Sell) -1 else 1)).toLong
 
-
       println(s"[${e.side}] ${e.exec_date} price ${e.price} size ${e.size}")
     })
   }

@@ -8,7 +8,6 @@ import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
-
 class MixedBoxesStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   var limit: Option[Double] = None
@@ -37,15 +36,15 @@ class MixedBoxesStrategy(st: StrategyState, user: User) extends Strategy(st, use
         lazy val anObviousUpwardTrend = momentum.exists(_ > 10000)
 
         if (isAsc(start, box20min.lowTime, end)
-          && !anObviousDownwardTrend && !tooLargeVolatility) {
+            && !anObviousDownwardTrend && !tooLargeVolatility) {
           limit = Some((box1h.high + ticker.ltp) / 2 + 1000)
           stop = Some(box20min.low)
           entry(Buy)
         } else if (isAsc(start, box20min.highTime, end)
-          && !anObviousUpwardTrend && !tooLargeVolatility) {
-            limit = Some((box1h.low + ticker.ltp) / 2 - 1000)
-            stop = Some(box20min.high)
-            entry(Sell)
+                   && !anObviousUpwardTrend && !tooLargeVolatility) {
+          limit = Some((box1h.low + ticker.ltp) / 2 - 1000)
+          stop = Some(box20min.high)
+          entry(Sell)
         } else {
           None
         }

@@ -1,5 +1,3 @@
 package application
 
-object SuddenChangeDetection {
-
-}
+object SuddenChangeDetection {}

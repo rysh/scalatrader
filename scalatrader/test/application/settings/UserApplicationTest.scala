@@ -7,8 +7,8 @@ class UserApplicationTest extends FunSuite {
 
   ignore("testRegister") {
     ConnectionPool.singleton("jdbc:mysql://localhost:6603/scalatrader", "root", "password")
-    UserApplication.register("fuga","fuga")
-    UserApplication.delete("fuga","fuga")
+    UserApplication.register("fuga", "fuga")
+    UserApplication.delete("fuga", "fuga")
   }
 
   ignore("testExistsUser") {

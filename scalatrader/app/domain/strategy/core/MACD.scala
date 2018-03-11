@@ -2,7 +2,7 @@ package domain.strategy.core
 
 import scala.collection.mutable
 
-class MACD(longRange:Int, shortRange:Int, candleBar: mutable.LinkedHashMap[Long, Bar]) {
+class MACD(longRange: Int, shortRange: Int, candleBar: mutable.LinkedHashMap[Long, Bar]) {
 
   def take(n: Int): Iterable[Double] = candleBar.values.takeRight(n).map(_.close)
   def last: Double = candleBar.values.last.close
@@ -22,12 +22,12 @@ class MACD(longRange:Int, shortRange:Int, candleBar: mutable.LinkedHashMap[Long,
     }
   }
 
-  private def newEma(oldEma:Option[Double], n:Int): Option[Double] = {
+  private def newEma(oldEma: Option[Double], n: Int): Option[Double] = {
     val a = alpha(n)
     oldEma.map(old => old * (1 - a) + last * a).orElse(Some(initialEma(n)))
   }
 
-  private def initialEma(n:Int): Double = (take(n).sum + last) / (n + 1)
+  private def initialEma(n: Int): Double = (take(n).sum + last) / (n + 1)
 
   def buySignal: Boolean = {
     val res = for {

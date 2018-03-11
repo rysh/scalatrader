@@ -16,7 +16,7 @@ class CandleBar(duration: Int) {
     values.clear()
   }
 
-  def put(now:ZonedDateTime, ticker:Ticker, func: Long => Unit) = {
+  def put(now: ZonedDateTime, ticker: Ticker, func: Long => Unit) = {
 
     val key10Sec = DateUtil.keyOf(now, duration)
     values.get(key10Sec) match {
@@ -28,7 +28,7 @@ class CandleBar(duration: Int) {
     }
   }
 
-  def cleanCandle(now:ZonedDateTime, before: Int): Unit = {
+  def cleanCandle(now: ZonedDateTime, before: Int): Unit = {
     val refKey = DateUtil.keyOf(now.minus(before, ChronoUnit.MINUTES), 10)
     values.keys.filter(key => key < refKey).foreach(key => values.remove(key))
   }

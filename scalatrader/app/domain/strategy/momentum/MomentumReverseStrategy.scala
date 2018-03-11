@@ -5,7 +5,6 @@ import domain.models.{Ticker, Ordering}
 import domain.strategy.{Strategies, Strategy, StrategyState}
 import repository.model.scalatrader.User
 
-
 class MomentumReverseStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
@@ -29,7 +28,7 @@ class MomentumReverseStrategy(st: StrategyState, user: User) extends Strategy(st
         } else {
           None
         }
-      } else  {
+      } else {
         if (state.order.get.side == Sell) {
           if (one < two && two > three) {
             close()

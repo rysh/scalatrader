@@ -8,7 +8,6 @@ import domain.strategy.{Strategies, Strategy, StrategyState}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
 
-
 class MomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   override def entry(side: String): Option[Ordering] = {
@@ -22,8 +21,8 @@ class MomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user)
   }
 
   var entryTime: Option[ZonedDateTime] = None
-  val stopRange:Option[Double] = None
-  var losLimit:Option[Double] = None
+  val stopRange: Option[Double] = None
+  var losLimit: Option[Double] = None
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
@@ -48,7 +47,7 @@ class MomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user)
         } else {
           None
         }
-      } else  {
+      } else {
         if (state.order.get.side == Sell) {
           if (losLimit.exists(_ < ltp)) {
             close()
@@ -81,10 +80,7 @@ class MomentumStrategy(st: StrategyState, user: User) extends Strategy(st, user)
     result
   }
 
-
-  override def processEvery1minutes(): Unit = {
-
-  }
+  override def processEvery1minutes(): Unit = {}
 
   override def init(): Unit = {
     super.init()

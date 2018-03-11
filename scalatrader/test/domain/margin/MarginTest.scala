@@ -5,10 +5,7 @@ import org.scalatest.FunSuite
 
 class MarginTest extends FunSuite {
 
-  def pos(
-     side: String,
-     price: Double,
-     size: Double): Position = {
+  def pos(side: String, price: Double, size: Double): Position = {
     Position("FX_BTC_JPY", side, price, size, 0, 0, 0, null, 15, 0)
   }
 
@@ -35,7 +32,6 @@ class MarginTest extends FunSuite {
     val margin = new Margin(depositMargin, positions, ltp)
     assert(margin.evaluationMargin === 198000)
   }
-
 
   test("testMarginMaintenanceRate") {
     val depositMargin = 200000

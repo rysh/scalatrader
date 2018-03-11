@@ -5,7 +5,6 @@ import domain.models.{Ticker, Ordering}
 import domain.strategy.{StrategyState, Strategy}
 import repository.model.scalatrader.User
 
-
 class OnceForTestStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   var done = false
@@ -19,7 +18,7 @@ class OnceForTestStrategy(st: StrategyState, user: User) extends Strategy(st, us
       } else {
         None
       }
-    } else  {
+    } else {
       close()
     }
   }

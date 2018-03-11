@@ -30,10 +30,12 @@ object StrategyRepository {
             ex
           case Left(err) => throw err
         }
-      }).list().apply()
+      })
+      .list()
+      .apply()
   }
 
-  def get(user: User, id:Long): Option[StrategyState] = {
+  def get(user: User, id: Long): Option[StrategyState] = {
     implicit val session = AutoSession
     sql"select id, state from trading_rule_state where user_id = ${user.id} and id =$id"
       .map((rs: WrappedResultSet) => {
@@ -45,7 +47,9 @@ object StrategyRepository {
             ex
           case Left(err) => throw err
         }
-      }).single().apply()
+      })
+      .single()
+      .apply()
   }
 
   def update(user: User, state: StrategyState): Unit = {
@@ -57,7 +61,7 @@ object StrategyRepository {
     sql"update trading_rule_state set state = $json where user_id = ${user.id} and id = ${state.id}".update.apply()
   }
 
-  def delete(user:User, id: Long): Int = {
+  def delete(user: User, id: Long): Int = {
     implicit val session = AutoSession
     sql"delete from trading_rule_state where user_id = ${user.id} and id = ${id}".update.apply()
   }

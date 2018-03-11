@@ -6,7 +6,7 @@ import com.amazonaws.services.sns.{AmazonSNSClientBuilder, AmazonSNS}
 
 object SNS {
 
-  def send(email:String, message: String) = {
+  def send(email: String, message: String) = {
 
     val snsClient: AmazonSNS = AmazonSNSClientBuilder.standard().withRegion(Regions.US_EAST_2).build()
 

@@ -30,26 +30,27 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     val gson: Gson = new Gson()
 
     val productCode = s"lightning_ticker_${ProductCode.btcFx}"
-    val key =  "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
+    val key = "sub-c-52a9ab50-291b-11e5-baaa-0619f8945a4f"
     val callback = new SubscribeCallback() {
       override def message(pubnub: PubNub, message: PNMessageResult): Unit = {
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
-        Strategies.values.filter(_.isAvailable)foreach(strategy => {
+        Strategies.values.filter(_.isAvailable) foreach (strategy => {
           strategy.synchronized {
             (try {
               strategy.judgeByTicker(ticker)
             } catch {
-              case e:Exception =>
+              case e: Exception =>
                 e.printStackTrace()
                 None
             }).foreach(ordering => {
               val now = DateUtil.now().toString
               val order: models.Order = Orders.market(ordering)
-              Logger.info(s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+              Logger.info(
+                s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               (try {
                 Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
               } catch {
-                case _:Exception =>
+                case _: Exception =>
                   // request error case
                   strategy.state.orderId = None
                   strategy.state.order = None
@@ -86,11 +87,10 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
       }
     }
 
-
-    PubNubReceiver.start(productCode,key, callback)
+    PubNubReceiver.start(productCode, key, callback)
     Logger.info("PubNubReceiver started")
     def loadInitialData() = {
-      Future{
+      Future {
         val initialData: Seq[Ticker] = DataLoader.loadFromS3()
 //        val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
         initialData.foreach(ticker => {
@@ -99,7 +99,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         })
         Strategies.processEvery1minutes()
         DataLoader.loaded = true
-      } (scala.concurrent.ExecutionContext.Implicits.global)
+      }(scala.concurrent.ExecutionContext.Implicits.global)
     }
     loadInitialData()
   }
@@ -115,7 +115,6 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
     if (!domain.isBackTesting) {
       start
     }
-  } (scala.concurrent.ExecutionContext.Implicits.global)
+  }(scala.concurrent.ExecutionContext.Implicits.global)
 
 }
-

@@ -13,6 +13,5 @@ import org.scalatest.FunSuite
 
 class BackTestRunnerTest extends FunSuite {
 
-  test("testStart") {
-  }
+  test("testStart") {}
 }

@@ -6,7 +6,6 @@ import domain.Side._
 import domain.strategy.{Strategy, StrategyState}
 import repository.model.scalatrader.User
 
-
 class TurtleStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
   override def putTicker(ticker: models.Ticker): Unit = {
     core.put(ticker)
@@ -19,8 +18,8 @@ class TurtleStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
     super.close()
   }
 
-  val stopRange:Option[Double] = Some(3000)
-  var losLimit:Option[Double] = None
+  val stopRange: Option[Double] = Some(3000)
+  var losLimit: Option[Double] = None
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
     val data = core.unit10sec
@@ -67,7 +66,6 @@ class TurtleStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
     }
     result
   }
-
 
   override def processEvery1minutes(): Unit = {
     core.refresh()

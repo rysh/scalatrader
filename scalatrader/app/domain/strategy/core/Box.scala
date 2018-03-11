@@ -51,13 +51,13 @@ class Box(key: Long, duration: Long) {
     this
   }
 
-  def put(bars: Seq[Bar]): Box ={
+  def put(bars: Seq[Bar]): Box = {
     bars.foreach(put)
     this
   }
 
   def copy(): Box = {
-    new Box(this.key,this.duration).put(this)
+    new Box(this.key, this.duration).put(this)
   }
 
   def isUpdatingHigh(now: ZonedDateTime, time: Int): Boolean = highTime.plusSeconds(time).isAfter(now)

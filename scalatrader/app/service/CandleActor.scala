@@ -8,6 +8,6 @@ class CandleActor @Inject()() extends Actor {
 
   def receive: PartialFunction[Any, Unit] = {
     case "1min" => Strategies.processEvery1minutes()
-    case _ => println
+    case _      => println
   }
 }
