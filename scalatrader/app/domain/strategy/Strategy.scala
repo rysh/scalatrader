@@ -6,9 +6,9 @@ import domain.models.{Ticker, Ordering}
 import repository.model.scalatrader.User
 import service.DataLoader
 
-abstract class Strategy(
-  var state: StrategyState,
-  user: User) {
+import scala.concurrent.Future
+
+abstract class Strategy(var state: StrategyState, user: User) {
 
   val email: String = user.email
   val key: String = user.api_key
@@ -21,16 +21,17 @@ abstract class Strategy(
   def judgeByTicker(ticker: Ticker): Option[Ordering] = None
   def judgeEveryMinutes(key: Long): Option[Ordering] = None
 
+  var future: Future[Unit] = Future.unit
 
   // maintenance
-  def init():Unit = {
+  def init(): Unit = {
     state.order = None
   }
   def putTicker(ticker: models.Ticker): Unit = {}
-  def processEvery1minutes():Unit = ()
+  def processEvery1minutes(): Unit = ()
 
   // operation
-  private val entry: Boolean  = true
+  private val entry: Boolean = true
   def entry(size: String): Option[Ordering] = {
     state.order = Some(Ordering(size, Margin.size(state.leverage), entry))
     state.order
@@ -47,13 +48,12 @@ abstract class Strategy(
 
 }
 
-
 case class StrategyState(
-  var id: Long,
-  name: String,
-  availability: Boolean,
-  leverage: Double,
-  var orderId: Option[String] = None,
-  var order: Option[Ordering] = None,
-  params: Map[String, String] = Map.empty,
+    var id: Long,
+    name: String,
+    availability: Boolean,
+    leverage: Double,
+    var orderId: Option[String] = None,
+    var order: Option[Ordering] = None,
+    params: Map[String, String] = Map.empty,
 )
