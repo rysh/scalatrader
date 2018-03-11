@@ -28,7 +28,7 @@ object SQS {
       receiveMessageRequest.setMaxNumberOfMessages(10)
       JavaConverters.collectionAsScalaIterable(sqs.receiveMessage(receiveMessageRequest).getMessages)
     }
-    var result:List[Message] = List.empty
+    var result: List[Message] = List.empty
     var messages = fetch()
     while (messages.nonEmpty) {
       result = result ++: messages.toList
@@ -47,4 +47,4 @@ object SQS {
   }
 }
 
-case class OrderQueueBody(email: String, strategyStateId: Long, acceptanceId: String, timestamp: String , entryId: Option[String] = None)
+case class OrderQueueBody(email: String, strategyStateId: Long, acceptanceId: String, timestamp: String, entryId: Option[String] = None)

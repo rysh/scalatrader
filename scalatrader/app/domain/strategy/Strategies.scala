@@ -18,6 +18,10 @@ object Strategies {
     values.foreach(_.putTicker(ticker))
   }
 
+  def putBtcTicker(ticker: models.Ticker): Unit = {
+    coreData.putBtcTicker(ticker)
+  }
+
   def processEvery1minutes(): Unit = {
     values.foreach(_.processEvery1minutes())
     coreData.processEvery1minutes()
@@ -33,7 +37,8 @@ object Strategies {
   }
 
   def remove(user: User, id: Long): Unit = {
-    values.toSeq.filter(st => st.state.id == id && st.email == user.email)
+    values.toSeq
+      .filter(st => st.state.id == id && st.email == user.email)
       .foreach(strategy => values.remove(values.indexOf(strategy)))
   }
 

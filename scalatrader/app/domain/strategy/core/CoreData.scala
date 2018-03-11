@@ -1,11 +1,9 @@
 package domain.strategy.core
 
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 import domain.models
 
-import scala.collection.mutable
 import domain.time.DateUtil
 
 class CoreData {
@@ -22,13 +20,15 @@ class CoreData {
   var box20min: Option[Box] = None
   var box1h: Option[Box] = None
 
+  var btcCurrent: Option[models.Ticker] = None
+
   val momentum10 = new Momentum(candles10sec.values, 10)
   val momentum20 = new Momentum(candles20sec.values, 20)
   val momentum1min = new Momentum(candles1min.values, 60)
   val momentum5min = new Momentum(candles5min.values, 5 * 60)
 
-  val macd1m = new MACD(26,12, candles1min.values)
-  val macd5m = new MACD(26,12, candles5min.values)
+  val macd1m = new MACD(26, 12, candles1min.values)
+  val macd5m = new MACD(26, 12, candles5min.values)
 
   val hv30min = new HV(candles1min.values, 30)
 
@@ -51,14 +51,18 @@ class CoreData {
   def putTicker(ticker: models.Ticker): Unit = {
     val now = ZonedDateTime.parse(ticker.timestamp)
 
-    candles1min.put(now, ticker, _ => {
-      val key = DateUtil.keyOf(now.minusMinutes(1), 60)
-      momentum1min.update(key)
-      val clearKey = DateUtil.keyOf(now.minusHours(dataKeepTime * 2))
-      momentum1min.clean(clearKey)
-      hv30min.update(key)
-      hv30min.clean(clearKey)
-    })
+    candles1min.put(
+      now,
+      ticker,
+      _ => {
+        val key = DateUtil.keyOf(now.minusMinutes(1), 60)
+        momentum1min.update(key)
+        val clearKey = DateUtil.keyOf(now.minusHours(dataKeepTime * 2))
+        momentum1min.clean(clearKey)
+        hv30min.update(key)
+        hv30min.clean(clearKey)
+      }
+    )
     candles10min.put(now, ticker, _ => {})
 
     candles5min.put(now, ticker, _ => {
@@ -83,6 +87,9 @@ class CoreData {
     box1h.foreach(_.put(ticker))
   }
 
+  def putBtcTicker(ticker: models.Ticker): Unit = {
+    btcCurrent = Some(ticker)
+  }
 
   def processEvery1minutes(): Unit = {
     val now = DateUtil.now()

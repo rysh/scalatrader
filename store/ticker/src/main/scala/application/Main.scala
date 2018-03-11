@@ -16,6 +16,7 @@ object Main extends App {
   }
 
   exec("btcfx-ticker-scala", "lightning_ticker_FX_BTC_JPY", region, key)
+  exec("btc-ticker-scala", "lightning_ticker_BTC_JPY", region, key)
   exec("btcfx-executions-scala", "lightning_executions_FX_BTC_JPY", region, key)
 
 }

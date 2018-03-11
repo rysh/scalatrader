@@ -21,6 +21,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
     } else {
       bind(classOf[RegularObservation]).asEagerSingleton()
       bind(classOf[RealTimeReceiver]).asEagerSingleton()
+      bind(classOf[BtcTickerReceiver]).asEagerSingleton()
       bind(classOf[ScheduledTasks]).asEagerSingleton()
       bind(classOf[InitializeService]).asEagerSingleton()
       bind(classOf[ExecutionMonitorService]).asEagerSingleton()
