@@ -1,5 +1,6 @@
 package service
 
+import adapter.aws.SQS
 import application._
 import com.google.inject.AbstractModule
 import play.api.Logger
@@ -14,6 +15,7 @@ class Module extends AbstractModule with AkkaGuiceSupport {
     bindActor[CandleActor]("candle")
     bindActor[PositionSizeAdjustmentActor]("positionAdjustment")
 
+    bind(classOf[SQS]).asEagerSingleton()
     bind(classOf[StrategySettingApplication]).asEagerSingleton()
 
     if (domain.isBackTesting) {

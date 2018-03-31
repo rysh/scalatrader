@@ -17,13 +17,12 @@ import domain.models.{Ticker, Orders}
 import domain.strategy.{Strategies, Strategy}
 import domain.time.DateUtil
 import play.api.{Configuration, Logger}
-import repository.UserRepository
 import service.DataLoader
 
 import scala.concurrent.Future
 
 @Singleton
-class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef, strategySettingApplication: StrategySettingApplication) {
+class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleActor: ActorRef, strategySettingApplication: StrategySettingApplication, sqs: SQS) {
   Logger.info("init RealTimeReceiver")
 
   def start(): Unit = {
@@ -62,11 +61,11 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               }).foreach(response => {
                 val newState = if (ordering.isEntry) {
                   // entry case
-                  SQS.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now))
+                  sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now))
                   strategy.state.copy(orderId = Some(response.child_order_acceptance_id), order = Some(ordering))
                 } else {
                   // close case
-                  SQS.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now, strategy.state.orderId))
+                  sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now, strategy.state.orderId))
                   strategy.state.copy(orderId = None, order = None)
                 }
                 strategySettingApplication.updateOrder(strategy.email, newState)

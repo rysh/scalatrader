@@ -30,7 +30,7 @@ class AuthController @Inject()(cc: ControllerComponents) extends AbstractControl
     form
       .bindFromRequest()(request)
       .fold(
-        formWithErrors => BadRequest(views.html.login()),
+        _ => BadRequest(views.html.login()),
         loginData => {
           if (UserApplication.exists(loginData.email, loginData.password)) {
             Redirect(routes.DashBoardController.main()).withSession("session.email" -> loginData.email)

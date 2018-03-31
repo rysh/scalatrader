@@ -8,18 +8,18 @@ import adapter.aws.{OrderQueueBody, SQS}
 import play.api.{Configuration, Logger}
 import repository.{RecordRepository, UserRepository}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
-class ExecutionMonitorService @Inject()(config: Configuration)(implicit executionContext: ExecutionContext) {
+class ExecutionMonitorService @Inject()(config: Configuration, sqs: SQS)(implicit executionContext: ExecutionContext) {
   Logger.info("ExecutionMonitorService load")
 
   val secret: String = config.get[String]("play.http.secret.key")
 
   def run(): Unit = {
-    SQS
+    sqs
       .list()
       .foreach(awsMessage => {
-        val message: OrderQueueBody = SQS.map(awsMessage)
+        val message: OrderQueueBody = sqs.map(awsMessage)
         UserRepository
           .get(message.email, secret)
           .foreach(user => {
@@ -32,12 +32,12 @@ class ExecutionMonitorService @Inject()(config: Configuration)(implicit executio
                     if (message.entryId.isEmpty) {
                       // entry
                       RecordRepository.insert(message.email, message.strategyStateId, message.acceptanceId, executions, ZonedDateTime.parse(message.timestamp))
-                      SQS.deleteOrder(awsMessage)
+                      sqs.deleteOrder(awsMessage)
                     } else {
                       // close
                       val count = RecordRepository.update(message.email, message.acceptanceId, message.entryId.get, executions, ZonedDateTime.parse(message.timestamp))
                       if (count > 0) {
-                        SQS.deleteOrder(awsMessage)
+                        sqs.deleteOrder(awsMessage)
                       }
                     }
                   }
