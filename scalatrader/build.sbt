@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-config" % "3.1.0",
   "org.scalikejdbc" %% "scalikejdbc-test" % "3.1.0" % "test",
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % "2.6.0-scalikejdbc-3.1",
+  "mysql"           %  "mysql-connector-java"            % "5.1.33",
   "org.skinny-framework" %% "skinny-http-client" % "2.3.7",
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
   "ch.qos.logback" % "logback-classic" % "1.2.3",
@@ -44,3 +45,5 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 maintainer in Docker := "Ryuhei Ishibashi <rysh.cact@gmail.com>"
 
 dockerExposedPorts in Docker := Seq(9000, 9443)
+
+enablePlugins(ScalikejdbcPlugin)
