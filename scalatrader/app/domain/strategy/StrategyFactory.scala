@@ -1,6 +1,6 @@
 package domain.strategy
 
-import domain.strategy.box.{BoxTrendStrategy, BoxReverseLimitStrategy, MixedBoxesStrategy, BoxTrendWithoutSFDStrategy}
+import domain.strategy.box._
 import domain.strategy.momentum.MomentumReverseStrategy
 import domain.strategy.other.OnceForTestStrategy
 import domain.strategy.sfd.SfdStrategy
@@ -18,7 +18,11 @@ object StrategyFactory {
     MixedBoxesStrategy -> MixedBoxesStrategy,
     BoxTrendStrategy -> BoxTrendStrategy,
     "SFD" -> "SFD",
-    "BoxTrendWithoutSFDStrategy" -> "BoxTrendWithoutSFDStrategy",
+    "BoxTrendSFD" -> "BoxTrendWithoutSFDStrategy",
+    "UpTrend" -> "UpTrendStrategy",
+    "UpTrendSFD" -> "UpTrendSFDStrategy",
+    "DownTrend" -> "DownTrendStrategy",
+    "DownTrendSFD" -> "DownTrendSFDStrategy",
     "Turtle" -> "Turtle"
   )
 
@@ -31,6 +35,10 @@ object StrategyFactory {
       case "BoxTrendStrategy"           => new BoxTrendStrategy(state, user)
       case "SFD"                        => new SfdStrategy(state, user)
       case "BoxTrendWithoutSFDStrategy" => new BoxTrendWithoutSFDStrategy(state, user)
+      case "UpTrendStrategy"            => new UpTrendStrategy(state, user)
+      case "UpTrendSFDStrategy"         => new UpTrendSFDStrategy(state, user)
+      case "DownTrendStrategy"          => new DownTrendStrategy(state, user)
+      case "DownTrendSFDStrategy"       => new DownTrendSFDStrategy(state, user)
       case "Once"                       => new OnceForTestStrategy(state, user)
       case _                            => throw new Exception()
     }
