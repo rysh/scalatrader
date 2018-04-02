@@ -10,17 +10,17 @@ class PerformanceViewApplicationTest extends FunSuite {
   scalikejdbc.config.DBs.setupAll
   val target = new PerformanceViewApplication(new Configuration(ConfigFactory.load()))
 
-  test("test") {
+  ignore("test") {
     target.hoge()
   }
 
-  ignore("amount of money") {
+  test("amount of money") {
 
     val a = Seq(execution(100, 1, Buy), execution(200, 1, Buy))
     assert(target.amountOfMoney(a) === 300)
   }
 
-  ignore("margin gain") {
+  test("margin gain") {
 
     def doTest(entryPrice: Int, entrySide: String, closePrice: Int, closeSide: String, expected: Int) = {
       val entry = Seq(execution(entryPrice, 1, entrySide))
@@ -42,13 +42,13 @@ class PerformanceViewApplicationTest extends FunSuite {
     assert(target.marginGain(c, d) === -100)
   }
 
-  ignore("amount of price") {
+  test("amount of price") {
 
     val a = Seq(execution(100, 1, Buy), execution(200, 1, Buy))
     assert(target.amountOfPrice(a) === 150)
   }
 
-  ignore("margin price gain") {
+  test("margin price gain") {
     val a = Seq(execution(100, 0.5, Buy), execution(200, 0.5, Buy))
     val b = Seq(execution(200, 1, Sell))
     assert(target.marginPriceGain(b, a) === 50)
