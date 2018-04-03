@@ -47,7 +47,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
               Logger.info(
                 s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
               (try {
-                Some(retry(10, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
+                Some(retry(if (ordering.isEntry) 5 else 20, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
               } catch {
                 case _: Exception =>
                   // request error case

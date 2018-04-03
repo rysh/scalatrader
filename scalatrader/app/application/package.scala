@@ -3,6 +3,8 @@ package object application {
   def retry[T](times: Int, func: () => T): T = {
     var i = 0
     var ret: Option[T] = None
+    var waitTime = 0
+    var delta = 5000
     while (i < times) {
       i += 1
       try {
@@ -12,7 +14,8 @@ package object application {
         case e: Exception => if (i == times) throw e
       }
       if (i < times) {
-        Thread.sleep(2000)
+        waitTime = waitTime + delta
+        Thread.sleep(waitTime)
       }
     }
     ret.get
