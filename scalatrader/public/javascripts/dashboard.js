@@ -1,6 +1,21 @@
 
 
 window.onload = function () {
+    var nodes = document.querySelectorAll('input.availability:checked');
+    Array.from(nodes,  function (e) {
+        var checkbox = e.parentNode.parentNode;
+        var parent = checkbox.previousElementSibling.previousElementSibling;
+        var strategyId = parent.querySelector('input').value;
+        //api
+        summary(strategyId, function(json) {
+            var str = "{total: " + json.total
+                + ", average: " + json.average
+                + ", maxDD: " + json.maxDD
+                + ", count: " + json.count + "}";
+            e.parentNode.parentNode.parentNode.appendChild(document.createTextNode(str));
+        });
+    })
+
 };
 
 function add() {
@@ -49,6 +64,24 @@ function deleteStrategy(id) {
         if (response.status === 200) {
             console.log(response.statusText); // => "OK"
             location.reload();
+        } else {
+            console.log(response.statusText); // => Error Message
+        }
+    }).catch(function (response) {
+        console.log(response); // => "TypeError: ~"
+    });
+}
+
+function summary(id, func) {
+    var r = jsRoutes.controllers.DashBoardController.summary();
+    fetch(r.url + "?strategyId=" + id, {
+        method: r.type,
+        credentials: 'include'
+    }).then(function (response) {
+        if (response.status === 200) {
+            response.json().then(function (json) {
+                func(json);
+            });
         } else {
             console.log(response.statusText); // => Error Message
         }

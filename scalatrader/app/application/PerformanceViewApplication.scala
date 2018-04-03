@@ -15,7 +15,10 @@ import repository.model.scalatrader.{User, TradingRecord2}
 
 @Singleton
 class PerformanceViewApplication @Inject()(config: Configuration) {
+
   val secret = config.get[String]("play.http.secret.key")
+
+  case class PerformanceSummary(total: Long, average: Long, maxDD: Long, count: Long)
 
   def amountOfMoney(executions: Seq[MyExecution]): BigDecimal = {
     executions
@@ -47,6 +50,16 @@ class PerformanceViewApplication @Inject()(config: Configuration) {
   }
 
   private case class Result(user: User, strategy: StrategyState, results: List[BigDecimal])
+
+  def summary(email: String, strategyId: Long, from: ZonedDateTime): Option[PerformanceSummary] = {
+    val result: Seq[BigDecimal] = RecordRepository.findAll(email, strategyId, from).map(r => marginPriceGain(r.entryExecution, r.closeExecution))
+    if (result.nonEmpty) {
+      val sum = result.sum
+      Some(PerformanceSummary(sum.toLong, (sum / result.size).setScale(0, scala.math.BigDecimal.RoundingMode.HALF_UP).toLong, result.min.toLong, result.size))
+    } else {
+      None
+    }
+  }
 
   def hoge(): Unit = {
     //TODO 期間指定
