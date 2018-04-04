@@ -45,7 +45,7 @@ class PerformanceViewApplication @Inject()(config: Configuration) {
 
   def marginPriceGain(entry: Seq[MyExecution], close: Seq[MyExecution]): BigDecimal = {
     if (entry.nonEmpty && close.nonEmpty) {
-      (amountOfMoney(close) + amountOfMoney(entry)) * -1
+      (amountOfPrice(close) + amountOfPrice(entry)) * -1
     } else 0
   }
 
