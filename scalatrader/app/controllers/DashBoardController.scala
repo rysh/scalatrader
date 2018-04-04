@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 import javax.inject._
 import application.{StrategySettingApplication, PerformanceViewApplication}
 import com.google.gson.Gson
+import domain.Side._
 import domain.strategy.Strategies
 import play.api.mvc._
 import play.api.data.Form
@@ -49,6 +50,11 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
       "days" -> longNumber
     )(SummaryRequest.apply)(SummaryRequest.unapply))
 
+  val positionRequest: Form[PositionRequest] = Form(
+    mapping(
+      "strategyId" -> longNumber,
+    )(PositionRequest.apply)(PositionRequest.unapply))
+
   def main(): EssentialAction = withAuth { email => implicit request: Request[AnyContent] =>
     val isAvailable = Strategies.values.filter(_.email == email).exists(_.isAvailable)
     val status = if (isAvailable) "running" else "stopped"
@@ -84,9 +90,25 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
       .getOrElse("{}")
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
+  def position(): EssentialAction = withAuth { email => implicit request: Request[AnyContent] =>
+    val params = positionRequest.bindFromRequest().get
+    val size: PositionResponse = PositionResponse(
+      Strategies.values
+        .filter(_.email == email)
+        .filter(_.state.id == params.strategyId)
+        .flatMap(_.state.order.map(o => o.size * (if (o.side == Sell) -1 else 1)))
+        .headOption
+        .getOrElse(0))
+
+    val gson: Gson = new Gson()
+
+    Ok(Json.parse(gson.toJsonTree(size).toString)).withHeaders("Access-Control-Allow-Credentials" -> "true")
+  }
 }
 case class SystemSettings(strategies: Seq[StrategySettings])
 case class SummaryRequest(strategyId: Long, days: Long)
+case class PositionRequest(strategyId: Long)
+case class PositionResponse(size: Double)
 case class StrategySettings(
     id: Long,
     name: String,

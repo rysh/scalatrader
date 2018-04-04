@@ -9,6 +9,7 @@
     routes.javascript.DashBoardController.add,
     routes.javascript.DashBoardController.delete,
     routes.javascript.DashBoardController.summary,
+    routes.javascript.DashBoardController.position,
   )
   <style>
   dl {
@@ -36,6 +37,7 @@
   <p>Trading is <span>@status</span></p>
   <input type="text" id="days" value="7">
   <button onclick="performance()">perfermance</button>
+  <button onclick="position()">position</button>
 
   <form id="newStrategy">
     <input name="id" type="hidden" value="0">
@@ -57,6 +59,7 @@
         <span style="float:left">leverage:</span>@helper.inputText(settings("leverage"), (Symbol("class"), "leverage"))
         <button onclick="deleteStrategy('@settings("id").value');return false">delete</button>
         <div class="performance"></div>
+        <div class="position"></div>
         <div style="clear:both;"></div>
       </div>
     }

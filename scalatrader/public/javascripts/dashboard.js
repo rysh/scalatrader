@@ -94,3 +94,36 @@ function performance() {
         });
     })
 }
+
+function position() {
+
+    var nodes = document.querySelectorAll('input.availability:checked');
+    Array.from(nodes,  function (e) {
+        var checkbox = e.parentNode.parentNode;
+        var parent = checkbox.previousElementSibling.previousElementSibling;
+        var strategyId = parent.querySelector('input').value;
+        //api
+        getPosition(strategyId, function(json) {
+            var str = "{position: " + json.size + "}";
+            e.parentNode.parentNode.parentNode.querySelector('.position').innerHTML = str;
+        });
+    })
+}
+
+function getPosition(id, func) {
+    var r = jsRoutes.controllers.DashBoardController.position();
+    fetch(r.url + "?strategyId=" + id, {
+        method: r.type,
+        credentials: 'include'
+    }).then(function (response) {
+        if (response.status === 200) {
+            response.json().then(function (json) {
+                func(json);
+            });
+        } else {
+            console.log(response.statusText); // => Error Message
+        }
+    }).catch(function (response) {
+        console.log(response); // => "TypeError: ~"
+    });
+}
