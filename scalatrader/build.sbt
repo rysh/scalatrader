@@ -46,4 +46,4 @@ maintainer in Docker := "Ryuhei Ishibashi <rysh.cact@gmail.com>"
 
 dockerExposedPorts in Docker := Seq(9000, 9443)
 
-enablePlugins(ScalikejdbcPlugin)
+// enablePlugins(ScalikejdbcPlugin)
