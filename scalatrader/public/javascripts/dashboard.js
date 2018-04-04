@@ -1,21 +1,7 @@
 
 
 window.onload = function () {
-    var nodes = document.querySelectorAll('input.availability:checked');
-    Array.from(nodes,  function (e) {
-        var checkbox = e.parentNode.parentNode;
-        var parent = checkbox.previousElementSibling.previousElementSibling;
-        var strategyId = parent.querySelector('input').value;
-        //api
-        summary(strategyId, function(json) {
-            var str = "{total: " + json.total
-                + ", average: " + json.average
-                + ", maxDD: " + json.maxDD
-                + ", count: " + json.count + "}";
-            e.parentNode.parentNode.parentNode.appendChild(document.createTextNode(str));
-        });
-    })
-
+    performance()
 };
 
 function add() {
@@ -72,9 +58,9 @@ function deleteStrategy(id) {
     });
 }
 
-function summary(id, func) {
+function summary(id, days, func) {
     var r = jsRoutes.controllers.DashBoardController.summary();
-    fetch(r.url + "?strategyId=" + id, {
+    fetch(r.url + "?strategyId=" + id + "&days=" + days, {
         method: r.type,
         credentials: 'include'
     }).then(function (response) {
@@ -88,4 +74,23 @@ function summary(id, func) {
     }).catch(function (response) {
         console.log(response); // => "TypeError: ~"
     });
+}
+
+function performance() {
+    var days = document.getElementById('days').value
+
+    var nodes = document.querySelectorAll('input.availability:checked');
+    Array.from(nodes,  function (e) {
+        var checkbox = e.parentNode.parentNode;
+        var parent = checkbox.previousElementSibling.previousElementSibling;
+        var strategyId = parent.querySelector('input').value;
+        //api
+        summary(strategyId, days, function(json) {
+            var str = "{total: " + json.total
+                + ", average: " + json.average
+                + ", maxDD: " + json.maxDD
+                + ", count: " + json.count + "}";
+            e.parentNode.parentNode.parentNode.querySelector('.performance').innerHTML = str;
+        });
+    })
 }

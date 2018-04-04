@@ -45,7 +45,8 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
 
   val summaryRequest: Form[SummaryRequest] = Form(
     mapping(
-      "strategyId" -> longNumber
+      "strategyId" -> longNumber,
+      "days" -> longNumber
     )(SummaryRequest.apply)(SummaryRequest.unapply))
 
   def main(): EssentialAction = withAuth { email => implicit request: Request[AnyContent] =>
@@ -73,10 +74,9 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
     Ok(Json.parse("""{"status":"OK"}""")).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
   def summary(): EssentialAction = withAuth { email => implicit request: Request[AnyContent] =>
-    val strategyId = summaryRequest.bindFromRequest().get.strategyId
-
+    val params = summaryRequest.bindFromRequest().get
     val json = performanceApp
-      .summary(email, strategyId, ZonedDateTime.now().minusDays(7))
+      .summary(email, params.strategyId, ZonedDateTime.now().minusDays(params.days))
       .map(r => {
         val gson: Gson = new Gson()
         gson.toJsonTree(r).toString
@@ -86,7 +86,7 @@ class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApp
   }
 }
 case class SystemSettings(strategies: Seq[StrategySettings])
-case class SummaryRequest(strategyId: Long)
+case class SummaryRequest(strategyId: Long, days: Long)
 case class StrategySettings(
     id: Long,
     name: String,
