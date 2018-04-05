@@ -36,9 +36,9 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
         val recentTickerTime = ZonedDateTime.parse(ticker.timestamp).minusSeconds(1)
         Strategies.values.filter(_.isAvailable) foreach (strategy => {
-          Future {
-            strategy.synchronized {
-              if (recentTickerTime.isAfter(ZonedDateTime.parse(ticker.timestamp))) {
+          Future { // parallel for each strategy
+            strategy.synchronized { // run in order　in the same strategy
+              if (recentTickerTime.isAfter(ZonedDateTime.parse(ticker.timestamp))) { // skip old ticker after retrying
                 (try {
                   strategy.judgeByTicker(ticker)
                 } catch {
