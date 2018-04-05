@@ -10,10 +10,6 @@ class PerformanceViewApplicationTest extends FunSuite {
   scalikejdbc.config.DBs.setupAll
   val target = new PerformanceViewApplication(new Configuration(ConfigFactory.load()))
 
-  ignore("test") {
-    target.hoge()
-  }
-
   test("amount of money") {
 
     val a = Seq(execution(100, 1, Buy), execution(200, 1, Buy))

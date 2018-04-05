@@ -60,28 +60,4 @@ class PerformanceViewApplication @Inject()(config: Configuration) {
       None
     }
   }
-
-  def hoge(): Unit = {
-    //TODO 期間指定
-    val datetime = ZonedDateTime.of(2018, 2, 25, 17, 0, 0, 0, DateUtil.zoneTokyo)
-
-    val results: Seq[Result] = for {
-      user <- UserRepository.everyoneWithApiKey(secret)
-      strategy <- StrategyRepository.list(user)
-    } yield {
-      Result(user, strategy, RecordRepository.findAll(user.email, strategy.id, datetime).map(r => marginPriceGain(r.entryExecution, r.closeExecution)))
-    }
-
-    for (r <- results) {
-      println(s"${r.user.email}, ${r.strategy.id}")
-      val sum = r.results.sum
-      if (r.results.nonEmpty) {
-        println(sum)
-        println(sum / r.results.size)
-        println(r.results.min)
-      } else {
-        println("It's empty!")
-      }
-    }
-  }
 }

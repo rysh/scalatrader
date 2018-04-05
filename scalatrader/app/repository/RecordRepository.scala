@@ -34,7 +34,6 @@ object RecordRepository {
 
   def findAll(email: String, strategyStateId: Long, from: ZonedDateTime): List[TradingRecord2] = {
     implicit val session = AutoSession
-    println(s"$email, $strategyStateId, $from")
     val query = sql"select * from trading_record where email = ${email} and trading_rule_state_id = ${strategyStateId} and entry_timestamp > ${from}"
     query
       .map((rs: WrappedResultSet) => {
