@@ -28,6 +28,7 @@ https://hub.docker.com/r/scalatrader/store-ticker/
 improve multiple strategies
 - show recent performance for each strategy
 - can trade with minimum fixed value(0.01)
+- skip old ticker after retrying
 - parallel backtesting of multiple strategies
 #### v0.0.7
 Support for SFD
