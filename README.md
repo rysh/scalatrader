@@ -3,10 +3,15 @@ I want to make a trading system that can be operated by an individual.
 Current target is bitflyer's bitcoin.
 
 ## Available Feature 
+### scalatrader
+- System trading with bitFlyer
+- Back test with local or S3 data
+- Moniter and alert Positions
+
 ### store/ticker
 It saves Bitcoin ticker information on S3 using bitflyer real-time API  
 
-How to use  
+## How to use
 
 If you just try it you can  
 $> sbt run
@@ -15,9 +20,16 @@ You can create docker image.
 $> sbt docker:publishLocal
 
 Runnable docker image is here.  
-https://hub.docker.com/r/scalatrader/store-ticker/
+https://hub.docker.com/r/scalatrader/store-ticker/ 
 
-## Planed Feature  
-Position Monitoring  
-Strategy Execution  
-Back testing  
+## Release Note
+### scalatrader
+#### v0.0.8
+improve multiple strategies
+- show recent performance for each strategy
+- can trade with minimum fixed value(0.01)
+- parallel backtesting of multiple strategies
+#### v0.0.7
+Support for SFD
+#### v0.0.6
+multiple strategies
