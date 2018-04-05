@@ -18,11 +18,11 @@ object StrategyFactory {
     MixedBoxesStrategy -> MixedBoxesStrategy,
     BoxTrendStrategy -> BoxTrendStrategy,
     "SFD" -> "SFD",
-    "BoxTrendSFD" -> "BoxTrendWithoutSFDStrategy",
-    "UpTrend" -> "UpTrendStrategy",
-    "UpTrendSFD" -> "UpTrendSFDStrategy",
-    "DownTrend" -> "DownTrendStrategy",
-    "DownTrendSFD" -> "DownTrendSFDStrategy",
+    "BoxTrendSFDStrategy" -> "BoxTrendWithoutSFDStrategy",
+    "UpTrendStrategy" -> "UpTrendStrategy",
+    "UpTrendSFDStrategy" -> "UpTrendSFDStrategy",
+    "DownTrendStrategy" -> "DownTrendStrategy",
+    "DownTrendSFDStrategy" -> "DownTrendSFDStrategy",
     "Turtle" -> "Turtle"
   )
 
