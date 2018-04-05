@@ -34,44 +34,46 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
       override def message(pubnub: PubNub, message: PNMessageResult): Unit = {
         val ticker: Ticker = gson.fromJson(message.getMessage, classOf[Ticker])
         Strategies.values.filter(_.isAvailable) foreach (strategy => {
-          strategy.synchronized {
-            (try {
-              strategy.judgeByTicker(ticker)
-            } catch {
-              case e: Exception =>
-                e.printStackTrace()
-                None
-            }).foreach(ordering => {
-              val now = DateUtil.now().toString
-              val order: models.Order = Orders.market(ordering)
-              Logger.info(
-                s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+          Future {
+            strategy.synchronized {
               (try {
-                Some(retry(if (ordering.isEntry) 5 else 20, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
+                strategy.judgeByTicker(ticker)
               } catch {
-                case _: Exception =>
-                  // request error case
-                  strategy.state.orderId = None
-                  strategy.state.order = None
-                  if (!ordering.isEntry) {
-                    Logger.warn("!!!close request failed.!!!")
-                    sendRequestFailureNoticeMail(strategy, ordering)
-                  }
+                case e: Exception =>
+                  e.printStackTrace()
                   None
-              }).foreach(response => {
-                val newState = if (ordering.isEntry) {
-                  // entry case
-                  sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now))
-                  strategy.state.copy(orderId = Some(response.child_order_acceptance_id), order = Some(ordering))
-                } else {
-                  // close case
-                  sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now, strategy.state.orderId))
-                  strategy.state.copy(orderId = None, order = None)
-                }
-                strategySettingApplication.updateOrder(strategy.email, newState)
+              }).foreach(ordering => {
+                val now = DateUtil.now().toString
+                val order: models.Order = Orders.market(ordering)
+                Logger.info(
+                  s"[order][${strategy.state.id}][${if (ordering.isEntry) "entry" else "close"}:${order.side}][${ticker.timestamp}] price:${ticker.ltp.toLong} size:${order.size}")
+                (try {
+                  Some(retry(if (ordering.isEntry) 5 else 20, () => BitFlyer.orderByMarket(order, strategy.key, strategy.secret)))
+                } catch {
+                  case _: Exception =>
+                    // request error case
+                    strategy.state.orderId = None
+                    strategy.state.order = None
+                    if (!ordering.isEntry) {
+                      Logger.warn("!!!close request failed.!!!")
+                      sendRequestFailureNoticeMail(strategy, ordering)
+                    }
+                    None
+                }).foreach(response => {
+                  val newState = if (ordering.isEntry) {
+                    // entry case
+                    sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now))
+                    strategy.state.copy(orderId = Some(response.child_order_acceptance_id), order = Some(ordering))
+                  } else {
+                    // close case
+                    sqs.send(OrderQueueBody(strategy.email, strategy.state.id, response.child_order_acceptance_id, now, strategy.state.orderId))
+                    strategy.state.copy(orderId = None, order = None)
+                  }
+                  strategySettingApplication.updateOrder(strategy.email, newState)
+                })
               })
-            })
-          }
+            }
+          }(scala.concurrent.ExecutionContext.Implicits.global)
         })
         Strategies.putTicker(ticker)
       }
