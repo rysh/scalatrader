@@ -98,6 +98,7 @@ class CoreData {
     candles20sec.cleanCandle(now, 60)
     candles30sec.cleanCandle(now, 60)
     candles1min.cleanCandle(now, 120)
+    candles5min.cleanCandle(now, 120)
     candles10min.cleanCandle(now, 120)
     macd1m.update()
     macd5m.update()
