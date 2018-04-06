@@ -52,6 +52,23 @@ object StrategyRepository {
       .apply()
   }
 
+  def get(email: String, id: Long): Option[StrategyState] = {
+    implicit val session = AutoSession
+    sql"select id, state from trading_rule_state join user on (user.id = trading_rule_state.id) where email = ${email} and id =$id"
+      .map((rs: WrappedResultSet) => {
+        import io.circe.parser._
+        import io.circe.generic.auto._
+        decode[StrategyState](rs.string("state")) match {
+          case Right(ex) =>
+            ex.id = rs.long("id")
+            ex
+          case Left(err) => throw err
+        }
+      })
+      .single()
+      .apply()
+  }
+
   def update(user: User, state: StrategyState): Unit = {
     import io.circe.syntax._
     import io.circe.generic.auto._

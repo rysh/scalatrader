@@ -15,7 +15,10 @@ import repository.model.scalatrader.{User, TradingRecord2}
 
 @Singleton
 class PerformanceViewApplication @Inject()(config: Configuration) {
+
   val secret = config.get[String]("play.http.secret.key")
+
+  case class PerformanceSummary(total: Long, average: Long, maxDD: Long, count: Long)
 
   def amountOfMoney(executions: Seq[MyExecution]): BigDecimal = {
     executions
@@ -42,33 +45,19 @@ class PerformanceViewApplication @Inject()(config: Configuration) {
 
   def marginPriceGain(entry: Seq[MyExecution], close: Seq[MyExecution]): BigDecimal = {
     if (entry.nonEmpty && close.nonEmpty) {
-      (amountOfMoney(close) + amountOfMoney(entry)) * -1
+      (amountOfPrice(close) + amountOfPrice(entry)) * -1
     } else 0
   }
 
   private case class Result(user: User, strategy: StrategyState, results: List[BigDecimal])
 
-  def hoge(): Unit = {
-    //TODO 期間指定
-    val datetime = ZonedDateTime.of(2018, 2, 25, 17, 0, 0, 0, DateUtil.zoneTokyo)
-
-    val results: Seq[Result] = for {
-      user <- UserRepository.everyoneWithApiKey(secret)
-      strategy <- StrategyRepository.list(user)
-    } yield {
-      Result(user, strategy, RecordRepository.findAll(user.email, strategy.id, datetime).map(r => marginPriceGain(r.entryExecution, r.closeExecution)))
-    }
-
-    for (r <- results) {
-      println(s"${r.user.email}, ${r.strategy.id}")
-      val sum = r.results.sum
-      if (r.results.nonEmpty) {
-        println(sum)
-        println(sum / r.results.size)
-        println(r.results.min)
-      } else {
-        println("It's empty!")
-      }
+  def summary(email: String, strategyId: Long, from: ZonedDateTime): Option[PerformanceSummary] = {
+    val result: Seq[BigDecimal] = RecordRepository.findAll(email, strategyId, from).map(r => marginPriceGain(r.entryExecution, r.closeExecution))
+    if (result.nonEmpty) {
+      val sum = result.sum
+      Some(PerformanceSummary(sum.toLong, (sum / result.size).setScale(0, scala.math.BigDecimal.RoundingMode.HALF_UP).toLong, result.min.toLong, result.size))
+    } else {
+      None
     }
   }
 }

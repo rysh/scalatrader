@@ -8,6 +8,8 @@
     routes.javascript.DashBoardController.update,
     routes.javascript.DashBoardController.add,
     routes.javascript.DashBoardController.delete,
+    routes.javascript.DashBoardController.summary,
+    routes.javascript.DashBoardController.position,
   )
   <style>
   dl {
@@ -33,8 +35,9 @@
   }
   </style>
   <p>Trading is <span>@status</span></p>
-  <button onclick="run()">run</button>
-  <button onclick="stop()">stop</button>
+  <input type="text" id="days" value="7">
+  <button onclick="performance()">perfermance</button>
+  <button onclick="position()">position</button>
 
   <form id="newStrategy">
     <input name="id" type="hidden" value="0">
@@ -47,15 +50,17 @@
   <div style="clear:both;"></div>
   <form id="strategies">
     <span style="display:none;"><input type="submit"/></span>
-        @helper.repeat(form("strategies"), min = 0) { settings =>
-          <div style="border: thin solid lightgray">
-            <span style="float:left">@settings("name").value</span>
-            <span style="display:none;">@helper.inputText(settings("id"))</span>
-            <span style="display:none;">@helper.inputText(settings("name"))</span>
-            @helper.checkbox(settings("availability"), (Symbol("_text"), "availability"), (Symbol("class"), "availability"))
-            <span style="float:left">leverage:</span>@helper.inputText(settings("leverage"), (Symbol("class"), "leverage"))
-            <button onclick="deleteStrategy('@settings("id").value');return false">delete</button>
-            <div style="clear:both;"></div>
+    @helper.repeat(form("strategies"), min = 0) { settings =>
+      <div style="border: thin solid lightgray">
+        <span style="float:left">@settings("name").value</span>
+        <span style="display:none;">@helper.inputText(settings("id"))</span>
+        <span style="display:none;">@helper.inputText(settings("name"))</span>
+        @helper.checkbox(settings("availability"), (Symbol("_text"), "availability"), (Symbol("class"), "availability"))
+        <span style="float:left">leverage:</span>@helper.inputText(settings("leverage"), (Symbol("class"), "leverage"))
+        <button onclick="deleteStrategy('@settings("id").value');return false">delete</button>
+        <div class="performance"></div>
+        <div class="position"></div>
+        <div style="clear:both;"></div>
       </div>
     }
     @CSRF.formField

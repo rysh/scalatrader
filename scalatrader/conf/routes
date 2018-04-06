@@ -21,6 +21,8 @@ GET     /dashboard                  controllers.DashBoardController.main
 POST    /dashboard/update           controllers.DashBoardController.update
 POST    /dashboard/add              controllers.DashBoardController.add
 POST    /dashboard/delete           controllers.DashBoardController.delete
+GET     /dashboard/summary          controllers.DashBoardController.summary
+GET     /dashboard/position         controllers.DashBoardController.position
 
 GET     /backtest                   controllers.BackTestController.main
 POST    /backtest/run               controllers.BackTestController.run()

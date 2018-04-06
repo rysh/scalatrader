@@ -18,7 +18,7 @@ class Margin(
 
   /** 必要証拠金 */
   def requiredMargin: Long = {
-    positions.values.map(p => p.price * p.size * (0.067)).sum.toLong
+    positions.values.map(p => p.price * p.size * 0.067).sum.toLong
   }
 
   /** 評価証拠金 */
@@ -51,12 +51,12 @@ class Margin(
     }
   }
 
-  def sizeOf1x = (evaluationMargin / ltp * 100).toLong / 100.0
+  def sizeOf1x: Double = (evaluationMargin / ltp * 100).toLong / 100.0
 
 }
 
 object Margin {
-  def resetSize() = {
+  def resetSize(): Unit = {
     sizeUnit = defaultSizeUnit
     leverage = defaultLeverage
   }
@@ -65,5 +65,11 @@ object Margin {
   val defaultLeverage = 1.5
   var sizeUnit: Double = defaultSizeUnit
   var leverage: Double = defaultLeverage
-  def size(leverage: Double): Double = (sizeUnit * leverage * 100).ceil / 100
+  def size(leverage: Double): Double = {
+    if (leverage >= 0) {
+      (sizeUnit * leverage * 100).ceil / 100
+    } else {
+      0.01
+    }
+  }
 }

@@ -7,3 +7,14 @@ scala:
 
 script:
    - sbt ++$TRAVIS_SCALA_VERSION test
+
+env:
+  global:
+    TEST_HOGE='hogehoge'
+    APPLICATION_SECRET=QCYtAnfkaZiwrNwnxIlR6CTfG3gf90Latabg5241ABR5W1uDFNIkn
+    DB_URL=jdbc:mysql://127.0.0.1:6603/scalatrader
+    DB_USER_NAME=stuser
+    DB_PASSWORD=stpassword
+    AWS_SQS_REQUEST_QUEUE_NAME=scalatrader-order-dev
+    AWS_S3_BTCFX_BUCKET_NAME=btcfx-ticker-scala
+    AWS_S3_BTC_BUCKET_NAME=btc-ticker

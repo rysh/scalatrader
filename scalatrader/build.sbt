@@ -3,7 +3,7 @@ import sbt.CrossVersion
 name := """scalatrader"""
 organization := "scalatrader"
 
-version := "0.0.7-SNAPSHOT"
+version := "0.0.8-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -46,4 +46,4 @@ maintainer in Docker := "Ryuhei Ishibashi <rysh.cact@gmail.com>"
 
 dockerExposedPorts in Docker := Seq(9000, 9443)
 
-enablePlugins(ScalikejdbcPlugin)
+// enablePlugins(ScalikejdbcPlugin)
