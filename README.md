@@ -20,7 +20,19 @@ You can create docker image.
 $> sbt docker:publishLocal
 
 Runnable docker image is here.  
-https://hub.docker.com/r/scalatrader/store-ticker/ 
+https://hub.docker.com/r/scalatrader/
+
+### settings
+set environment variables  
+>\#example  
+>APPLICATION_SECRET=QCYtAnfkaZiwrNwnxIlR6CTfG3gf90Latabg5241ABR5W1uDFNIkn  
+>DB_URL=jdbc:mysql://x.x.x.x:6603/scalatrader  
+>DB_USER_NAME=xxxxxx  
+>DB_PASSWORD=xxxxxx  
+>AWS_SQS_REQUEST_QUEUE_NAME=scalatrader-order  
+>AWS_S3_BTCFX_BUCKET_NAME=btcfx-ticker-scala  
+>AWS_S3_BTC_BUCKET_NAME=btc-ticker  
+
 
 ## Release Note
 ### scalatrader
