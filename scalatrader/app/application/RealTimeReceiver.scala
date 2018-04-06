@@ -38,7 +38,7 @@ class RealTimeReceiver @Inject()(config: Configuration, @Named("candle") candleA
         Strategies.values.filter(_.isAvailable) foreach (strategy => {
           Future { // parallel for each strategy
             strategy.synchronized { // run in order　in the same strategy
-              if (recentTickerTime.isAfter(ZonedDateTime.parse(ticker.timestamp))) { // skip old ticker after retrying
+              if (recentTickerTime.isBefore(ZonedDateTime.parse(ticker.timestamp))) { // skip old ticker after retrying
                 (try {
                   strategy.judgeByTicker(ticker)
                 } catch {
