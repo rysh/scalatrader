@@ -15,9 +15,9 @@ object BackTestResults {
 
   def init(): Unit = {
     total = 0
-    entry = None
+    tempEntries.clear()
     candles1min.clear()
-    values.clear()
+    valueMaps.clear()
     tickers.clear()
     depositMargin = 300000
   }
@@ -25,56 +25,59 @@ object BackTestResults {
   var depositMargin: Long = 300000
 
   val candles1min = new mutable.HashMap[Long, Bar]()
-  val values = new mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]
+  val valueMaps = mutable.HashMap.empty[Long, mutable.ArrayBuffer[(OrderResult, OrderResult, Int, Int)]]
   val tickers = new mutable.ArrayBuffer[Ticker]
   val momentum = new mutable.LinkedHashMap[Long, Double]()
   val hv = new mutable.LinkedHashMap[Long, Double]()
 
   var total: Int = 0
-  var entry: Option[OrderResult] = None
-  def add(order: OrderResult): Unit = {
+  var tempEntries = mutable.Map.empty[Long, OrderResult]
 
-    if (entry.isEmpty) {
-      entry = Some(order)
-    } else {
-
-      val value = calc(entry.get, order).toInt
-      depositMargin = depositMargin + value
-      total = total + value
-      values += ((entry.get, order, value, total))
-      Logger.info(format(entry.get, order, value, total))
-      entry = None
-    }
+  def put(strategyId: Long, order: OrderResult): Unit = {
+    tempEntries
+      .get(strategyId)
+      .map(entry => {
+        val value = calc(entry, order).toInt
+        depositMargin = depositMargin + value
+        total = total + value
+        valueMaps.get(strategyId).map(_ += ((entry, order, value, total)))
+        Logger.info(format(strategyId, entry, order, value, total))
+        tempEntries.remove(strategyId)
+      })
+      .getOrElse(() => {
+        tempEntries.put(strategyId, order)
+      })
   }
 
   case class OrderResult(timestamp: String, side: String, price: Double, size: Double)
 
   def report() = {
     var total: Int = 0
-    values.foreach {
-      case (entry, close, _, _) => {
-        val value = calc(entry, close).toInt
-        total = total + value
-        Logger.info(format(entry, close, value, total))
-      }
+    valueMaps.foreach {
+      case (id, values) =>
+        values.foreach {
+          case (entry, close, _, _) =>
+            val value = calc(entry, close).toInt
+            total = total + value
+            Logger.info(format(id, entry, close, value, total))
+        }
+        Logger.info(s"最終損益($id) $total")
     }
-    Logger.info(s"最終損益 $total")
   }
 
   private def calc(entry: OrderResult, close: OrderResult) = {
     (close.price - entry.price) * entry.size * (if (close.side == "SELL") 1 else -1)
   }
 
-  def format(entry: OrderResult, close: OrderResult, value: Int, total: Int) = {
+  def format(strategyId: Long, entry: OrderResult, close: OrderResult, value: Int, total: Int): String = {
     def parse(timestamp: String) = {
       ZonedDateTime.parse(timestamp).format(DateTimeFormatter.ofPattern("MM/dd HH:mm:ss"))
     }
-    s"${parse(entry.timestamp)} ${entry.side} -> ${parse(close.timestamp)} ${close.side} / ${entry.price} -> ${close.price} (${entry.size})/ 損益 $value : 累積損益 $total"
+    s"[$strategyId] ${parse(entry.timestamp)} ${entry.side} -> ${parse(close.timestamp)} ${close.side} / ${entry.price} -> ${close.price} (${entry.size})/ 損益 $value : 累積損益 $total"
   }
 
-  def valuesForChart(): ArrayBuffer[(String, Int, OrderResult, Int)] = {
-
-    values.flatMap { case (entry, close, value, cumulative) => List(("entry", cumulative - value, entry, 0), ("close", cumulative, close, value)) }
+  def valuesForChart(): Iterable[(String, Int, OrderResult, Int)] = {
+    valueMaps.values.flatten.flatMap { case (entry, close, value, cumulative) => List(("entry", cumulative - value, entry, 0), ("close", cumulative, close, value)) }
   }
 
   def addTicker(ticker: Ticker) = {

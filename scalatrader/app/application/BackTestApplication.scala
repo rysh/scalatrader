@@ -38,7 +38,15 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     if (users.isEmpty) return
     users
       .filter(user => !Strategies.values.exists(_.email == user.email))
-      .map(user => StrategyFactory.create(StrategyState(0L, StrategyFactory.MixedBoxesStrategy, true, 1.5), user))
+      .flatMap(user => {
+        def createStrategy(strategy: String) = {
+          StrategyFactory.create(StrategyState(0L, strategy, true, 1.0), user)
+        }
+        Seq(
+          createStrategy(StrategyFactory.MixedBoxesStrategy),
+          createStrategy(StrategyFactory.MixedBoxesStrategy)
+        )
+      })
       .foreach(Strategies.register)
 
     val s3 = S3.create(Regions.US_WEST_1)
@@ -57,7 +65,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           val time = ZonedDateTime.parse(ticker.timestamp)
           Strategies.values.foreach(strategy => {
             if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
-                  BackTestResults.add(OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
+                  println(order)
+                  BackTestResults.put(strategy.state.id, OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
                 })) {
               (try {
                 strategy.judgeByTicker(ticker)
@@ -100,7 +109,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         }
       })
     }
-    //BackTestResults.report()
+    BackTestResults.report()
     Logger.info("complete")
   }
 
