@@ -2,19 +2,20 @@ package application
 
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import javax.inject.{Named, Inject}
 
+import javax.inject.{Inject, Named}
 import adapter.aws.S3
 import akka.actor.{ActorRef, ActorSystem}
+import backtest.BacktestExecutor
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
 import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.models
-import domain.models.{Ticker, Orders}
+import domain.models.{Orders, Ticker}
 import domain.backtest.BackTestResults.OrderResult
 import domain.margin.Margin
-import domain.strategy.{StrategyState, Strategies, StrategyFactory}
+import domain.strategy.{Strategies, Strategy, StrategyFactory, StrategyState}
 import domain.time.{DateUtil, MockedTime}
 import play.api.{Configuration, Logger}
 import repository.UserRepository
@@ -36,10 +37,10 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
-    users
+    val executors = users
       .filter(user => !Strategies.values.exists(_.email == user.email))
       .flatMap(user => {
-        def createStrategy(strategy: String) = {
+        def createStrategy(strategy: String): Strategy = {
           StrategyFactory.create(StrategyState(0L, strategy, true, 1.0), user)
         }
         Seq(
@@ -47,7 +48,10 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
           createStrategy(StrategyFactory.MixedBoxesStrategy)
         )
       })
-      .foreach(Strategies.register)
+      .map(st => {
+        Strategies.register(st)
+        new BacktestExecutor(st)
+      })
 
     val s3 = S3.create(Regions.US_WEST_1)
     Logger.info("initial data loading...")
@@ -56,44 +60,15 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val gson: Gson = new Gson()
     while (MockedTime.now.isBefore(end)) {
-      var ltp = 0.0
 
-      val lines = DataLoader.fetchOrReadLines(s3, DateUtil.now)
-      lines.foreach(json => {
-        val ticker: Ticker = gson.fromJson(json, classOf[Ticker])
-        try {
-          val time = ZonedDateTime.parse(ticker.timestamp)
-          Strategies.values.foreach(strategy => {
-            if (!WaitingOrder.isWaitingOrJustExecute(strategy.email, time, (order) => {
-                  println(order)
-                  BackTestResults.put(strategy.state.id, OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size))
-                })) {
-              (try {
-                strategy.judgeByTicker(ticker)
-              } catch {
-                case e: Exception =>
-                  e.printStackTrace()
-                  None
-              }).map(Orders.market)
-                .foreach((order: models.Order) => {
-                  WaitingOrder.request(strategy.email, time, order)
-                  //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(time, "MM/dd HH:mm")}")
-                })
-            }
-          })
-        } catch {
-          case e: Exception => throw e
-        } finally {
-          Strategies.putTicker(ticker)
-          BackTestResults.addTicker(ticker)
-          ltp = ticker.ltp
-        }
-      })
+      DataLoader
+        .fetchOrReadLines(s3, DateUtil.now())
+        .foreach(json => executors.foreach(_.execute(gson.fromJson(json, classOf[Ticker]))))
+
       Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1, t._2))
       Strategies.coreData.hv30min.values.takeRight(1).foreach(t => BackTestResults.hv.put(t._1, t._2))
       Strategies.processEvery1minutes()
-      //Logger.info(s"Margin(${BackTestResults.depositMargin}) ltp ($ltp)")
-      //Margin.sizeUnit = new Margin(BackTestResults.depositMargin, Positions(Seq.empty[Position]), ltp).sizeOf1x
+
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
       val now = DateUtil.now()
       val key = DateUtil.keyOf(now)
