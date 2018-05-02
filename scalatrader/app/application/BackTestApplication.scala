@@ -1,7 +1,6 @@
 package application
 
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 
 import javax.inject.{Inject, Named}
 import adapter.aws.S3
@@ -28,17 +27,15 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
   lazy val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
-    if (!domain.isBackTesting) return
+    if (!domain.isBackTesting || users.isEmpty || executors.isEmpty) return
 
-    MockedTime.now = start
-
-    if (users.isEmpty) return
+    MockedTime.start(start)
 
     val s3 = S3.create(Regions.US_WEST_1)
     initialize(s3)
 
     val gson: Gson = new Gson()
-    while (MockedTime.now.isBefore(end)) {
+    while (MockedTime.isFinished(end)) {
 
       DataLoader
         .fetchOrReadLines(s3, DateUtil.now())
@@ -56,7 +53,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       updateData()
 
-      MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
+      MockedTime.add1Minutes()
     }
     BackTestResults.report()
     Logger.info("complete")
