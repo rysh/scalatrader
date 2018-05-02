@@ -6,14 +6,12 @@ import java.time.temporal.ChronoUnit
 import javax.inject.{Inject, Named}
 import adapter.aws.S3
 import akka.actor.{ActorRef, ActorSystem}
-import backtest.BacktestExecutor
+import backtest.BackTestExecutor
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
-import domain.backtest.{BackTestResults, WaitingOrder}
-import domain.models
-import domain.models.{Orders, Ticker}
-import domain.backtest.BackTestResults.OrderResult
+import domain.backtest.BackTestResults
+import domain.models.Ticker
 import domain.margin.Margin
 import domain.strategy.{Strategies, Strategy, StrategyFactory, StrategyState}
 import domain.time.{DateUtil, MockedTime}
@@ -37,21 +35,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
     val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
-    val executors = users
-      .filter(user => !Strategies.values.exists(_.email == user.email))
-      .flatMap(user => {
-        def createStrategy(strategy: String): Strategy = {
-          StrategyFactory.create(StrategyState(0L, strategy, true, 1.0), user)
-        }
-        Seq(
-          createStrategy(StrategyFactory.MixedBoxesStrategy),
-          createStrategy(StrategyFactory.MixedBoxesStrategy)
-        )
-      })
-      .map(st => {
-        Strategies.register(st)
-        new BacktestExecutor(st)
-      })
+    val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
 
     val s3 = S3.create(Regions.US_WEST_1)
     Logger.info("initial data loading...")
@@ -65,29 +49,36 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
         .fetchOrReadLines(s3, DateUtil.now())
         .foreach(json => executors.foreach(_.execute(gson.fromJson(json, classOf[Ticker]))))
 
-      Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1, t._2))
-      Strategies.coreData.hv30min.values.takeRight(1).foreach(t => BackTestResults.hv.put(t._1, t._2))
-      Strategies.processEvery1minutes()
+      updateData()
 
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
-      val now = DateUtil.now()
-      val key = DateUtil.keyOf(now)
-      Strategies.values.foreach(strategy => {
-        if (!WaitingOrder.isWaiting(strategy.email, now)) {
-          strategy
-            .judgeEveryMinutes(key)
-            .map(Orders.market)
-            .foreach((order: models.Order) => {
-              WaitingOrder.request(strategy.email, now, order)
-              //Logger.info(s"注文 ${order.side} time: ${DateUtil.format(now, "MM/dd HH:mm")}")
-            })
-        }
-      })
+      executors.foreach(_.storeWaitingOrder(DateUtil.now()))
     }
     BackTestResults.report()
     Logger.info("complete")
   }
 
+  private def updateData(): Unit = {
+    Strategies.coreData.momentum5min.values.takeRight(1).foreach(t => BackTestResults.momentum.put(t._1, t._2))
+    Strategies.coreData.hv30min.values.takeRight(1).foreach(t => BackTestResults.hv.put(t._1, t._2))
+    Strategies.processEvery1minutes()
+  }
+
+  private def createStrategies(users: Seq[User], strategies: String*): Seq[BackTestExecutor] = {
+    users
+      .filter(user => !Strategies.values.exists(_.email == user.email))
+      .flatMap(user => {
+        def createStrategy(strategy: String): Strategy = {
+          val available = true
+          StrategyFactory.create(StrategyState(0L, strategy, available, 1.0), user)
+        }
+        strategies.map(createStrategy)
+      })
+      .map(st => {
+        Strategies.register(st)
+        new BackTestExecutor(st)
+      })
+  }
   private def loadInitialData(s3: S3): Unit = {
     val initialData: Seq[Ticker] = DataLoader.loadFromLocal()
 

@@ -7,8 +7,9 @@ import domain.backtest.{BackTestResults, WaitingOrder}
 import domain.models
 import domain.models.{Orders, Ticker}
 import domain.strategy.{Strategies, Strategy}
+import domain.time.DateUtil
 
-class BacktestExecutor(val strategy: Strategy) {
+class BackTestExecutor(val strategy: Strategy) {
   def execute(ticker: Ticker): Unit = {
 
     try {
@@ -33,6 +34,18 @@ class BacktestExecutor(val strategy: Strategy) {
     } finally {
       Strategies.putTicker(ticker)
       BackTestResults.addTicker(ticker)
+    }
+  }
+
+  def storeWaitingOrder(now: ZonedDateTime): Unit = {
+    val key = DateUtil.keyOf(now)
+    if (!WaitingOrder.isWaiting(strategy.email, now)) {
+      strategy
+        .judgeEveryMinutes(key)
+        .map(Orders.market)
+        .foreach((order: models.Order) => {
+          WaitingOrder.request(strategy.email, now, order)
+        })
     }
   }
 }
