@@ -19,18 +19,20 @@ import play.api.{Configuration, Logger}
 import repository.UserRepository
 import repository.model.scalatrader.User
 import service.DataLoader
+
 @Singleton
 class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSystem, @Named("candle") candleActor: ActorRef) {
   Logger.info("init BackTestApplication")
+
+  lazy val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
+  lazy val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     if (!domain.isBackTesting) return
 
     MockedTime.now = start
 
-    val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
     if (users.isEmpty) return
-    val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
 
     val s3 = S3.create(Regions.US_WEST_1)
     initialize(s3)
@@ -40,7 +42,17 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       DataLoader
         .fetchOrReadLines(s3, DateUtil.now())
-        .foreach(json => executors.foreach(_.execute(gson.fromJson(json, classOf[Ticker]))))
+        .foreach(json => {
+          val ticker = gson.fromJson(json, classOf[Ticker])
+          try {
+            executors.foreach(_.execute(ticker))
+          } catch {
+            case e: Exception => e.printStackTrace()
+          } finally {
+            Strategies.putTicker(ticker)
+            BackTestResults.addTicker(ticker)
+          }
+        })
 
       updateData()
 
