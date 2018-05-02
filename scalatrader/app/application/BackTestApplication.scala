@@ -25,11 +25,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     if (!domain.isBackTesting) return
-    Logger.info("BackTestApplication run")
-    BackTestResults.init()
-    Strategies.init()
-    Margin.resetSize()
-    Logger.info("all init done")
 
     MockedTime.now = start
 
@@ -38,9 +33,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
 
     val s3 = S3.create(Regions.US_WEST_1)
-    Logger.info("initial data loading...")
-    loadInitialData(s3)
-    Logger.info("load data done")
+    initialize(s3)
 
     val gson: Gson = new Gson()
     while (MockedTime.now.isBefore(end)) {
@@ -55,6 +48,17 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     }
     BackTestResults.report()
     Logger.info("complete")
+  }
+
+  private def initialize(s3: S3): Unit = {
+    Logger.info("BackTestApplication run")
+    BackTestResults.init()
+    Strategies.init()
+    Margin.resetSize()
+    Logger.info("all init done")
+    Logger.info("initial data loading...")
+    loadInitialData(s3)
+    Logger.info("load data done")
   }
 
   private def updateData(): Unit = {
