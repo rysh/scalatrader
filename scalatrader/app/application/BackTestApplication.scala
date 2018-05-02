@@ -52,7 +52,6 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
       updateData()
 
       MockedTime.now = MockedTime.now.plus(1, ChronoUnit.MINUTES)
-      executors.foreach(_.storeWaitingOrder(DateUtil.now()))
     }
     BackTestResults.report()
     Logger.info("complete")
