@@ -37,11 +37,11 @@ object BackTestResults {
     tempEntries
       .get(strategyId)
       .map(entry => {
-        val value = calc(entry, order).toInt
-        depositMargin = depositMargin + value
-        total = total + value
-        valueMaps.get(strategyId).map(_ += ((entry, order, value, total)))
-        Logger.info(format(strategyId, entry, order, value, total))
+        val difference = calcAbsoluteDifferenceOfPrice(entry, order).toInt
+        depositMargin = depositMargin + difference
+        total = total + difference
+        valueMaps.get(strategyId).map(_ += ((entry, order, difference, total)))
+        Logger.info(format(strategyId, entry, order, difference, total))
         tempEntries.remove(strategyId)
       })
       .getOrElse(() => {
@@ -57,7 +57,7 @@ object BackTestResults {
       case (id, values) =>
         values.foreach {
           case (entry, close, _, _) =>
-            val value = calc(entry, close).toInt
+            val value = calcAbsoluteDifferenceOfPrice(entry, close).toInt
             total = total + value
             Logger.info(format(id, entry, close, value, total))
         }
@@ -65,7 +65,7 @@ object BackTestResults {
     }
   }
 
-  private def calc(entry: OrderResult, close: OrderResult) = {
+  private def calcAbsoluteDifferenceOfPrice(entry: OrderResult, close: OrderResult) = {
     (close.price - entry.price) * entry.size * (if (close.side == "SELL") 1 else -1)
   }
 
@@ -80,16 +80,13 @@ object BackTestResults {
     valueMaps.values.flatten.flatMap { case (entry, close, value, cumulative) => List(("entry", cumulative - value, entry, 0), ("close", cumulative, close, value)) }
   }
 
-  def addTicker(ticker: Ticker) = {
-    if (tickers.size == 0 || tickers.last.ltp != ticker.ltp) tickers += ticker
+  def addTicker(ticker: Ticker): Object = {
+    if (tickers.isEmpty || tickers.last.ltp != ticker.ltp) tickers += ticker
 
     val key = DateUtil.keyOf(ZonedDateTime.parse(ticker.timestamp))
     candles1min.get(key) match {
       case Some(v) => v.put(ticker)
-      case _ => {
-        val b = new Bar(key)
-        candles1min.put(key, b.put(ticker))
-      }
+      case _       => candles1min.put(key, new Bar(key).put(ticker))
     }
   }
 }
