@@ -9,7 +9,7 @@ import service.DataLoader
 import scala.concurrent.Future
 
 abstract class Strategy(var state: StrategyState, user: User) {
-
+  def id: Long = state.id
   val email: String = user.email
   val key: String = user.api_key
   val secret: String = user.api_secret

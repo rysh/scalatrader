@@ -39,7 +39,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
 
   def chart(): EssentialAction = withAuth { _ => implicit request: Request[AnyContent] =>
     import DateUtil._
-    val orders = BackTestResults.valuesForChart()
+    val orders = BackTestResults.valuesForChart(app.executors)
     val orderMap: Map[Long, (String, String)] = orders.map(a => (keyOf(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
     val bars = BackTestResults.candles1min.values
       .map(b => {

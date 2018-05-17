@@ -9,7 +9,7 @@ import backtest.BackTestExecutor
 import com.amazonaws.regions.Regions
 import com.google.gson.Gson
 import com.google.inject.Singleton
-import domain.backtest.BackTestResults
+import domain.backtest.{BackTestResult, BackTestResults}
 import domain.models.Ticker
 import domain.margin.Margin
 import domain.strategy.{Strategies, Strategy, StrategyFactory, StrategyState}
@@ -55,7 +55,8 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       MockedTime.add1Minutes()
     }
-    BackTestResults.report()
+    BackTestResults.printSummary(executors)
+
     Logger.info("complete")
   }
 
