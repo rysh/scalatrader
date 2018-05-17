@@ -40,9 +40,10 @@ object BackTestResults {
         val difference = calcAbsoluteDifferenceOfPrice(entry, order).toInt
         depositMargin = depositMargin + difference
         total = total + difference
-        valueMaps.get(strategyId).map(_ += ((entry, order, difference, total)))
         Logger.info(format(strategyId, entry, order, difference, total))
+
         tempEntries.remove(strategyId)
+        valueMaps.get(strategyId).map(_ += ((entry, order, difference, total)))
       })
       .getOrElse(() => {
         tempEntries.put(strategyId, order)
