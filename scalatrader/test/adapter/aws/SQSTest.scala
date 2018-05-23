@@ -8,7 +8,11 @@ import org.scalatest.FunSuite
 import play.api.Configuration
 
 class SQSTest extends FunSuite {
-  val sqs = new SQS(new Configuration(ConfigFactory.load()))
+  val sqs =  try {
+    new SQS(new Configuration(ConfigFactory.load()))
+  } catch {
+    case e:Exception => println("set env for SQS"); null
+  }
 
   ignore("testSend") {
     sqs.send(OrderQueueBody("hoge@scalatrader.com", 1L, "hoge1", DateUtil.now().toString))
