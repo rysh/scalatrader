@@ -19,6 +19,8 @@ class CoreData {
   var box10min: Option[Box] = None
   var box20min: Option[Box] = None
   var box1h: Option[Box] = None
+  var box2h: Option[Box] = None
+  var box4h: Option[Box] = None
 
   var btcCurrent: Option[models.Ticker] = None
 
@@ -97,14 +99,14 @@ class CoreData {
     candles10sec.cleanCandle(now, 60)
     candles20sec.cleanCandle(now, 60)
     candles30sec.cleanCandle(now, 60)
-    candles1min.cleanCandle(now, 120)
-    candles5min.cleanCandle(now, 120)
-    candles10min.cleanCandle(now, 120)
+    candles1min.cleanCandle(now, 240)
+    candles5min.cleanCandle(now, 240)
+    candles10min.cleanCandle(now, 240)
     macd1m.update()
     macd5m.update()
 
-//    val c4h = candles1min.values
-//    val c2h = c4h.takeRight(120)
+    val c4h = candles1min.values.values
+    val c2h = c4h.takeRight(120)
     val c1h = candles1min.values.values
     if (c1h.isEmpty) {
       ()
@@ -112,8 +114,12 @@ class CoreData {
       val c60m = c1h.takeRight(60)
       val c20m = c1h.takeRight(20)
       val c10m = c20m.takeRight(10)
-      //    box4h = Some(Box.of(c4h.toSeq, 240 * 60))
-      //    box2h = Some(Box.of(c2h.toSeq, 120 * 60))
+      if (c4h.size >= 240) {
+        box4h = Some(Box.of(c4h.toSeq, 240 * 60))
+      }
+      if (c4h.size == 120) {
+        box2h = Some(Box.of(c2h.toSeq, 120 * 60))
+      }
       box1h = Some(Box.of(c60m.toSeq, 60 * 60))
       box20min = Some(Box.of(c20m.toSeq, 20 * 60))
       box10min = Some(Box.of(c10m.toSeq, 10 * 60))

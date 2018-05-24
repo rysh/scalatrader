@@ -20,8 +20,12 @@ object StrategyFactory {
     "SFD" -> "SFD",
     "BoxTrendWithoutSFDStrategy" -> "BoxTrendWithoutSFDStrategy",
     "UpTrendStrategy" -> "UpTrendStrategy",
+    "UpTrend2hStrategy" -> "UpTrend2hStrategy",
+    "UpTrend4hStrategy" -> "UpTrend4hStrategy",
     "UpTrendSFDStrategy" -> "UpTrendSFDStrategy",
     "DownTrendStrategy" -> "DownTrendStrategy",
+    "DownTrend2hStrategy" -> "DownTrend2hStrategy",
+    "DownTrend4hStrategy" -> "DownTrend4hStrategy",
     "DownTrendSFDStrategy" -> "DownTrendSFDStrategy",
     "Turtle" -> "Turtle"
   )
@@ -36,8 +40,12 @@ object StrategyFactory {
       case "SFD"                        => new SfdStrategy(state, user)
       case "BoxTrendWithoutSFDStrategy" => new BoxTrendWithoutSFDStrategy(state, user)
       case "UpTrendStrategy"            => new UpTrendStrategy(state, user)
+      case "UpTrend2hStrategy"          => new UpTrend2hStrategy(state, user)
+      case "UpTrend4hStrategy"          => new UpTrend4hStrategy(state, user)
       case "UpTrendSFDStrategy"         => new UpTrendSFDStrategy(state, user)
       case "DownTrendStrategy"          => new DownTrendStrategy(state, user)
+      case "DownTrend2hStrategy"        => new DownTrend2hStrategy(state, user)
+      case "DownTrend4hStrategy"        => new DownTrend4hStrategy(state, user)
       case "DownTrendSFDStrategy"       => new DownTrendSFDStrategy(state, user)
       case "Once"                       => new OnceForTestStrategy(state, user)
       case _                            => throw new Exception()
