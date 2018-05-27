@@ -4,7 +4,7 @@ package object application {
     var i = 0
     var ret: Option[T] = None
     var waitTime = 0
-    var delta = 5000
+    val delta = 5000
     while (i < times) {
       i += 1
       try {
