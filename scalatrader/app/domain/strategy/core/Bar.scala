@@ -14,7 +14,7 @@ class Bar(arg: Long) {
     put(ltp)
   }
 
-  private def put(ltp: Double): Bar = {
+  def put(ltp: Double): Bar = {
     if (high < ltp) high = ltp
     if (ltp < low) low = ltp
     if (open == Double.MinValue) open = ltp

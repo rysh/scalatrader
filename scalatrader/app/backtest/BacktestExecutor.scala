@@ -16,7 +16,6 @@ class BackTestExecutor(val strategy: Strategy) {
           strategy.email,
           time,
           order => {
-            println(order)
             val orderResult = OrderResult(ticker.timestamp, order.side, ticker.ltp, order.size)
             result.put(orderResult)
           }
@@ -24,13 +23,13 @@ class BackTestExecutor(val strategy: Strategy) {
       (try {
         strategy.judgeByTicker(ticker)
       } catch {
-        case e: Exception =>
-          e.printStackTrace()
-          None
+        case e: Exception => e.printStackTrace(); None
       }).map(Orders.market)
         .foreach((order: models.Order) => {
           WaitingOrder.request(strategy.email, time, order)
         })
     }
   }
+
+  override def toString = s"BackTestExecutor($result, $strategy)"
 }

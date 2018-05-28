@@ -23,11 +23,10 @@ import service.DataLoader
 class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSystem, @Named("candle") candleActor: ActorRef) {
   Logger.info("init BackTestApplication")
 
-  lazy val users: Seq[User] = UserRepository.everyoneWithApiKey(config.get[String]("play.http.secret.key"))
-  lazy val executors = createStrategies(users, StrategyFactory.MixedBoxesStrategy, StrategyFactory.MixedBoxesStrategy)
+  lazy val executors = createStrategies("Dtn10mStrategy")
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
-    if (!domain.isBackTesting || users.isEmpty || executors.isEmpty) return
+    if (!domain.isBackTesting || executors.isEmpty) return
 
     MockedTime.start(start)
 
@@ -55,7 +54,7 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
 
       MockedTime.add1Minutes()
     }
-    BackTestResults.printSummary(executors)
+    //BackTestResults.printSummary(executors)
 
     Logger.info("complete")
   }
@@ -77,16 +76,14 @@ class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSys
     Strategies.processEvery1minutes()
   }
 
-  private def createStrategies(users: Seq[User], strategies: String*): Seq[BackTestExecutor] = {
-    users
-      .filter(user => !Strategies.values.exists(_.email == user.email))
-      .flatMap(user => {
-        def createStrategy(strategy: String): Strategy = {
-          val available = true
-          StrategyFactory.create(StrategyState(0L, strategy, available, 1.0), user)
-        }
-        strategies.map(createStrategy)
-      })
+  private def createStrategies(strategies: String*): Seq[BackTestExecutor] = {
+    val dummyUser = User(0, "dummy@xxx.xxx", "", "dummy", "", "")
+    def createStrategy(strategy: String): Strategy = {
+      val available = true
+      StrategyFactory.create(StrategyState(0L, strategy, available, 1.0), dummyUser)
+    }
+    strategies
+      .map(createStrategy)
       .map(st => {
         Strategies.register(st)
         new BackTestExecutor(st)
