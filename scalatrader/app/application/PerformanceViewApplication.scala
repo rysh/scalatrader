@@ -16,8 +16,6 @@ import repository.model.scalatrader.{User, TradingRecord2}
 @Singleton
 class PerformanceViewApplication @Inject()(config: Configuration) {
 
-  val secret = config.get[String]("play.http.secret.key")
-
   case class PerformanceSummary(total: Long, average: Long, maxDD: Long, count: Long)
 
   def amountOfMoney(executions: Seq[MyExecution]): BigDecimal = {

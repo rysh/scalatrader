@@ -1,9 +1,10 @@
 package controllers
 
-import java.time.{ZonedDateTime}
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter.ofPattern
 import java.util
-import javax.inject._
 
+import javax.inject._
 import application.BackTestApplication
 import com.google.gson.Gson
 import domain.backtest.BackTestResults
@@ -19,7 +20,7 @@ import scala.concurrent.Future
 @Singleton
 class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplication) extends AbstractController(cc) with Secured {
 
-  def main() = withAuth { _ => implicit request: Request[AnyContent] =>
+  def main() = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.backtest()).withHeaders("Access-Control-Allow-Origin" -> " *")
   }
 
@@ -37,9 +38,9 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
   case class ChartBar(key: Long, timestamp: String, high: Double, low: Double, open: Double, close: Double, label: String)
   case class TimedValue(timestamp: String, value: Double)
 
-  def chart(): EssentialAction = withAuth { _ => implicit request: Request[AnyContent] =>
+  def chart(): EssentialAction = Action { implicit request: Request[AnyContent] =>
     import DateUtil._
-    val orders = BackTestResults.valuesForChart()
+    val orders = BackTestResults.valuesForChart(app.executors)
     val orderMap: Map[Long, (String, String)] = orders.map(a => (keyOf(ZonedDateTime.parse(a._3.timestamp)), (a._1, a._3.side))).toMap
     val bars = BackTestResults.candles1min.values
       .map(b => {
@@ -65,7 +66,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     (if (inOut == "entry") "E" else "C") + side.substring(0, 1)
   }
 
-  def ticker(): EssentialAction = withAuth { _ => implicit request: Request[AnyContent] =>
+  def ticker(): EssentialAction = Action { implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
@@ -82,7 +83,7 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
     Ok(Json.parse(json)).withHeaders("Access-Control-Allow-Credentials" -> "true")
   }
 
-  def momentum(): EssentialAction = withAuth { _ => implicit request: Request[AnyContent] =>
+  def momentum(): EssentialAction = Action { implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
     val start = DateUtil.of(props.start)
     val end = DateUtil.of(props.end)
@@ -99,8 +100,9 @@ class BackTestController @Inject()(cc: ControllerComponents, app: BackTestApplic
 
   case class BackTestProps(start: String, end: String)
 
-  def run(): EssentialAction = withAuth { _ => implicit request: Request[AnyContent] =>
+  def run(): EssentialAction = Action { implicit request: Request[AnyContent] =>
     val props: BackTestProps = form.bindFromRequest().get
+    println(ZonedDateTime.now.format(ofPattern("yyyy/MM/dd HH:mm:ss Z")))
     start = DateUtil.of(props.start)
     end = DateUtil.of(props.end)
     Future {
