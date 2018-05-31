@@ -16,7 +16,9 @@ class UpTrend4hStrategy(st: StrategyState, user: User) extends Strategy(st, user
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
     val now = DateUtil.now()
 
-    val result = if (!isAvailable || Strategies.coreData.box4h.isEmpty) {
+    val boxes = new TriBox(Strategies.coreData.box1h, Strategies.coreData.box2h, Strategies.coreData.box4h)
+
+    val result = if (!isAvailable || !boxes.isDefined) {
       None
     } else {
       val shortRange = Strategies.coreData.box1h.get
@@ -24,7 +26,7 @@ class UpTrend4hStrategy(st: StrategyState, user: User) extends Strategy(st, user
       val longRange = Strategies.coreData.box4h.get
       lazy val isUpdatingHigh = longRange.isUpdatingHigh(now, 240 * 20)
       if (state.order.isEmpty) {
-        if (shortRange.isUp && middleRange.isUp && longRange.isUp && isUpdatingHigh) {
+        if (boxes.isUp && isUpdatingHigh) {
           entry(Buy)
         } else {
           None

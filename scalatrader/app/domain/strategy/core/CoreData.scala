@@ -117,7 +117,7 @@ class CoreData {
       if (c4h.size >= 240) {
         box4h = Some(Box.of(c4h.toSeq, 240 * 60))
       }
-      if (c4h.size == 120) {
+      if (c4h.size >= 120) {
         box2h = Some(Box.of(c2h.toSeq, 120 * 60))
       }
       box1h = Some(Box.of(c60m.toSeq, 60 * 60))

@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 
 import domain.Side._
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.Bar
+import domain.strategy.box.TriBox
 import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
@@ -12,45 +12,56 @@ import repository.model.scalatrader.User
 class Dtn10mStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   var entryTime: Option[ZonedDateTime] = None
+  var dtn: Dtn = _
+  var lossCut: DtnLossCut = _
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
 
-    val result = if (!isAvailable || Strategies.coreData.box1h.isEmpty) {
-      None
-    } else {
-
-      val recentBars = Strategies.coreData.candles10min.values.takeRight(7).values
-
-      val dtn = new Dtn(recentBars)
-      if (state.order.isEmpty) {
-        if (dtn.breakLong) {
-          entry(Buy)
-        } else if (dtn.breakShort) {
-          entry(Sell)
-        } else {
-          None
-        }
+    val boxes = new TriBox(Strategies.coreData.box10min, Strategies.coreData.box20min, Strategies.coreData.box1h)
+    val result =
+      if (!isAvailable || Strategies.coreData.box1h.isEmpty || !boxes.isDefined) {
+        None
       } else {
-        if (state.order.get.side == Buy) {
-          if (dtn.breakShort) {
-            close()
+
+        val recentBars = Strategies.coreData.candles10min.values.takeRight(7).values
+
+        dtn = new Dtn(recentBars)
+        if (state.order.isEmpty) {
+          if (boxes.isUp && dtn.breakLong) {
+            entry(Buy)
+          } else if (boxes.isDown && dtn.breakShort) {
+            entry(Sell)
           } else {
             None
           }
-        } else { // Sell
-          if (dtn.breakLong) {
-            close()
-          } else {
-            None
+        } else {
+          if (state.order.get.side == Buy) {
+            if (dtn.breakShort || lossCut.leaveRangeOnUnderSide(ticker)) {
+              close()
+            } else {
+              if (lossCut.leaveRangeOnUpperSide(ticker)) {
+                lossCut = dtn.toLossCut
+              }
+              None
+            }
+          } else { // Sell
+            if (dtn.breakLong || lossCut.leaveRangeOnUpperSide(ticker)) {
+              close()
+            } else {
+              if (lossCut.leaveRangeOnUnderSide(ticker)) {
+                lossCut = dtn.toLossCut
+              }
+              None
+            }
           }
         }
       }
-    }
     result
   }
 
   override def entry(size: String): Option[Ordering] = {
     entryTime = Some(DateUtil.now())
+    lossCut = dtn.toLossCut
     super.entry(size)
   }
 }

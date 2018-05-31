@@ -23,7 +23,7 @@ import service.DataLoader
 class BackTestApplication @Inject()(config: Configuration, actorSystem: ActorSystem, @Named("candle") candleActor: ActorRef) {
   Logger.info("init BackTestApplication")
 
-  lazy val executors = createStrategies("Dtn10mStrategy")
+  lazy val executors = createStrategies("UpTrend4hStrategy") //"Dtn1mStrategy")
 
   def run(start: ZonedDateTime, end: ZonedDateTime): Unit = {
     if (!domain.isBackTesting || executors.isEmpty) return
