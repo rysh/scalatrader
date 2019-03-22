@@ -1,6 +1,6 @@
 package domain.margin
 
-import domain.models.{Position, Positions}
+import domain.models.Positions
 
 class Margin(
              /** 預入証拠金 */

@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 
 import domain.Side._
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.Box
 import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
@@ -17,9 +16,7 @@ class DownTrendStrategy(st: StrategyState, user: User) extends Strategy(st, user
     val now = DateUtil.now()
     val momentum = Strategies.coreData.momentum5min.values.takeRight(1).values.headOption
 
-    def mid(box1h: Box) = {
-      (box1h.high + box1h.low) / 2
-    }
+    
 
     val result = if (!isAvailable || Strategies.coreData.box1h.isEmpty || momentum.isEmpty) {
       None

@@ -1,17 +1,14 @@
 package application
 
-import java.math.MathContext
-import java.time.{ZonedDateTime, ZoneId}
+import java.time.ZonedDateTime
 
-import adapter.BitFlyer
 import adapter.BitFlyer.MyExecution
 import com.google.inject.{Inject, Singleton}
 import domain.Side
 import domain.strategy.StrategyState
-import domain.time.DateUtil
-import play.api.{Configuration, Logger}
-import repository.{RecordRepository, StrategyRepository, UserRepository}
-import repository.model.scalatrader.{User, TradingRecord2}
+import play.api.Configuration
+import repository.RecordRepository
+import repository.model.scalatrader.User
 
 @Singleton
 class PerformanceViewApplication @Inject()(config: Configuration) {

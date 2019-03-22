@@ -3,7 +3,6 @@ package domain.backtest
 import java.time.ZonedDateTime
 
 import domain.models
-import domain.models.Ticker
 
 import scala.collection.mutable
 

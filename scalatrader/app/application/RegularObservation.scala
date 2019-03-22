@@ -1,8 +1,8 @@
 package application
 
 import adapter.BitFlyer
-import adapter.aws.{MailContent, SNS, SES}
-import domain.models.{Position, Execution, Collateral, Positions}
+import adapter.aws.{MailContent, SES}
+import domain.models.{Execution, Collateral, Positions}
 import com.google.inject.Inject
 import domain.margin.Margin
 import domain.time.DateUtil

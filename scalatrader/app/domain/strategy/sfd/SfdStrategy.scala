@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 
 import domain.Side._
 import domain.models.{Ticker, Ordering}
-import domain.strategy.core.Box
 import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
 import repository.model.scalatrader.User
@@ -15,7 +14,7 @@ class SfdStrategy(st: StrategyState, user: User) extends Strategy(st, user) {
 
   override def judgeByTicker(ticker: Ticker): Option[Ordering] = {
     import Strategies._
-    val now = DateUtil.now()
+    DateUtil.now()
 
     val result = if (coreData.btcCurrent.isEmpty) {
       None

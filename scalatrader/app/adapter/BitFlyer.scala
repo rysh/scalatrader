@@ -7,7 +7,7 @@ import domain.ProductCode
 import domain.models._
 import domain.util.crypto.HmacSHA256
 import io.circe.Printer
-import skinny.http.{HTTP, Request, Response}
+import skinny.http.{HTTP, Request}
 
 object BitFlyer {
 

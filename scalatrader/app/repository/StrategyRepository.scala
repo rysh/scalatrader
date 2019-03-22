@@ -1,8 +1,6 @@
 package repository
 
 import domain.strategy.StrategyState
-import domain.util.crypto.Aes
-import repository.UserRepository.map
 import repository.model.scalatrader.{User}
 import scalikejdbc.AutoSession
 import scalikejdbc._

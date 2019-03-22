@@ -11,10 +11,10 @@ object SNS {
     val snsClient: AmazonSNS = AmazonSNSClientBuilder.standard().withRegion(Regions.US_EAST_2).build()
 
     val topicArn = "arn:aws:sns:us-east-2:855331286585:scalatrader-notifications"
-    val msg = "My text published to SNS topic with email endpoint"
+    
     val publishRequest = new PublishRequest(topicArn, message)
 
-    val publishResult = snsClient.publish(publishRequest)
+    snsClient.publish(publishRequest)
   }
 
 }

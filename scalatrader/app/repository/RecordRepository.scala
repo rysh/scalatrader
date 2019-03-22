@@ -2,12 +2,8 @@ package repository
 
 import java.time.ZonedDateTime
 
-import adapter.BitFlyer
 import adapter.BitFlyer.MyExecution
-import domain.strategy.StrategyState
-import io.circe
 import models.TradingRecord
-import models.TradingRecord.tr
 import repository.model.scalatrader.TradingRecord2
 import scalikejdbc.{AutoSession, _}
 

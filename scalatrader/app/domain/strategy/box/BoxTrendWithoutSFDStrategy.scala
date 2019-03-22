@@ -5,7 +5,6 @@ import java.time.ZonedDateTime
 import domain.Side._
 import domain.models.{Ticker, Ordering}
 import domain.strategy.Strategies.coreData
-import domain.strategy.core.Box
 import domain.strategy.sfd.SFD
 import domain.strategy.{StrategyState, Strategies, Strategy}
 import domain.time.DateUtil
@@ -19,9 +18,7 @@ class BoxTrendWithoutSFDStrategy(st: StrategyState, user: User) extends Strategy
     val now = DateUtil.now()
     val momentum = Strategies.coreData.momentum5min.values.takeRight(1).values.headOption
 
-    def mid(box1h: Box) = {
-      (box1h.high + box1h.low) / 2
-    }
+    
 
     val result = if (!isAvailable || Strategies.coreData.box1h.isEmpty || momentum.isEmpty) {
       None

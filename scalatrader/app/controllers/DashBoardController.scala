@@ -12,7 +12,6 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
-import scala.collection.JavaConverters
 
 @Singleton
 class DashBoardController @Inject()(cc: ControllerComponents, strategySettingApplication: StrategySettingApplication, performanceApp: PerformanceViewApplication)

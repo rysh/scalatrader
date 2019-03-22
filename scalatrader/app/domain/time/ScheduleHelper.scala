@@ -1,7 +1,7 @@
 package domain.time
 
 import java.time.temporal.ChronoUnit
-import java.time.{ZonedDateTime, ZoneId}
+import java.time.ZonedDateTime
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._

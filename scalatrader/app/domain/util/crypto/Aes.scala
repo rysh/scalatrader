@@ -1,7 +1,6 @@
 package domain.util.crypto
 
 import org.apache.commons.codec.binary.Hex
-import play.Play
 
 object Aes {
 

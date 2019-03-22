@@ -3,7 +3,6 @@ package domain.strategy.turtle
 import java.time.ZonedDateTime
 import java.time.temporal.{ChronoUnit, TemporalUnit}
 
-import com.google.gson.Gson
 import domain.models
 import domain.models.Ticker
 import domain.strategy.core.{Bar, Box}

@@ -1,6 +1,5 @@
 package application.settings
 
-import domain.user
 import domain.user.Settings
 import domain.util.crypto.{Md5, Aes}
 import scalikejdbc._
